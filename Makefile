@@ -9,3 +9,7 @@ install: alien.so
 
 clean:
 	rm alien.so alien.o
+
+upload:
+	darcs dist -d alien-current
+	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs alien-current.tar.gz
