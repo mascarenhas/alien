@@ -59,12 +59,20 @@ static void alien_unload (void *lib) {
 
 static void *alien_load (lua_State *L, const char *libname) {
   char *path;
+  const char *path_prefix, *path_suffix;
   void *lib;
-  path = (char*)malloc(strlen(libname) + strlen(LIB_EXT) + strlen("lib") + 1);
+  if(libname[0] == '/') {
+    path_prefix = "";
+    path_suffix = "";
+  } else {
+    path_prefix = "lib";
+    path_suffix = LIB_EXT;
+  }
+  path = (char*)malloc(strlen(libname) + strlen(path_prefix) + strlen(path_suffix) + 1);
   if(path) {
-    strcpy(path, "lib");
+    strcpy(path, path_prefix);
     strcat(path, libname);
-    strcat(path, LIB_EXT);
+    strcat(path, path_suffix);
     lib = dlopen(path, RTLD_NOW);
     free(path);
     if (lib == NULL) lua_pushstring(L, dlerror());
@@ -75,6 +83,7 @@ static void *alien_load (lua_State *L, const char *libname) {
 }
 
 static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
+  if(!lib) lib = RTLD_DEFAULT;
   void *f = dlsym(lib, sym);
   if (f == NULL) lua_pushstring(L, dlerror());
   return f;
@@ -82,7 +91,6 @@ static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
 
 #elif defined(USE_LOADLIBRARY)
 
-#define LIB_EXT ".dll"
 #define PLATFORM "windows"
 
 #include <windows.h>
@@ -102,110 +110,19 @@ static void alien_unload (void *lib) {
 }
 
 static void *alien_load (lua_State *L, const char *libname) {
-  char *path;
-  void *lib;
-  path = (char*)malloc(strlen(libname) + strlen(LIB_EXT) + 1);
-  if(path) {
-    strcpy(path, libname);
-    strcat(path, LIB_EXT);
-    HINSTANCE lib = LoadLibrary(path);
-    free(path);
-    if (lib == NULL) pusherror(L);
-    return lib;
-  } else {
-    luaL_error(L, "out of memory!");
-  }
+  HINSTANCE lib = LoadLibrary(libname);
+  if (lib == NULL) pusherror(L);
+  return lib;
 }
 
 static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
-  void *f = (lua_CFunction)GetProcAddress((HINSTANCE)lib, sym);
+  HINSTANCE module;
+  void *f;
+  module = (HINSTANCE)lib;
+  if(!module) module = GetModuleHandle();
+  f = (lua_CFunction)GetProcAddress(module, sym);
   if (f == NULL) pusherror(L);
   return f;
-}
-
-#elif defined(USE_DYLD)
-
-#define LIB_EXT ".so"
-#define PLATFORM "osx"
-
-#include <mach-o/dyld.h>
-
-static void pusherror (lua_State *L) {
-  const char *err_str;
-  const char *err_file;
-  NSLinkEditErrors err;
-  int err_num;
-  NSLinkEditError(&err, &err_num, &err_file, &err_str);
-  lua_pushstring(L, err_str);
-}
-
-static const char *errorfromcode (NSObjectFileImageReturnCode ret) {
-  switch (ret) {
-    case NSObjectFileImageInappropriateFile:
-      return "file is not a bundle";
-    case NSObjectFileImageArch:
-      return "library is for wrong CPU type";
-    case NSObjectFileImageFormat:
-      return "bad format";
-    case NSObjectFileImageAccess:
-      return "cannot access file";
-    case NSObjectFileImageFailure:
-    default:
-      return "unable to load library";
-  }
-}
-
-static void alien_unload (void *lib) {
-  NSUnLinkModule((NSModule)lib, NSUNLINKMODULE_OPTION_RESET_LAZY_REFERENCES);
-}
-
-static void *alien_load (lua_State *L, const char *libname) {
-  NSObjectFileImage img;
-  NSObjectFileImageReturnCode ret;
-  char *path;
-  void *lib;
-  if(!_dyld_present()) {
-    lua_pushliteral(L, "dyld not present");
-    return NULL;
-  }
-  path = (char*)malloc(strlen(libname) + strlen(LIB_EXT) + 1);
-  if(path) {
-    strcpy(path, libname);
-    strcat(path, LIB_EXT);
-    ret = NSCreateObjectFileImageFromFile(path, &img);
-    free(path);
-    if (ret == NSObjectFileImageSuccess) {
-      NSModule mod = NSLinkModule(img, path, NSLINKMODULE_OPTION_PRIVATE |
-				  NSLINKMODULE_OPTION_RETURN_ON_ERROR);
-      NSDestroyObjectFileImage(img);
-      if (mod == NULL) pusherror(L);
-      return mod;
-    }
-    lua_pushstring(L, errorfromcode(ret));
-    return NULL;
-  } else {
-    luaL_error(L, "out of memory!");
-  }
-}
-
-static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
-  char *sym_name;
-  NSSymbol nss;
-  sym_name = (char *)malloc(strlen(sym) + 2);
-  if(sym_name) {
-    strcpy(sym_name, "_");
-    strcat(sym_name, sym);
-    NSLookupSymbolInModule((NSModule)lib, sym_name);
-    free(sym_name);
-    if (nss == NULL) {
-      lua_pushfstring(L, "symbol %s not found", sym);
-      return NULL;
-    }
-    return NSAddressOfSymbol(nss);
-  } else {
-    lua_pushstring(L, "out of memory");
-    return NULL;
-  }
 }
 
 #else
@@ -458,22 +375,29 @@ static const struct luaL_reg alienlib[] = {
   {NULL, NULL},
 };
 
+static int alien_register_main(lua_State *L) {
+  alien_Library *al;
+  luaL_register (L, "alien", alienlib);
+  lua_pushliteral(L, PLATFORM);
+  lua_setfield(L, -2, "platform");
+  al = (alien_Library *)lua_newuserdata(L, sizeof(alien_Library));
+  al->lib = NULL;
+  al->name = "default";
+  luaL_getmetatable(L, ALIEN_LIBRARY_META);
+  lua_setmetatable(L, -2);
+  lua_setfield(L, -2, "default");
+  lua_newtable(L);
+  lua_pushcclosure(L, alien_get, 1);
+  lua_setfield(L, -2, "load");
+  lua_newtable(L);
+  lua_getfield(L, -2, "load");
+  lua_setfield(L, -2, "__index");
+  lua_setmetatable(L, -2);
+}
+
 int luaopen_alien(lua_State *L) {
   alien_register_library_meta(L);
   alien_register_function_meta(L);
-  luaL_register (L, "alien", alienlib);
-  lua_pushliteral(L, "platform");
-  lua_pushliteral(L, PLATFORM);
-  lua_settable(L, -3);
-  lua_pushliteral(L, "load");
-  lua_newtable(L);
-  lua_pushcclosure(L, alien_get, 1);
-  lua_settable(L, -3);
-  lua_newtable(L);
-  lua_pushliteral(L, "__index");
-  lua_pushliteral(L, "load");
-  lua_gettable(L, -4);
-  lua_settable(L, -3);
-  lua_setmetatable(L, -2);
+  alien_register_main(L);
   return 1;
 }
