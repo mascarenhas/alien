@@ -351,7 +351,8 @@ static int alien_register_library_meta(lua_State *L) {
   lua_newtable(L);
   lua_pushcclosure(L, alien_library_get, 1);
   lua_settable(L, -3);
-  return 1;
+  lua_pop(L, 1);
+  return 0;
 }
 
 static int alien_register_function_meta(lua_State *L) {
@@ -365,7 +366,8 @@ static int alien_register_function_meta(lua_State *L) {
   lua_pushliteral(L, "__call");
   lua_pushcfunction(L, alien_function_call);
   lua_settable(L, -3);
-  return 1;
+  lua_pop(L, 1);
+  return 0;
 }
 
 static const struct luaL_reg alienlib[] = {
@@ -377,7 +379,7 @@ static const struct luaL_reg alienlib[] = {
 
 static int alien_register_main(lua_State *L) {
   alien_Library *al;
-  luaL_register (L, "alien", alienlib);
+  luaL_register (L, lua_tostring(L, -1), alienlib);
   lua_pushliteral(L, PLATFORM);
   lua_setfield(L, -2, "platform");
   al = (alien_Library *)lua_newuserdata(L, sizeof(alien_Library));
@@ -396,8 +398,8 @@ static int alien_register_main(lua_State *L) {
 }
 
 int luaopen_alien(lua_State *L) {
+  alien_register_main(L);
   alien_register_library_meta(L);
   alien_register_function_meta(L);
-  alien_register_main(L);
   return 1;
 }
