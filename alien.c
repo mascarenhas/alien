@@ -51,6 +51,10 @@ typedef struct _alien_Function {
 #define PLATFORM "unix"
 #endif
 
+#ifndef RTLD_DEFAULT
+#define RTLD_DEFAULT 0
+#endif
+
 #include <dlfcn.h>
 
 static void alien_unload (void *lib) {
@@ -403,8 +407,8 @@ static int alien_register_main(lua_State *L) {
 }
 
 int luaopen_alien(lua_State *L) {
-  alien_register_main(L);
   alien_register_library_meta(L);
   alien_register_function_meta(L);
+  alien_register_main(L);
   return 1;
 }
