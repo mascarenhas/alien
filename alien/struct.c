@@ -267,10 +267,18 @@ static int b_unpack (lua_State *L) {
   int native;
   const char *fmt = luaL_checkstring(L, 1);
   size_t ld;
-  const char *data = luaL_checklstring(L, 2, &ld);
-  int pos = luaL_optint(L, 3, 1) - 1;
-  int endian = getendianess(&fmt, &native);
-  int align = getalign(&fmt);
+  int pos, align, endian;
+  const char *data;
+  if(lua_isuserdata(L, 2)) {
+    data = (const char*)lua_touserdata(L, 2);
+    ld = (size_t)luaL_checkinteger(L, 3);
+    pos = 0;
+  } else {
+    data = luaL_checklstring(L, 2, &ld);
+    pos = luaL_optint(L, 3, 1) - 1;
+  }
+  endian = getendianess(&fmt, &native);
+  align = getalign(&fmt);
   lua_settop(L, 2);
   while (*fmt) {
     int opt = *fmt++;

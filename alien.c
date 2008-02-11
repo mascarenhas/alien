@@ -275,7 +275,12 @@ static int alien_function_call(lua_State *L) {
     case CHAR:
       av_int(alist, lua_tointeger(L, j)); break;
     case DOUBLE: av_double(alist, lua_tonumber(L, j)); break;
-    case STRING: av_ptr(alist, char*, lua_tostring(L, j)); break;
+    case STRING:
+      if(lua_isuserdata(L, j))
+	av_ptr(alist, char*, lua_touserdata(L, j));
+      else
+	av_ptr(alist, char*, lua_tostring(L, j)); 
+      break;
     case PTR: av_ptr(alist, void*, lua_touserdata(L, j)); break;
     default: luaL_error(L, "alien: parameter %i is of unknown type (function %s, library %s)", j, 
 			af->name, af->lib->name);
