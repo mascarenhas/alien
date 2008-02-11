@@ -377,7 +377,7 @@ static int alien_register_function_meta(lua_State *L) {
 }
 
 static const struct luaL_reg alienlib[] = {
-  {"register", alien_register},
+  {"new_tag", alien_register},
   {"wrap", alien_pack},
   {"unwrap", alien_unpack},
   {NULL, NULL},
