@@ -2,8 +2,8 @@
 require "aio"
 require "thread"
 
-local function tail()
-  local f = aio.popen("tail -f /var/log/apache2/error.log", "r")
+local function tail(file)
+  local f = aio.popen("tail -f " .. file, "r")
   local lines = f:lines()
   local line = lines()
   while line do
@@ -12,7 +12,8 @@ local function tail()
   end
 end
 
-thread.new(tail)
+thread.new(function () return tail("/var/log/apache2/error.log") end)
+thread.new(function () return tail("/var/log/apache2/access.log") end)
 
 local i = 0
 
