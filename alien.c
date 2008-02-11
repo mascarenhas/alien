@@ -440,7 +440,7 @@ static int alien_function_call(lua_State *L) {
       if(lua_isuserdata(L, j))
 	av_ptr(alist, char*, lua_isnil(L, j) ? NULL : lua_touserdata(L, j));
       else
-	av_ptr(alist, char*, lua_tostring(L, j)); 
+	av_ptr(alist, char*, lua_isnil(L, j) ? NULL : lua_tostring(L, j)); 
       break;
     case CALLBACK: av_ptr(alist, void*, 
 			  *((__TR_function*)luaL_checkudata(L, j, ALIEN_CALLBACK_META))); break;
