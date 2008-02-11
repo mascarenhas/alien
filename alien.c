@@ -318,8 +318,7 @@ static int alien_function_gc(lua_State *L) {
 
 static int alien_register(lua_State *L) {
   const char *meta = luaL_checkstring(L, 1);
-  lua_pushfstring(L, "alien_meta_%s", meta);
-  luaL_newmetatable(L, lua_tostring(L, -1));
+  luaL_newmetatable(L, meta);
   return 1;
 }
 
@@ -331,8 +330,7 @@ static int alien_pack(lua_State *L) {
   ud[0] = (void *)(lua_gettop(L) - 2);
   for(i = 1; i < lua_gettop(L) - 1 ; i++)
     ud[i] = lua_touserdata(L, i + 1);
-  lua_pushfstring(L, "alien_meta_%s", meta);
-  luaL_getmetatable(L, lua_tostring(L, -1));
+  luaL_getmetatable(L, meta);
   lua_setmetatable(L, -3);
   lua_pushvalue(L, -2);
   return 1;
@@ -342,8 +340,7 @@ static int alien_unpack(lua_State *L) {
   int size, i;
   void **ud;
   const char *meta = luaL_checkstring(L, 1);
-  lua_pushfstring(L, "alien_meta_%s", meta);
-  ud = (void **)luaL_checkudata(L, 2, lua_tostring(L, -1));
+  ud = (void **)luaL_checkudata(L, 2, meta);
   luaL_argcheck(L, ud != NULL, 2, "userdata has wrong metatable");
   size = (int)ud[0];
   for(i = 1; i <= size; i++)
