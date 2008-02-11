@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "lua.h"
 #include "lualib.h"
@@ -33,6 +34,14 @@ typedef struct _alien_Function {
   int nparams;
   alien_Type *params;
 } alien_Function;
+
+typedef struct _alien_Wrap {
+  alien_Type tag;
+  union {
+    void *p;
+    int i;
+  } val;
+} alien_Wrap;
 
 #if defined(ARCH_OSX)
 
@@ -234,6 +243,15 @@ static int alien_library_get(lua_State *L) {
   }
 }
 
+static int alien_sizeof(lua_State *L) {
+  static const int sizes[] = {sizeof(int), sizeof(double), sizeof(char), 
+			     sizeof(char*), sizeof(void*)};
+  static const char *const typenames[] = {"int", "double", "char", "string", 
+					  "pointer", NULL};
+  lua_pushnumber(L, sizes[luaL_checkoption(L, 1, "char", typenames)]);
+  return 1;
+}
+
 static int alien_function_types(lua_State *L) {
   static const int type[] = {VOID, INT, DOUBLE, CHAR, STRING, PTR};
   static const char *const typenames[] = {"void", "int", "double", "char", "string", "pointer", NULL};
@@ -324,28 +342,39 @@ static int alien_register(lua_State *L) {
 
 static int alien_pack(lua_State *L) {
   int i;
-  void **ud;
+  alien_Wrap *ud;
   const char *meta = luaL_checkstring(L, 1);
-  ud = (void**)lua_newuserdata(L, sizeof(void*) * lua_gettop(L));
-  ud[0] = (void *)(lua_gettop(L) - 2);
-  for(i = 1; i < lua_gettop(L) - 1 ; i++)
-    ud[i] = lua_touserdata(L, i + 1);
+  ud = (alien_Wrap*)lua_newuserdata(L, sizeof(alien_Wrap) * lua_gettop(L));
+  for(i = 2; i <= lua_gettop(L) - 1 ; i++) {
+    if(lua_isuserdata(L, i)) {
+      ud[i - 2].tag = PTR;
+      ud[i - 2].val.p = lua_touserdata(L, i);
+    } else {
+      ud[i - 2].tag = INT;
+      ud[i - 2].val.i = lua_tointeger(L, i);
+    }
+  }
+  ud[lua_gettop(L) - 2].tag = VOID;
   luaL_getmetatable(L, meta);
-  lua_setmetatable(L, -3);
-  lua_pushvalue(L, -2);
+  lua_setmetatable(L, -2);
   return 1;
 }
 
 static int alien_unpack(lua_State *L) {
   int size, i;
-  void **ud;
+  alien_Wrap *ud;
   const char *meta = luaL_checkstring(L, 1);
-  ud = (void **)luaL_checkudata(L, 2, meta);
+  ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
   luaL_argcheck(L, ud != NULL, 2, "userdata has wrong metatable");
-  size = (int)ud[0];
-  for(i = 1; i <= size; i++)
-    lua_pushlightuserdata(L, ud[i]);
-  return size;
+  while(ud->tag != VOID) {
+    switch(ud->tag) {
+    case INT: lua_pushnumber(L, ud->val.i); break;
+    case PTR: lua_pushlightuserdata(L, ud->val.p); break;
+    default: luaL_error(L, "wrong type in wrapped value");
+    }
+    ud++;
+  }
+  return lua_gettop(L) - 2;
 }
 
 static int alien_register_library_meta(lua_State *L) {
@@ -376,10 +405,55 @@ static int alien_register_function_meta(lua_State *L) {
   return 0;
 }
 
+static int alien_errno(lua_State *L) {
+  lua_pushnumber(L, errno);
+  return 1;
+}
+
+static int alien_udata2str(lua_State *L) {
+  char *ud;
+  int size;
+  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+  size = luaL_checkinteger(L, 2);
+  ud = (char *)lua_touserdata(L, 1);
+  lua_pushlstring(L, ud, size);
+  return 1;
+}
+
+static int alien_udata2double(lua_State *L) {
+  double *ud;
+  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+  ud = (double *)lua_touserdata(L, 1);
+  lua_pushnumber(L, *ud);
+  return 1;
+}
+
+static int alien_udata2int(lua_State *L) {
+  int *ud;
+  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+  ud = (int *)lua_touserdata(L, 1);
+  lua_pushnumber(L, *ud);
+  return 1;
+}
+
+static int alien_isnull(lua_State *L) {
+  void *ud;
+  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+  ud = lua_touserdata(L, 1);
+  lua_pushboolean(L, ud == NULL);
+  return 1;
+}
+
 static const struct luaL_reg alienlib[] = {
   {"new_tag", alien_register},
   {"wrap", alien_pack},
   {"unwrap", alien_unpack},
+  {"errno", alien_errno},
+  {"udata2str", alien_udata2str},
+  {"isnull", alien_isnull},
+  {"sizeof", alien_sizeof},
+  {"udata2double", alien_udata2double},
+  {"udata2int", alien_udata2double},
   {NULL, NULL},
 };
 
