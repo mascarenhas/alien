@@ -1,6 +1,7 @@
 
 require "alien"
 require "bit"
+require "thread"
 
 module(..., package.seeall)
 
@@ -21,40 +22,6 @@ libc.fscanf:types("int", "pointer", "string", "ref double")
 libc.fcntl:types("int", "int", "int", "int")
 libc.popen:types("pointer", "string", "string")
 libc.fileno:types("int", "pointer")
-
-local event = alien.event
-
-event.event_init:types("pointer")
-event.event_set:types("void", "pointer", "int", "int", "callback", "pointer")
-event.event_add:types("int", "pointer", "pointer")
-event.event_dispatch:types("int")
-
-event.event_init()
-
-thread = {}
-
-local EV_SIZE = 84 -- MAGIC!!!!!
-local EV_READ = 0x02
-local EV_WRITE = 0x04
-
-local function handle(fd, event, arg)
-end
-
-local handle_cb = alien.new_callback(handle, "void", "int", "int",
-					  "pointer")
-
-libc.malloc:types("pointer", "int")
-libc.free:types("void", "pointer")
-
-function thread.wait(tag, ev, fd)
-  local evfifo = libc.malloc(EV_SIZE)
-  local ev_code
-  if ev == "read" then ev_code = EV_READ else ev_code = EV_WRITE end
-  event.event_set(evfifo, fd, ev_code, handle_cb, evfifo)
-  event.event_add(evfifo, nil)
-  event.event_dispatch()
-  libc.free(evfifo)
-end
 
 local O_ACCMODE = tonumber("0003", 8)
 local O_RDONLY = tonumber("00", 8)
@@ -145,7 +112,7 @@ local function aio_read_bytes(fd, n)
       local en = alien.errno()
       if en == EAGAIN then
 	r = 1
-	thread.wait("io", "read", fd)
+	thread.yield("io", "read", fd)
       else
 	return nil, libc.strerror(en)
       end
@@ -167,7 +134,7 @@ local function aio_read_number(fd, stream)
     if libc.ferror(stream) ~= 0 then
       local en = alien.errno()
       if en == EAGAIN then
-	thread.wait("io", "read", fd)
+	thread.yield("io", "read", fd)
 	return aio_read_number(stream)
       else
 	return nil, libc.strerror(en)
@@ -191,7 +158,7 @@ local function aio_read_line(fd, stream)
       if libc.ferror(stream) ~= 0 then
 	local en = alien.errno()
 	if en == EAGAIN then
-	  thread.wait("io", "read", fd)
+	  thread.yield("io", "read", fd)
 	  again = true
 	else
 	  return nil, libc.strerror(en)
@@ -255,7 +222,7 @@ local function aio_write_item(fd, item)
   if w == -1 then
     local en = alien.errno()
     if en == EAGAIN then
-      thread.wait("io", "write", fd)
+      thread.yield("io", "write", fd)
       return aio_write_item(fd, s)
     else
       return false
