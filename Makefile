@@ -29,7 +29,8 @@ clean:
 
 upload:
 	darcs dist -d alien-current
-	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs alien-current.tar.gz	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs doc/index.html
+	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs alien-current.tar.gz
+	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs doc/index.html
 
 tests/libalientest.so: tests/alientest.c
 	$(CC) $(LIB_OPTION) $(CFLAGS) -o tests/libalientest.so tests/alientest.c
