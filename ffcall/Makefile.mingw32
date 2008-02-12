@@ -1,0 +1,65 @@
+# -*-Makefile-*- for ffcall
+
+#### Start of system configuration section. ####
+
+# Directories used by "make install":
+prefix = /usr/local
+local_prefix = /usr/local
+exec_prefix = $(prefix)
+libdir = $(exec_prefix)/lib
+includedir = $(prefix)/include
+mandir = $(prefix)/man
+
+# Programs used by "make":
+RM = rm -f
+
+#### End of system configuration section. ####
+
+SHELL = /bin/sh
+
+all : force
+	$(MAKE) -C avcall -f Makefile.mingw32 all
+	$(MAKE) -C vacall -f Makefile.mingw32 all
+	$(MAKE) -C trampoline -f Makefile.mingw32 all
+	$(MAKE) -C callback -f Makefile.mingw32 all
+
+check : force
+	$(MAKE) -C avcall -f Makefile.mingw32 check
+	$(MAKE) -C vacall -f Makefile.mingw32 check
+	$(MAKE) -C trampoline -f Makefile.mingw32 check
+	$(MAKE) -C callback -f Makefile.mingw32 check
+
+extracheck : force
+	$(MAKE) -C avcall -f Makefile.mingw32 extracheck
+	$(MAKE) -C vacall -f Makefile.mingw32 extracheck
+	$(MAKE) -C trampoline -f Makefile.mingw32 extracheck
+	$(MAKE) -C callback -f Makefile.mingw32 extracheck
+
+mostlyclean : force
+	$(MAKE) -C avcall -f Makefile.mingw32 mostlyclean
+	$(MAKE) -C vacall -f Makefile.mingw32 mostlyclean
+	$(MAKE) -C trampoline -f Makefile.mingw32 mostlyclean
+	$(MAKE) -C callback -f Makefile.mingw32 mostlyclean
+
+clean : force
+	$(MAKE) -C avcall -f Makefile.mingw32 clean
+	$(MAKE) -C vacall -f Makefile.mingw32 clean
+	$(MAKE) -C trampoline -f Makefile.mingw32 clean
+	$(MAKE) -C callback -f Makefile.mingw32 clean
+
+distclean : force
+	$(MAKE) -C avcall -f Makefile.mingw32 distclean
+	$(MAKE) -C vacall -f Makefile.mingw32 distclean
+	$(MAKE) -C trampoline -f Makefile.mingw32 distclean
+	$(MAKE) -C callback -f Makefile.mingw32 distclean
+	$(RM) config.status config.log config.cache Makefile
+
+maintainer-clean : force
+	$(MAKE) -C avcall -f Makefile.mingw32 maintainer-clean
+	$(MAKE) -C vacall -f Makefile.mingw32 maintainer-clean
+	$(MAKE) -C trampoline -f Makefile.mingw32 maintainer-clean
+	$(MAKE) -C callback -f Makefile.mingw32 maintainer-clean
+	$(RM) config.status config.log config.cache Makefile
+
+force :
+

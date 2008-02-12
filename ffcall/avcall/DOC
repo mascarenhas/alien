@@ -1,0 +1,132 @@
+  Copyright 1993 Bill Triggs, <Bill.Triggs@inrialpes.fr>
+
+  Copyright 1995 Bruno Haible, <bruno@clisp.org>
+
+  This is free software distributed under the GNU General Public
+  Licence described in the file COPYING. Contact the author if 
+  you don't have this or can't live with it. There is ABSOLUTELY 
+  NO WARRANTY, explicit or implied, on this software.
+
+----------------------------------------------------------------------
+	AVCALL --- a foreign function interface to ANSI-C
+----------------------------------------------------------------------
+
+This library allows arbitrary C functions to be called from embedded
+interpreters, debuggers, RPC calls, etc, by building up a C argument
+list incrementally from explicitly typed arguments. This considerably
+reduces the amount of boilerplate glue code required for such
+applications.
+
+The interface is like stdargs/varargs in reverse and is intended to be as
+portable as possible, however the details of function calling are highly
+machine-dependent so your mileage may vary. At the very least there are
+typically built-in limits on the size of the argument-list. The
+argument-pushing macros all return 0 for success, < 0 for error (eg,
+arg-list overflow).
+
+Installation instructions are in the Makefile.
+
+----------------------------------------------------------------------
+DECLARE ALIST -> OPEN ALIST -> SET FLAGS -> PUSH ARGS -> CALL FUNCTION
+----------------------------------------------------------------------
+
+1) Declare the argument list structure:
+
+	#include "avcall.h"
+	{
+	  av_alist alist;
+
+2) Set any special flags. This is architecture and compiler dependent.
+Sometimes, compiler options must be flagged by #defines before the
+#include <avcall.h>. Usually, however, the `configure' script should
+have determined which #defines are needed and put them at the head of
+avcall.h.
+
+3) Initialise the alist with the function address and return type. 
+There is a separate macro for each built-in C type (char, int, float, etc).
+Eg,
+	av_start_int(alist,&func,&return_addr);
+or
+	av_start_double(alist,&func,&return_addr);
+etc.
+Functions returning a structure or pointer take an extra type argument:
+Eg,
+	av_start_struct(alist,&func,STRUCT_OR_UNION_TYPE,SPLITTABLE,&return_addr);
+or
+	av_start_ptr(alist,&func,POINTER_TYPE,&return_addr);
+
+
+4) Push the arguments one by one in order. There is a macro for each
+built-in C type, eg:
+	av_int(alist,value);
+or
+	av_double(alist,value);
+
+Structure and pointer arguments require an extra type argument:
+
+	av_struct(alist,STRUCT_TYPE,value);
+or
+	av_ptr(alist,POINTER_TYPE,value);
+
+5) Call the function, set the return value, and tidy up:
+
+	av_call(alist);
+
+----------------------------------------------------------------------
+			NOTES
+
+1) Functions declared in K&R style (ie, without a typed arglist) must
+use default K&R expression promotions (char,short-->int; float-->double)
+whether they are compiled by a K&R or an ANSI compiler, because the 
+true arg types may not be known at the call point. Such functions
+back-convert their arguments to the declared types on function entry.
+The only way to pass a true char, short or float (eg, from K&R C to an 
+ANSI or varargs function) is by an explicit cast: foo((char)c,(float)f).
+
+ !! Hence, for args of functions declared in K&R style you should use
+ !! av_int() and av_double() instead of av_{char,short}() and av_float().
+
+If you use a K&R compiler, the avcall header files may detect this and 
+define av_float, etc, appropriately, but with an ANSI compiler there's 
+no way avcall can know how a function was declared, so you have to 
+correct the argument types yourself. Similarly, some K&R compilers (such 
+as Sun cc on the sparc) actually return a float as a double.
+
+2) There are too many possible structure and pointer types to have a
+separate macro for each, so the pointer and structure macros take an
+explicit type argument which may be used (eg) to calculate the size of
+the structure. On most architectures this provides enough information
+for the compiler to make the proper call, but there will always be
+machines with odd alignment requirements or argument passing
+conventions, unusual reprentations for function, char, or void pointers,
+etc, for which this scheme will not suffice.  These machines may define
+additional av_start_TYPE and av_TYPE macros.
+
+3) The current implementations are pretty flakey in places. I'm happy to 
+accept new ports and (properly tested) fixes and enhancements. In
+particular, many of the routines waste a lot of stack space and generally
+do hairy things with stack frames - a bit more assembly code would probably 
+help things along quite a bit, but I don't speak assembler at all well.
+
+4) The macros required for all this are pretty grungy, but it does seem
+to be possible to port avcall to many machines. Some of the grunge is
+usually handled by a C or assembly level glue routine that actually
+pushes the arguments, calls the function and unpacks any return value.
+This is called __builtin_avcall(). A precompiled assembler version for
+people without gcc is also made available. The routine should ideally
+have flags for the passing conventions of other compilers.
+----------------------------------------------------------------------
+		ACKNOWLEDGEMENTS
+
+I was aware of two similar but rather more restricted foreign function 
+interfaces when the initial version of this library was written, although
+(I believe) all of the present code is my own: the C interface in the zelk
+extensions to Oliver Laumann's <net@cs.tu-berlin.de> Elk scheme interpreter
+by J.P.Lewis, NEC C&C Research, <zilla@ccrl.nj.nec.com> (for Sun4 and SGI); 
+and Roy Featherstone's <roy@robots.oxford.ac.uk> personal C interface 
+library for Sun3,4 and SGI. I also looked at the comments and some of the 
+code in the machine-dependent parts of the GCC and GDB distributions, and 
+put the GCC __asm__ extensions to good use. Thanks guys!
+
+This work was partly supported by EC-ESPRIT Basic Research Action SECOND.
+----------------------------------------------------------------------

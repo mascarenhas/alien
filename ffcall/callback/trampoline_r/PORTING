@@ -1,0 +1,95 @@
+The list of CPUs and platforms TRAMPOLINE has been ported to can be found
+at the top of file trampoline.c.
+
+To port TRAMPOLINE to a new platform, three issues may have to be resolved:
+A. a new CPU - how to build the trampoline?
+B. a new OS - how to make code in malloc'ed memory executable?
+C. a new CPU or OS - how to flush the instruction cache?
+
+
+A. a new CPU - how to build the trampoline?
+
+   The trampoline is a short sequence of machine instructions which puts
+   the constant <data> into <variable>, then jumps to <address>. The only
+   registers that are allowed to be modified are call-used-registers. No
+   stack manipulations are allowed since the trampoline has to pass its
+   arguments along to the function at <address>.
+
+   1. To find out which instructions are available for "move"/"store" and
+      "jump", compile proto.c for your CPU:
+
+          make -f Makefile.devel proto-${CPU}.s
+      or
+          gcc -O2 -fomit-frame-pointer -S proto.c -o proto-${CPU}.s
+
+   2. Write down the instructions for the trampoline in a file tramp-${CPU}.s,
+      using constants for <data>, <variable>, <address>. Assemble it:
+
+          gcc -c tramp-${CPU}.s
+
+      Verify that the jump actually goes to <address>. (Beware: Some CPUs have
+      program-counter relative jumps.)
+
+          gdb tramp-${CPU}.o
+          disassemble tramp
+
+   3. Take a hex dump of tramp-${CPU}.o
+
+          hexdump -e '"%06.6_ax " 16/1 " %02X" "\n"' < tramp-${CPU}.o
+      or
+          od -tx1 -Ax < tramp-${CPU}.o
+      or
+          od -x +x < tramp-${CPU}.o
+
+      Look out for the magic numbers you used for <data>, <variable> and
+      <address>.
+
+   4. Write the code which builds up a trampoline in memory, in trampoline.c.
+
+   5. Try it:
+
+          make
+          make check1
+
+   6. Write the is_tramp() macro and the tramp_xxx() accessor macros
+      in trampoline.c.
+
+   7. Try it:
+
+          make
+          make check
+
+
+B. a new OS - how to make code in malloc'ed memory executable?
+
+   `configure' will find out whether code stored in malloc'ed memory is
+   executable, or whether virtual memory protections have to be set in order
+   to allow this. (The test is pretty simple: it copies a small function
+   to malloc'ed memory and tries to executed it. The test could also fail
+   because the compiler produced non-position-independent code or because
+   of alignment issues.)
+
+   To set virtual memory protections on a page of memory, your system should
+   provide the mprotect() and getpagesize() functions. If it does not, find
+   a substitute.
+
+
+C. a new CPU or OS - how to flush the instruction cache?
+
+   CPUs which have separate data and instruction caches need to flush
+   (part of) the instruction cache when alloc_trampoline() is called.
+   (There may have been an old trampoline at the same location, and the
+   instruction cache is not updated when the new trampoline is built.
+   The effect can be that when the new trampoline is called, the old one
+   will still be executed.)
+
+   To flush the instruction cache, some CPUs have special instruction which
+   can be put into gcc "asm" statements. On some CPUs these instructions are
+   privileged, you therefore need to call some system or library function.
+   On other CPUs, the only way to flush the instruction cache is to execute
+   a long sequence of "nop" or "jump" instructions. This is hairy.
+
+
+When you are done with porting to a new platform, or even if TRAMPOLINE
+passes the "make check" out of the box without modifications, please report
+your results to the author of TRAMPOLINE, for inclusion in the next release.

@@ -1,0 +1,9 @@
+This directory contains a reentrant version of the vacall package.
+
+Instead of using a global variable for the function to be called,
+a pointer is passed in a special CPU register, pointing to:
+  - a function code pointer in the first word,
+  - a data word in the second word, to be passed before the va_alist.
+
+The include file <vacall.h> is renamed to <vacall_r.h>.
+

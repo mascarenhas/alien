@@ -1,0 +1,104 @@
+.TH TRAMPOLINE 3 "25 October 1997"
+.SH NAME
+trampoline \- closures as first-class C functions
+.SH SYNOPSIS
+.B #include <trampoline.h>
+.LP
+.B function = alloc_trampoline(address, variable, data);
+.LP
+.B free_trampoline(function);
+.LP
+.nf
+.B is_trampoline(function)
+.B trampoline_address(function)
+.B trampoline_variable(function)
+.B trampoline_data(function)
+.fi
+.SH DESCRIPTION
+.LP
+These functions implement
+.I closures
+as first-class C functions.
+A closure consists of a regular C function and a piece of data
+which gets passed to the C function when the closure is called.
+
+Closures as
+.I first-class C functions
+means that they fit into a function
+pointer and can be called exactly like any other C function.
+.IB function " = alloc_trampoline(" address ", " variable ", " data ")"
+allocates a closure. When
+.I function
+gets called, it stores
+.I data
+in the variable
+.I variable
+and calls the C function at
+.IR address .
+The function at
+.I address
+is responsible for fetching
+.I data
+out of
+.I variable
+immediately, before execution of any other function call.
+
+This is much like
+.BR gcc "'s"
+local functions, except that the GNU C local functions have dynamic extent
+(i.e. are deallocated when the creating function returns), while
+.I trampoline
+provides functions with indefinite extent:
+.I function
+is only deallocated when
+.BI free_trampoline( function )
+is called.
+
+.BI "is_trampoline(" function ")"
+checks whether the C function
+.I function
+was produced by a call to
+.IR alloc_trampoline .
+If this returns true, the arguments given to
+.I alloc_trampoline
+can be retrieved:
+.RS 4
+.LP
+.BI "trampoline_address(" function ")"
+returns
+.IR address ,
+.LP
+.BI "trampoline_variable(" function ")"
+returns
+.IR variable ,
+.LP
+.BI "trampoline_data(" function ")"
+returns
+.IR data .
+.RE
+
+.SH SEE ALSO
+.BR gcc (1),
+.BR varargs (3),
+.BR callback (3)
+
+.SH BUGS
+Passing the data through a global variable is not reentrant. Don't call
+trampoline functions from within signal handlers. This is fixed in the
+.BR callback (3)
+package.
+
+.SH PORTING
+The way
+.B gcc
+builds local functions is described in the gcc source, file
+.RI gcc-2.6.3/config/ cpu / cpu .h.
+
+.SH AUTHOR
+
+Bruno Haible <bruno@clisp.org>
+
+.SH ACKNOWLEDGEMENTS
+
+Many ideas were cribbed from the gcc source.
+

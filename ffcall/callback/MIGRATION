@@ -1,0 +1,58 @@
+Migration Guide
+===============
+
+When switching from vacall+trampoline to callback, you need to make the
+following changes to your code:
+
+       vacall+trampoline                       callback
+       -----------------                       --------
+
+                              -- Include files --
+
+#include "vacall/vacall.h"              #include "callback/callback.h"
+#include "trampoline/trampoline.h"
+
+                          -- Variable declarations --
+
+static void* trampvar;
+
+                           -- Callback declaration --
+                                
+static void                             static void
+mycallback (va_alist args)              mycallback (void* data, va_alist args)
+{                                       {
+  void* data = trampvar;                  ...
+  ...
+
+                              -- Initialization --
+
+vacall_function = &mycallback;
+
+                          -- Allocating a callback --
+
+void* trampoline =                      void* trampoline =
+  alloc_trampoline(                       alloc_callback(&mycallback,data);
+    (__TR_function)&vacall,
+    &trampvar,
+    data);
+
+                          -- Testing for a callback --
+
+if                                      if
+(is_trampoline(address)                 (is_callback(address)
+ && (trampoline_address(address)         && (callback_address(address)
+     == (__TR_function)&vacall)              == &mycallback)
+ && (trampoline_variable(address)       )
+     == &trampvar)
+)
+
+void* data = trampoline_data(address);  void* data = callback_data(address);
+
+                         -- Deallocating a callback --
+
+free_trampoline(address);               free_callback(address);
+
+                                -- Libraries --
+
+libvacall.a libtrampoline.a             libcallback.a
+

@@ -1,0 +1,70 @@
+trampoline - closures as first-class C functions.
+
+This library implements closures as first-class C functions. A closure
+consists of a regular C function and a piece of data which gets passed to
+the C function when the closure is called.
+
+Typical uses of closures are nested functions in programming languages,
+and call-back functions passed to other libraries.
+
+
+Installation instructions:
+
+        ./configure
+        make
+        make check
+        make install
+
+
+Files in this package:
+
+    Documentation:
+
+        README           this text
+        COPYING          free software license
+        PLATFORMS        list of supported platforms
+        trampoline.3     manual page in Unix man format
+        trampoline.html  manual page in HTML format
+
+    Source:
+
+        trampoline.h.in  include file
+        trampoline.c     implementation of the library functions
+        tramp-hppa.s     the trampoline for hppa, in assembly language
+        tramp-rs6000.S   the trampoline for rs6000, in assembly language
+        protexec.c       how to set memory protection to executable, now unused
+        cache.c          how to flush the instruction cache, now unused
+        test1.c          test program
+        test2.c          test program
+
+    Installation:
+
+        configure        configuration script
+        configure.in     autoconf-2.12 source for the configuration script
+        ../autoconf/*    auxiliary configuration scripts
+        Makefile.in      Makefile master
+        config.h.in      config.h master
+
+    Porting:
+
+        PORTING          porting instructions
+        Makefile.devel   developer's Makefile
+        proto.c          sample source containing assignment and jumping
+        proto-*.s        its translation to assembly language
+        tramp-*.s        the trampoline, in assembly language
+        tramp-*.o        the trampoline, in binary form
+
+
+Copyright notice:
+
+Copyright 1995 Bruno Haible, <bruno@clisp.org>
+
+This is free software distributed under the GNU General Public Licence
+described in the file COPYING. Contact the author if you don't have this
+or can't live with it. There is ABSOLUTELY NO WARRANTY, explicit or implied,
+on this software.
+
+
+Bruno Haible
+<bruno@clisp.org>
+

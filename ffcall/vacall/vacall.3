@@ -1,0 +1,287 @@
+.TH VACALL 3 "14 January 2001"
+.SH NAME
+vacall \- C functions called with variable arguments
+.SH SYNOPSIS
+.B #include <vacall.h>
+.LP
+.B extern void* vacall_function;
+.LP
+.nf
+.BI "void " function " (" alist ")"
+.BI "  va_alist " alist ";"
+.BI "{"
+.BI "  va_start_" type "(" alist "[, " return_type "]);"
+.BI "  " arg " = va_arg_" type "(" alist "[, " arg_type "]);"
+.BI "  va_return_" type "(" alist "[[, " return_type "], " return_value "]);"
+.BI "}"
+.fi
+.LP
+.BI "vacall_function = " "&function" ";"
+.LP
+.IB "val" " = ((" return_type " (*) ()) vacall) (" arg1 , arg2 , ... ");"
+.SH DESCRIPTION
+This set of macros permit a C function
+.I function
+to be called with variable arguments and to return variable return values.
+This is much like the
+.BR varargs (3)
+facility, but also allows the return value to be specified at run time.
+
+Function calling conventions differ considerably on different machines, and
+.I vacall
+attempts to provide some degree of isolation from such architecture
+dependencies.
+
+The function that can be called with any number and type of arguments
+and which will return any type of return value is
+.BR vacall .
+It will do some magic and call the function stored in the variable
+.BR vacall_function .
+If you want to make more than one use of
+.IR vacall ,
+use the
+.IR trampoline (3)
+facility to store
+.I &function
+into
+.B vacall_function
+just before calling
+.BR vacall .
+
+Within
+.IR function ,
+the following macros can be used to walk through the argument list and
+specify a return value:
+.RS 0
+.TP
+.BI "va_start_" type "(" alist "[, " return_type "]);"
+starts the walk through the argument list and specifies the return type.
+.TP
+.IB arg " = va_arg_" type "(" alist "[, " arg_type "]);"
+fetches the next argument from the argument list.
+.TP
+.BI "va_return_" type "(" alist "[[, " return_type "], " return_value "]);"
+ends the walk through the argument list and specifies the return value.
+.RE
+
+The
+.I type
+in
+.BI va_start_ type
+and
+.BI va_return_ type
+shall be one of
+.BR void ", " int ", " uint ", " long ", " ulong ", " longlong ", " ulonglong ", " double ", " struct ", " ptr
+or (for ANSI C calling conventions only)
+.BR char ", " schar ", " uchar ", " short ", " ushort ", " float ,
+depending on the class of
+.IR return_type .
+
+The
+.I type
+specifiers in
+.BI va_start_ type
+and
+.BI va_return_ type
+must be the same.
+The
+.I return_type
+specifiers passed to
+.BI va_start_ type
+and
+.BI va_return_ type
+must be the same.
+
+The
+.I type
+in
+.BI va_arg_ type
+shall be one of
+.BR int ", " uint ", " long ", " ulong ", " longlong ", " ulonglong ", " double ", " struct ", " ptr
+or (for ANSI C calling conventions only)
+.BR char ", " schar ", " uchar ", " short ", " ushort ", " float ,
+depending on the class of
+.IR arg_type .
+
+In
+.BI "va_start_struct(" alist ", " return_type ", " splittable );
+the
+.I splittable
+flag specifies whether the struct
+.I return_type
+can be returned in registers such that every struct field fits entirely in
+a single register. This needs to be specified for structs of size
+2*sizeof(long). For structs of size <= sizeof(long),
+.I splittable
+is ignored and assumed to be 1. For structs of size > 2*sizeof(long),
+.I splittable
+is ignored and assumed to be 0. There are some handy macros for this:
+.nf
+.BI "va_word_splittable_1 (" type1 )
+.BI "va_word_splittable_2 (" type1 ", " type2 )
+.BI "va_word_splittable_3 (" type1 ", " type2 ", " type3 )
+.BI "va_word_splittable_4 (" type1 ", " type2 ", " type3 ", " type4 )
+.fi
+For a struct with three slots
+.nf
+.BI "struct { " "type1 id1" "; " "type2 id2" "; " "type3 id3" "; }"
+.fi
+you can specify
+.I splittable
+as
+.BI "va_word_splittable_3 (" type1 ", " type2 ", " type3 )
+.RB .
+
+.SH NOTES
+
+Functions which want to emulate Kernighan & Ritchie style functions (i.e.,
+in ANSI C, functions without a typed argument list) cannot use the
+.I type
+values
+.BR char ", " schar ", " uchar ", " short ", " ushort ", " float .
+As prescribed by the default K&R C expression promotions, they have
+to use
+.B int
+instead of
+.BR char ", " schar ", " uchar ", " short ", " ushort
+and
+.B double
+instead of
+.BR float .
+
+The macros
+.BR va_start_longlong(\|) ,
+.BR va_start_ulonglong(\|) ,
+.BR va_return_longlong(\|) ,
+.BR va_return_ulonglong(\|) ,
+.B va_arg_longlong(\|)
+and
+.B va_arg_ulonglong(\|)
+work only if the C compiler has a working
+.B long long
+64-bit integer type.
+
+The struct types used in
+.B va_start_struct(\|)
+and
+.B va_struct(\|)
+must only contain (signed or unsigned) int, long, long long or pointer fields.
+Struct types containing (signed or unsigned) char, short, float, double or
+other structs are not supported.
+
+.SH EXAMPLE
+
+This example, a possible implementation of
+.BR execl (3)
+on top of
+.BR execv (2)
+using
+.BR varargs (3),
+
+.nf
+.ft B
+#include <varargs.h>
+#define MAXARGS 100
+/* execl is called by execl(file, arg1, arg2, ..., (char *)0); */
+int execl (va_alist)
+  va_dcl
+{
+  va_list ap;
+  char* file;
+  char* args[MAXARGS];
+  int argno = 0;
+  va_start (ap);
+  file = va_arg(ap, char*);
+  while ((args[argno] = va_arg(ap, char*)) != (char *)0)
+    argno++;
+  va_end (ap);
+  return execv(file, args);
+}
+.ft
+.fi
+
+looks like this using
+.BR vacall (3):
+
+.nf
+.ft B
+#include <vacall.h>
+#define MAXARGS 100
+/* execl is called by vacall(file, arg1, arg2, ..., (char *)0); */
+void execl (ap)
+  va_alist ap;
+{
+  char* file;
+  char* args[MAXARGS];
+  int argno = 0;
+  int retval;
+  va_start_int (ap);
+  file = va_arg_ptr(ap, char*);
+  while ((args[argno] = va_arg_ptr(ap, char*)) != (char *)0)
+    argno++;
+  retval = execv(file, args);
+  va_return_int (ap, retval);
+}
+vacall_function = &execl;
+.ft
+.fi
+
+.SH SEE ALSO
+.BR varargs (3),
+.BR trampoline (3),
+.BR callback (3).
+
+.SH BUGS
+
+The current implementations have been tested on a selection of common
+cases but there are probably still many bugs.
+
+There are typically built-in limits on the size of the argument-list,
+which may also include the size of any structure arguments.
+
+The decision whether a struct is to be returned in registers or in memory
+considers only the struct's size and alignment. This is inaccurate: for
+example, gcc on m68k-next returns
+.B "struct { char a,b,c; }"
+in registers and
+.B "struct { char a[3]; }"
+in memory, although both types have the same size and the same alignment.
+
+.B <vacall.h>
+cannot be included when
+.B <varargs.h>
+or
+.B <stdarg.h>
+is included.
+(Name clash for
+.BR va_alist ".)"
+
+The argument list can only be walked once.
+
+The use of the global variable
+.B vacall_function
+is not reentrant. This is fixed in the
+.BR callback (3)
+package.
+
+.SH PORTING
+
+Knowledge about argument passing conventions can be found in the gcc
+source, file
+.RI gcc-2.6.3/config/ cpu / cpu .h,
+section "Stack layout; function entry, exit and calling."
+
+The implementation of varargs for gcc can be found in the gcc source, files
+gcc-2.6.3/ginclude/va*.h.
+
+gcc's __builtin_saveregs() function is defined in the gcc source, file
+gcc-2.6.3/libgcc2.c.
+
+.SH AUTHOR
+
+Bruno Haible <bruno@clisp.org>
+
+.SH ACKNOWLEDGEMENTS
+
+Many ideas and a lot of code were cribbed from the gcc source.
+

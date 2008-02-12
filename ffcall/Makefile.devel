@@ -1,0 +1,143 @@
+# This is the developer's -*-Makefile-*-, not the user's makefile.
+# Do not use it unless you know exactly what you do!
+
+SHELL = /bin/sh
+MAKE = make
+
+all : autoconf/aclocal.m4 configures avcall/avcall.h.msvc avcall/avcall.h.mingw32 avcall/avcall-i386-msvc.c avcall/avcall-i386-mingw32.c vacall/config.h.msvc vacall/config.h.mingw32 vacall/vacall.h.msvc vacall/vacall.h.mingw32 vacall/vacall-i386-msvc.c vacall/vacall-i386-mingw32.c trampoline/config.h.msvc trampoline/config.h.mingw32 callback/vacall_r/config.h.msvc callback/vacall_r/config.h.mingw32 callback/vacall_r/vacall_r.h.msvc callback/vacall_r/vacall_r.h.mingw32 callback/vacall_r/vacall-i386-msvc.c callback/trampoline_r/config.h.msvc callback/trampoline_r/config.h.mingw32
+
+CONFIGURES = configure avcall/configure vacall/configure trampoline/configure callback/configure callback/vacall_r/configure callback/trampoline_r/configure
+CONFIGURES_IN = configure.in avcall/configure.in vacall/configure.in trampoline/configure.in callback/configure.in callback/vacall_r/configure.in callback/trampoline_r/configure.in
+
+CLISP_DIR = ..
+
+m4/general.m4 : $(CLISP_DIR)/src/m4/general.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/proto.m4 : $(CLISP_DIR)/src/m4/proto.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/cc-gcc.m4 : $(CLISP_DIR)/src/m4/cc-gcc.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/as-underscore.m4 : $(CLISP_DIR)/src/m4/as-underscore.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/ranlib.m4 : $(CLISP_DIR)/src/m4/ranlib.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/install.m4 : $(CLISP_DIR)/src/m4/install.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/cp.m4 : $(CLISP_DIR)/src/m4/cp.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/ln.m4 : $(CLISP_DIR)/src/m4/ln.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/ffcall-pccstruct.m4 : $(CLISP_DIR)/src/m4/ffcall-pccstruct.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/ffcall-smallstruct.m4 : $(CLISP_DIR)/src/m4/ffcall-smallstruct.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/ffcall-ireg.m4 : $(CLISP_DIR)/src/m4/ffcall-ireg.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/longlong.m4 : $(CLISP_DIR)/src/m4/longlong.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/cc-void.m4 : $(CLISP_DIR)/src/m4/cc-void.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/stdc-headers.m4 : $(CLISP_DIR)/src/m4/stdc-headers.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/getpagesize.m4 : $(CLISP_DIR)/src/m4/getpagesize.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/mach-vm.m4 : $(CLISP_DIR)/src/m4/mach-vm.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/openflags.m4 : $(CLISP_DIR)/src/m4/openflags.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/mmap.m4 : $(CLISP_DIR)/src/m4/mmap.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/mprotect.m4 : $(CLISP_DIR)/src/m4/mprotect.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/shm.m4 : $(CLISP_DIR)/src/m4/shm.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/ffcall-codeexec.m4 : $(CLISP_DIR)/src/m4/ffcall-codeexec.m4 ; cp -p $< $@-t && mv $@-t $@
+m4/libtool.m4 : $(CLISP_DIR)/src/m4/libtool.m4
+	sed -e 's,AC_CANONICAL_HOST,CL_CANONICAL_HOST,g' -e 's,AC_PROG_RANLIB,CL_PROG_RANLIB,g' -e 's,AC_PROG_LN_S,CL_PROG_LN_S,g' < $< > $@-t && mv $@-t $@
+
+autoconf/aclocal.m4 : m4/general.m4 m4/proto.m4 m4/cc-gcc.m4 m4/as-underscore.m4 m4/ranlib.m4 m4/install.m4 m4/cp.m4 m4/ln.m4 m4/ffcall-pccstruct.m4 m4/ffcall-smallstruct.m4 m4/ffcall-ireg.m4 m4/longlong.m4 m4/cc-void.m4 m4/stdc-headers.m4 m4/getpagesize.m4 m4/mach-vm.m4 m4/openflags.m4 m4/mmap.m4 m4/mprotect.m4 m4/shm.m4 m4/ffcall-codeexec.m4 m4/libtool.m4
+	{ echo 'AC_INIT'; cat $(CONFIGURES_IN) | grep -v '\(AC_INIT(\|AC_OUTPUT(\|AC_CONFIG_HEADER(\)'; } > autoconf/configure.in
+	cd autoconf && aclocal --output=aclocal.m4 --acdir=../m4
+	rm -f autoconf/configure.in
+
+configures : $(CONFIGURES)
+
+AUTOCONF_FILES = autoconf/aclocal.m4
+AUTOCONF = autoconf
+
+configure : configure.in $(AUTOCONF_FILES)
+	$(AUTOCONF) --include=autoconf
+
+avcall/configure : avcall/configure.in $(AUTOCONF_FILES)
+	cd avcall ; $(AUTOCONF) --include=../autoconf
+
+vacall/configure : vacall/configure.in $(AUTOCONF_FILES)
+	cd vacall ; $(AUTOCONF) --include=../autoconf
+
+trampoline/configure : trampoline/configure.in $(AUTOCONF_FILES)
+	cd trampoline ; $(AUTOCONF) --include=../autoconf
+
+callback/configure : callback/configure.in $(AUTOCONF_FILES)
+	cd callback ; $(AUTOCONF) --include=../autoconf
+
+callback/vacall_r/configure : callback/vacall_r/configure.in $(AUTOCONF_FILES)
+	cd callback/vacall_r ; $(AUTOCONF) --include=../../autoconf
+
+callback/trampoline_r/configure : callback/trampoline_r/configure.in $(AUTOCONF_FILES)
+	cd callback/trampoline_r ; $(AUTOCONF) --include=../../autoconf
+
+check-configures : $(CONFIGURES)
+	set -e; for f in $(CONFIGURES); do bash -x -n $$f; done
+
+avcall/avcall.h.msvc : avcall/avcall.h.in
+	cd avcall ; $(MAKE) -f Makefile.devel avcall.h.msvc
+
+avcall/avcall.h.mingw32 : avcall/avcall.h.in
+	cd avcall ; $(MAKE) -f Makefile.devel avcall.h.mingw32
+
+avcall/avcall-i386-msvc.c : avcall/avcall-i386-macro.S avcall/asmi386.sh
+	cd avcall ; $(MAKE) -f Makefile.devel avcall-i386-msvc.c
+
+avcall/avcall-i386-mingw32.c : avcall/avcall-i386-macro.S avcall/asmi386.sh
+	cd avcall ; $(MAKE) -f Makefile.devel avcall-i386-mingw32.c
+
+vacall/config.h.msvc : vacall/config.h.in
+	cd vacall ; $(MAKE) -f Makefile.devel config.h.msvc
+
+vacall/config.h.mingw32 : vacall/config.h.in
+	cd vacall ; $(MAKE) -f Makefile.devel config.h.mingw32
+
+vacall/vacall.h.msvc : vacall/vacall.h.in
+	cd vacall ; $(MAKE) -f Makefile.devel vacall.h.msvc
+
+vacall/vacall.h.mingw32 : vacall/vacall.h.in
+	cd vacall ; $(MAKE) -f Makefile.devel vacall.h.mingw32
+
+vacall/vacall-i386-msvc.c : vacall/vacall-i386-macro.S vacall/asmi386.sh
+	cd vacall ; $(MAKE) -f Makefile.devel vacall-i386-msvc.c
+
+vacall/vacall-i386-mingw32.c : vacall/vacall-i386-macro.S vacall/asmi386.sh
+	cd vacall ; $(MAKE) -f Makefile.devel vacall-i386-mingw32.c
+
+trampoline/config.h.msvc : trampoline/config.h.in
+	cd trampoline ; $(MAKE) -f Makefile.devel config.h.msvc
+
+trampoline/config.h.mingw32 : trampoline/config.h.in
+	cd trampoline ; $(MAKE) -f Makefile.devel config.h.mingw32
+
+callback/vacall_r/config.h.msvc : callback/vacall_r/config.h.in
+	cd callback ; $(MAKE) -f Makefile.devel vacall_r/config.h.msvc
+
+callback/vacall_r/config.h.mingw32 : callback/vacall_r/config.h.in
+	cd callback ; $(MAKE) -f Makefile.devel vacall_r/config.h.mingw32
+
+callback/vacall_r/vacall_r.h.msvc : callback/vacall_r/vacall_r.h.in
+	cd callback ; $(MAKE) -f Makefile.devel vacall_r/vacall_r.h.msvc
+
+callback/vacall_r/vacall_r.h.mingw32 : callback/vacall_r/vacall_r.h.in
+	cd callback ; $(MAKE) -f Makefile.devel vacall_r/vacall_r.h.mingw32
+
+callback/vacall_r/vacall-i386-msvc.c : callback/vacall_r/vacall-i386-macro.S callback/vacall_r/asmi386.sh
+	cd callback ; $(MAKE) -f Makefile.devel vacall_r/vacall-i386-msvc.c
+
+callback/vacall_r/vacall-i386-mingw32.c : callback/vacall_r/vacall-i386-macro.S callback/vacall_r/asmi386.sh
+	cd callback ; $(MAKE) -f Makefile.devel vacall_r/vacall-i386-mingw32.c
+
+callback/trampoline_r/config.h.msvc : callback/trampoline_r/config.h.in
+	cd callback ; $(MAKE) -f Makefile.devel trampoline_r/config.h.msvc
+
+callback/trampoline_r/config.h.mingw32 : callback/trampoline_r/config.h.in
+	cd callback ; $(MAKE) -f Makefile.devel trampoline_r/config.h.mingw32
+
+COMPILERS="cc -O" "gcc -freg-struct-return" "gcc -fpcc-struct-return"
+
+multibuild : force
+	for compiler in $(COMPILERS) ; do \
+	  dir=build-`echo $$compiler | sed -e 's, ,,g' -e 's,/,_,g'`; \
+	  mkdir $$dir; cd $$dir; \
+	  CC="$$compiler" ../configure --srcdir=.. && make && make check; \
+	  cd ..; \
+	done
+
+force :
+

@@ -1,0 +1,2 @@
+Double f(float,Double,double):(0.1,{0.2},0.3)->{0.6}
+Double f(float,Double,double):(-1.0842e-19,{0.2},0.3)->{0.5}

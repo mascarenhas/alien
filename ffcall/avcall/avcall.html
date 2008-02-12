@@ -1,0 +1,265 @@
+<HEAD>
+<TITLE> AVCALL manual page </TITLE>
+</HEAD>
+<BODY>
+<H1>AVCALL manual page</H1>
+
+<UL>
+<LI> <A HREF="#Name">Name</A>
+<LI> <A HREF="#Synopsis">Synopsis</A>
+<LI> <A HREF="#Description">Description</A>
+<LI> <A HREF="#Notes">Notes</A>
+<LI> <A HREF="#See also">See also</A>
+<LI> <A HREF="#Bugs">Bugs</A>
+<LI> <A HREF="#Non-Bugs">Non-Bugs</A>
+<LI> <A HREF="#Porting AVCALL">Porting AVCALL</A>
+<LI> <A HREF="#Author">Author</A>
+<LI> <A HREF="#Acknowledgements">Acknowledgements</A>
+</UL>
+<P>
+
+<HR>
+
+<A NAME="Name">
+<H2>Name</H2>
+</A>
+
+avcall  -  build a C argument list incrementally and call a
+C function on it.
+
+<A NAME="Synopsis">
+<H2>Synopsis</H2>
+</A>
+
+<PRE>
+<CODE>#include &lt;avcall.h&gt;</CODE>
+<CODE>av_alist <VAR>alist</VAR>;</CODE>
+<CODE>av_start_<VAR>type</VAR> (<VAR>alist</VAR>, &amp;<VAR>func</VAR>, [[<VAR>return_type</VAR>,] &amp;<VAR>return_value</VAR>]);</CODE>
+<CODE>av_<VAR>type</VAR> (<VAR>alist</VAR>, [<VAR>arg_type</VAR>,] <VAR>value</VAR>);</CODE>
+<CODE>av_call(<VAR>alist</VAR>);</CODE>
+</PRE>
+
+<A NAME="Description">
+<H2>Description</H2>
+</A>
+
+This  set  of macros builds an argument list for a C function
+and  calls  the  function  on  it.  It  significantly
+reduces  the  amount  of `glue' code required for parsers,
+debuggers, imbedded interpreters, C extensions to application
+programs  and  other situations where collections of
+functions need  to  be  called  on  lists  of  externally-
+supplied arguments.
+<P>
+Function  calling  conventions differ considerably on different
+machines and <CODE>avcall</CODE> attempts to provide some degree
+of isolation from such architecture dependencies.
+<P>
+The  interface  is  like <A HREF="stdarg(3)"><CODE><B>stdarg</B></CODE></A>(3) in reverse. All of the
+macros return 0 for success, < 0 for failure (e.g.,  argument
+list overflow or type-not-supported).
+<P>
+<OL>
+<LI> <CODE>#include  &lt;avcall.h&gt;</CODE>  and  declare  the argument list
+structure <CODE>av_alist <VAR>alist</VAR>;</CODE>
+<P>
+<LI> Set  any special flags. This is architecture and compiler
+dependent.
+Compiler  options that affect passing conventions may need
+to be flagged by <CODE>#define</CODE>s before the <CODE>#include &lt;avcall.h&gt;</CODE>
+statement. However, the <SAMP>configure</SAMP> script should have
+determined which <CODE>#define</CODE>s are needed and put them
+at the top of <SAMP>avcall.h</SAMP>.
+<P>
+<LI> Initialize the alist with  the  function  address  and
+return  value  pointer (if any). There is a separate macro
+for each simple return type  ([u]char,  [u]short,  [u]int,
+[u]long,  [u]longlong, float,  double, where `u' indicates
+`unsigned'). The macros for functions returning structures
+or pointers require an explicit type argument.
+<P>
+E.g.,
+<PRE>
+<CODE>av_start_int (<VAR>alist</VAR>, &amp;<VAR>func</VAR>, &amp;<VAR>int_return</VAR>);</CODE>
+<CODE>av_start_double (<VAR>alist</VAR>, &amp;<VAR>func</VAR>, &amp;<VAR>double_return</VAR>);</CODE>
+<CODE>av_start_void (<VAR>alist</VAR>, &amp;<VAR>func</VAR>);</CODE>
+<CODE>av_start_struct (<VAR>alist</VAR>, &amp;<VAR>func</VAR>, <VAR>struct_type</VAR>, <VAR>splittable</VAR>, &amp;<VAR>struct_return</VAR>);</CODE>
+<CODE>av_start_ptr (<VAR>alist</VAR>, &amp;<VAR>func</VAR>, <VAR>pointer_type</VAR>, &amp;<VAR>pointer_return</VAR>);</CODE>
+</PRE>
+The  <VAR>splittable</VAR> flag specifies whether the <VAR>struct_type</VAR> can
+be returned in registers such that every struct field fits
+entirely  in a single register. This needs to be specified
+for structs of size <SAMP>2*sizeof(long)</SAMP>. For structs of size
+&lt;= <SAMP>sizeof(long)</SAMP>,  splittable  is ignored and assumed to be 1.
+For  structs  of  size  &gt; <SAMP>2*sizeof(long)</SAMP>,  splittable  is
+ignored  and  assumed to be 0. There are some handy macros
+for this:
+<PRE>
+<CODE>av_word_splittable_1 (<VAR>type1</VAR>)</CODE>
+<CODE>av_word_splittable_2 (<VAR>type1</VAR>, <VAR>type2</VAR>)</CODE>
+<CODE>av_word_splittable_3 (<VAR>type1</VAR>, <VAR>type2</VAR>, <VAR>type3</VAR>)</CODE>
+<CODE>av_word_splittable_4 (<VAR>type1</VAR>, <VAR>type2</VAR>, <VAR>type3</VAR>, <VAR>type4</VAR>)</CODE>
+</PRE>
+For a struct with three slots
+<PRE>
+<CODE>struct { <VAR>type1 id1</VAR>; <VAR>type2 id2</VAR>; <VAR>type3 id3</VAR>; }</CODE>
+</PRE>
+you can specify <VAR>splittable</VAR> as
+<CODE>av_word_splittable_3 (<VAR>type1</VAR>, <VAR>type2</VAR>, <VAR>type3</VAR>)</CODE>.
+<P>
+<LI> Push  the  arguments  on  to the list in order. Again
+there is a macro for each simple built-in  type,  and  the
+macros  for  structure  and  pointer  arguments require an
+extra type argument:
+<PRE>
+<CODE>av_int (<VAR>alist</VAR>, <VAR>int_value</VAR>);</CODE>
+<CODE>av_double (<VAR>alist</VAR>, <VAR>double_value</VAR>);</CODE>
+<CODE>av_struct (<VAR>alist</VAR>, <VAR>struct_or_union_type</VAR>, <VAR>struct_value</VAR>);</CODE>
+<CODE>av_ptr (<VAR>alist</VAR>, <VAR>pointer_type</VAR>, <VAR>pointer_value</VAR>);</CODE>
+</PRE>
+<LI> Call the function, set the return value, and tidy up:
+<CODE>av_call (<VAR>alist</VAR>);</CODE>
+</OL>
+
+<A NAME="Notes">
+<H2>Notes</H2>
+</A>
+
+<OL>
+<LI> Functions whose first declaration is  in  Kernighan  &amp;
+Ritchie  style  (i.e., without a typed argument list) MUST
+use default K&amp;R C expression promotions (<CODE>char</CODE> and <CODE>short</CODE> to
+<CODE>int</CODE>,  <CODE>float</CODE>  to <CODE>double</CODE>) whether they are compiled by a K&amp;R
+or an ANSI compiler, because the true argument  types  may
+not  be  known at the call point. Such functions typically
+back-convert their arguments  to  the  declared  types  on
+function  entry.  (In  fact,  the  only way to pass a true
+<CODE>char</CODE>, <CODE>short</CODE> or <CODE>float</CODE> in K&amp;R C  is  by  an  explicit  cast:
+<CODE>func((char)c,(float)f)</CODE>  ).   Similarly, some K&amp;R compilers
+(such as Sun <SAMP>cc</SAMP> on the sparc) actually return a <CODE>float</CODE> as a
+<CODE>double</CODE>.
+<P>
+Hence,  for  arguments  of functions declared in K&amp;R style
+you  should  use  <CODE>av_int()</CODE>  and  </CODE>av_double()</CODE>  rather  than
+<CODE>av_char()</CODE>,  <CODE>av_short()</CODE>  or  <CODE>av_float()</CODE>.   If you use a K&amp;R
+compiler, the avcall header files may be  able  to  detect
+this  and  define <CODE>av_float()</CODE>, etc, appropriately, but with
+an ANSI compiler there is no way <B>avcall</B> can  know  how  a
+function was declared, so you have to correct the argument
+types yourself.
+<P>
+<LI> The explicit type arguments  of  the  <CODE>av_struct()</CODE>  and
+<CODE>av_ptr()</CODE>  macros  are  typically  used  to calculate size,
+alignment, and passing conventions.  This may not be  sufficient  for  some  machines  with  unusual  structure and
+pointer handling: in this case additional  <CODE>av_start_<VAR>type</VAR>()</CODE>
+and <CODE>av_<VAR>type</VAR>()</CODE> macros may be defined.
+<P>
+<LI> The macros <CODE>av_start_longlong()</CODE>,
+<CODE>av_start_ulonglong()</CODE>, <CODE>av_longlong()</CODE>  and
+<CODE>av_ulonglong()</CODE> work only if the C compiler has a working
+<CODE>long long</CODE> 64-bit integer type.
+<P>
+<LI> The struct types used in <CODE>av_start_struct()</CODE> and
+<CODE>av_struct()</CODE> must only contain (signed or unsigned) int,
+long, long long or pointer fields. Struct types containing
+(signed or unsigned) char, short, float, double or other
+structs are not supported.
+<P>
+</OL>
+
+<A NAME="See also">
+<H2>See also</H2>
+</A>
+<A HREF="stdarg(3)"><CODE><B>stdarg</B></CODE></A>(3), <A HREF="varargs(3)"><CODE><B>varargs</B></CODE></A>(3).
+
+<A NAME="Bugs">
+<H2>Bugs</H2>
+</A>
+
+<UL>
+<LI>
+The  current  implementations have been tested on a selection
+of common cases but there  are  probably  still  many
+bugs.
+<LI>
+There  are  typically  built-in  limits on the size of the
+argument-list, which may also  include  the  size  of  any
+structure arguments.
+<LI>
+The decision whether a struct is to be returned in registers or in memory
+considers only the struct's size and alignment. This is inaccurate: for
+example, gcc on m68k-next returns
+<CODE>struct { char a,b,c; }</CODE>
+in registers and
+<CODE>struct { char a[3]; }</CODE>
+in memory, although both types have the same size and the same alignment.
+</UL>
+
+<A NAME="Non-Bugs">
+<H2>Non-Bugs</H2>
+</A>
+
+All  information is passed in CPU registers and the stack.
+The <CODE><B>avcall</B></CODE> package is therefore multithread-safe.
+
+<A NAME="Porting AVCALL">
+<H2>Porting AVCALL</H2>
+</A>
+
+Ports,  bug-fixes,  and  suggestions are most welcome. The
+macros required for argument pushing  are  pretty  grungy,
+but  it does seem to be possible to port avcall to a range
+of machines. Ports to non-standard or non-32-bit  machines
+are  especially  welcome  so we can sort the interface out
+before it's too late.
+<P>
+Knowledge about argument passing conventions can be  found
+in  the  gcc source, file <SAMP>gcc-2.6.3/config/<VAR>cpu</VAR>/<VAR>cpu</VAR>.h</SAMP>, section
+<SAMP>"Stack layout; function entry, exit and calling."</SAMP>
+<P>
+Some of the grunge is usually handled by a C  or  assembly
+level  glue  routine  that  actually pushes the arguments,
+calls the function and unpacks  any  return  value. This is
+called <CODE>__builtin_avcall()</CODE>. A precompiled assembler version for
+people without gcc is also made available. The routine should ideally
+have flags for the passing conventions of other compilers.
+<P>
+Many  of  the  current routines waste a lot of stack space
+and generally do hairy things to stack frames - a bit more
+assembly code would probably help things along quite a bit
+here.
+<P>
+
+<A NAME="Author">
+<H2>Author</H2>
+</A>
+
+Bill Triggs &lt;Bill.Triggs@inrialpes.fr&gt;, &lt;Bill.Triggs@imag.fr&gt;.
+
+<A NAME="Acknowledgements">
+<H2>Acknowledgements</H2>
+</A>
+
+Some initial ideas were stolen from the C interface to the
+Zelk extensions to Oliver Laumann's Elk scheme interpreter
+by J.P.Lewis, NEC  C&amp;C  Research,  &lt;zilla@ccrl.nj.nec.com&gt;
+(for    Sun4    &amp;    SGI),    and    Roy    Featherstone's
+&lt;roy@robots.oxford.ac.uk&gt; personal C interface library for
+Sun3, Sun4  &amp;  SGI.   I  also looked at the machine-dependent
+parts of the GCC and GDB distributions, and  put  the  gcc
+<CODE>asm()</CODE> extensions to good use. Thanks guys!
+<P>
+This work was partly supported by EC-ESPRIT Basic Research
+Action SECOND.
+<P>
+
+<HR>
+
+<ADDRESS>AVCALL manual page<BR>
+Bruno Haible &lt;bruno@clisp.org&gt;
+</ADDRESS>
+<P>
+Last modified: 14 January 2001.
+
+</BODY>
+

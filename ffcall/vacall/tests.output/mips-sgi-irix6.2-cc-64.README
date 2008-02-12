@@ -1,0 +1,8 @@
+On mips-sgi-irix6.2 with "cc -64", vacall does not handle correctly
+"double" slots within structure arguments. vacall expects these
+"double" values in the integer registers but they are actually passed
+in the floating-point registers.
+Furthermore, when returning structure values of type { float; double; }
+or { double; float; }, both slots are returned in the $f0 and $f2 registers.
+vacall returns them both as "double" values instead of returning one as a
+"float".

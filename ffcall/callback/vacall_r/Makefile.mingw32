@@ -1,0 +1,88 @@
+# -*-Makefile-*- for vacall
+
+#### Start of system configuration section. ####
+
+HOST = i386-pc-win32-gcc
+CPU = i386
+
+# Directories used by "make":
+srcdir = .
+
+# Directories used by "make install":
+prefix = /usr/local
+local_prefix = /usr/local
+exec_prefix = $(prefix)
+libdir = $(exec_prefix)/lib
+includedir = $(prefix)/include
+mandir = $(prefix)/man
+
+# Programs used by "make":
+CC = gcc -mno-cygwin
+CFLAGS = -O
+CPP = gcc -E
+INCLUDES = -I. -I$(srcdir)
+ASPFLAGS = -DASM_UNDERSCORE
+AR = ar
+AR_FLAGS = rc
+MV = mv
+LN = cp
+RM = rm -f
+
+# Programs used by "make install":
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+
+#### End of system configuration section. ####
+
+SHELL = /bin/sh
+
+OBJECTS = vacall.o misc.o structcpy.o
+
+all : $(OBJECTS) libvacall.a vacall_r.h
+
+vacall_r.h : vacall_r.h.mingw32
+	$(RM) vacall_r.h
+	$(LN) vacall_r.h.mingw32 vacall_r.h
+
+config.h : config.h.mingw32
+	$(RM) config.h
+	$(LN) config.h.mingw32 config.h
+
+vacall.o : vacall-$(CPU).o
+	$(RM) vacall.o
+	$(LN) vacall-$(CPU).o vacall.o
+
+vacall-i386.o : vacall-i386.asm
+	$(CC) -c -x assembler vacall-i386.asm
+
+vacall-i386.asm : $(srcdir)/vacall-i386-macro.S
+	$(CPP) $(ASPFLAGS) $(srcdir)/vacall-i386-macro.S | grep -v '^ *#line' | grep -v '^#ident' | grep -v '^#' | sed -e 's,% ,%,g' -e 's,\. ,.,g' > vacall-i386.asm
+
+misc.o : $(srcdir)/misc.c vacall_r.h config.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c $(srcdir)/misc.c
+
+structcpy.o : $(srcdir)/structcpy.c
+	$(CC) $(CFLAGS) -c $(srcdir)/structcpy.c
+
+libvacall.a : $(OBJECTS)
+	$(RM) libvacall.a
+	$(AR) $(AR_FLAGS) libvacall.a $(OBJECTS)
+
+check : all
+
+extracheck : all
+
+mostlyclean : clean
+
+clean : force
+	$(RM) *.o *.a core
+	$(RM) vacall-i386.asm
+
+distclean : clean
+	$(RM) config.status config.log config.cache Makefile vacall.h config.h
+
+maintainer-clean : distclean
+
+force :
+

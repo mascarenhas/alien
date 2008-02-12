@@ -12,11 +12,7 @@ description = {
   homepage = "http://alien.luaforge.net"
 }
 
-dependencies = {  }
-
-external_dependencies = {
-  AVCALL = {  header = "avcall.h"  }
-}
+dependencies = { "bitlib" }
 
 source = {
    url = "http://alien.luaforge.net/alien-current.tar.gz"
@@ -30,26 +26,26 @@ build = {
    platforms = {
      linux = {
        	build_variables = {
-         LIB_OPTION = "-shared -L$(AVCALL_LIBDIR)",
-         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -I$(AVCALL_INCDIR) -DUSE_DLOPEN",
+         LIB_OPTION = "-shared",
+         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DUSE_DLOPEN",
        	},
      },
      bsd = {
        	build_variables = {
-         LIB_OPTION = "-shared -L$(AVCALL_LIBDIR)",
-         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -I$(AVCALL_INCDIR) -DUSE_DLOPEN",
+         LIB_OPTION = "-shared",
+         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DUSE_DLOPEN",
        	},
      },
      macosx = {
        	build_variables = {
-         LIB_OPTION = "-bundle -undefined dynamic_lookup -L$(AVCALL_LIBDIR)",
-         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -I$(AVCALL_INCDIR) -DARCH_OSX",
+         LIB_OPTION = "-bundle -undefined dynamic_lookup",
+         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DARCH_OSX",
        	},
      },
      win32 = {
        	build_variables = {
-         LIB_OPTION = "$(LUA_LIBDIR)\\lua5.1.lib $(AVCALL_LIB)",
-         CFLAGS = "$(CFLAGS) /I$(AVCALL_INCDIR) /I$(LUA_INCDIR) /DUSE_LOADLIBRARY",
+         LIB_OPTION = "$(LUA_LIBDIR)\\lua5.1.lib",
+         CFLAGS = "$(CFLAGS) /I$(LUA_INCDIR) /DUSE_LOADLIBRARY",
        	}
      }
   }

@@ -1,0 +1,6 @@
+Float f(Float,float,double):({0.1},0.2,0.3)->{0.6}
+Float f(Float,float,double):({0.2},0.3,2)->{0}
+Double f(float,Double,double):(0.1,{0.2},0.3)->{0.6}
+Double f(float,Double,double):(0.1,{0.3},2)->{0}
+X f(B,char,double,B):({0.1,{1,2,3}},'',0.3,{0.2,{5,4,3}})->{"return val",''}
+X f(B,char,double,B):({3.2835e-317,{-1717986918,1069128089,1}},'',0.3,{0.7,{-1717986918,1070176665,5}})->{"return val",''}

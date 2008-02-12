@@ -1,0 +1,69 @@
+avcall - calling C functions with variable arguments
+
+This library allows arbitrary C functions to be called from embedded
+interpreters, debuggers, RPC calls, etc, by building up a C
+argument-list incrementally from explicitly typed arguments. This 
+considerably reduces the amount of boilerplate glue code required
+for such applications.
+
+The interface is like stdargs/varargs in reverse and is intended to be as
+portable as possible, however the details of function calling are highly
+machine-dependent so your mileage may vary. At the very least there are
+typically built-in limits on the size of the argument-list. The
+argument-pushing macros all return 0 for success, < 0 for error (eg,
+arg-list overflow).
+
+
+Installation instructions:
+	./configure
+	make
+	make check
+	make install
+
+
+Files in this package:
+
+    Documentation:
+
+        README          this text
+        COPYING         free software license
+        PLATFORMS       list of supported platforms
+        avcall.3        manual page in Unix man format
+        avcall.man      manual page
+        avcall.html     manual page in HTML format
+        DOC             documentation
+
+    Source:
+
+        avcall.h.in     master for main include file avcall.h
+        avcall-*.c      source for the interface function
+        avcall-*.[sS]   its translation to assembly language
+        structcpy.c     auxiliary function
+        tests.c         test program
+
+    Installation:
+
+        configure       configuration script
+        configure.in    autoconf-2.12 source for the configuration script
+        ../autoconf/*   auxiliary configuration scripts
+        Makefile.in     Makefile master
+        config.h.in     config.h master
+
+    Porting:
+
+        Makefile.devel  developer's Makefile
+        underscore.h    used to build the *.S files
+
+
+The current code is under the GNU licence, but the interface (macro
+names, arguments & functionality but not the actual macro or function
+code in avcall.[ch]) is absolutely free and any port conforming to it is
+welcome.
+
+------------------------------------------------------
+Bill Triggs                       | Bill.Triggs@inrialpes.fr
+Oxford University Robotics Group  | Bill.Triggs@imag.fr
+19 Parks Rd, Oxford OX1 3PJ, G.B. | fax +44-865-273908
+------------------------------------------------------
+Bruno Haible
+<bruno@clisp.org>

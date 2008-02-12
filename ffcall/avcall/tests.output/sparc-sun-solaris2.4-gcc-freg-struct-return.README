@@ -1,0 +1,3 @@
+avcall does not handle correctly structure return values which consist
+of 1 float or double. (The return value is found in %f0, but avcall expects
+it in integer registers.)

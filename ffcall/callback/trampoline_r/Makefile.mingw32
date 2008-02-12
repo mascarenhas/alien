@@ -1,0 +1,94 @@
+# -*-Makefile-*- for trampoline
+
+#### Start of system configuration section. ####
+
+HOST = i386-pc-win32-gcc
+CPU = i386
+
+# Directories used by "make":
+srcdir = .
+
+# Directories used by "make install":
+prefix = /usr/local
+local_prefix = /usr/local
+exec_prefix = $(prefix)
+libdir = $(exec_prefix)/lib
+includedir = $(prefix)/include
+mandir = $(prefix)/man
+
+# Programs used by "make":
+CC = gcc -mno-cygwin
+CFLAGS = -O
+CPP = gcc -E
+INCLUDES = -I. -I$(srcdir)
+ASPFLAGS = -DASM_UNDERSCORE
+AR = ar
+AR_FLAGS = rc
+RM = rm -f
+LN = cp
+
+# Programs used by "make install":
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+
+#### End of system configuration section. ####
+
+SHELL = /bin/sh
+
+OBJECTS = trampoline.o
+
+all : $(OBJECTS) libtrampoline.a trampoline_r.h $(srcdir)/trampoline_r.3 $(srcdir)/trampoline_r.html
+
+trampoline_r.h : $(srcdir)/trampoline_r.h.in
+	-$(LN) $(srcdir)/trampoline_r.h.in trampoline_r.h
+
+config.h : $(srcdir)/config.h.mingw32
+	-$(LN) $(srcdir)/config.h.mingw32 config.h
+
+trampoline.o : $(srcdir)/trampoline.c trampoline_r.h config.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c $(srcdir)/trampoline.c
+
+trampoline.s : $(srcdir)/trampoline.c trampoline_r.h config.h
+	$(CC) $(CFLAGS) $(INCLUDES) -S $(srcdir)/trampoline.c
+
+libtrampoline.a : $(OBJECTS)
+	$(RM) libtrampoline.a
+	$(AR) $(AR_FLAGS) libtrampoline.a $(OBJECTS)
+
+test1.o : $(srcdir)/test1.c trampoline_r.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c $(srcdir)/test1.c
+
+test1.exe : test1.o $(OBJECTS)
+	$(CC) $(CFLAGS) test1.o $(OBJECTS) -o test1.exe
+
+test2.o : $(srcdir)/test2.c trampoline_r.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c $(srcdir)/test2.c
+
+test2.exe : test2.o $(OBJECTS)
+	$(CC) $(CFLAGS) test2.o $(OBJECTS) -o test2.exe
+
+check1 : all test1.exe
+	test1.exe
+
+check : all test1.exe test2.exe
+	test1.exe
+	test2.exe
+	touch tests.passed.$(HOST)
+
+extracheck : check
+
+mostlyclean : clean
+
+clean : force
+	$(RM) $(OBJECTS) libtrampoline.a core
+	$(RM) test1.o test1.exe test2.o test2.exe
+
+distclean : clean
+	$(RM) config.status config.log config.cache Makefile config.h trampoline_r.h tests.passed.*
+
+maintainer-clean : distclean
+
+force :
+
+

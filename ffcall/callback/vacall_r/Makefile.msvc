@@ -1,0 +1,117 @@
+# -*- Makefile -*- for vacall
+
+#### Start of system configuration section. ####
+
+# Flags that can be set on the nmake command line:
+#   MFLAGS={-ML|-MT|-MD} for defining the compilation model
+#     MFLAGS=-ML (the default)  Single-threaded, statically linked - libc.lib
+#     MFLAGS=-MT                Multi-threaded, statically linked  - libcmt.lib
+#     MFLAGS=-MD                Multi-threaded, dynamically linked - msvcrt.lib
+#   DEBUG=1   for compiling with debugging information
+# Note that nmake command line flags are automatically passed to subdirectory
+# Makefiles. Therefore we don't need to pass them explicitly to subdirectory
+# Makefiles, but the subdirectory Makefiles need to have the same defaults.
+# Building as a DLL not supported yet.
+DLL=0
+!if !defined(DEBUG)
+DEBUG=0
+!endif
+!if !defined(MFLAGS)
+!if !$(DLL)
+MFLAGS=
+!else
+MFLAGS=-MD
+!endif
+!endif
+
+!if $(DEBUG)
+OPTIMFLAGS = -Od -Z7
+!else
+OPTIMFLAGS = -D_NDEBUG -O1
+!endif
+
+HOST = i386-pc-win32-msvc
+CPU = i386
+
+# Directories used by "make":
+srcdir = .
+
+# Directories used by "make install":
+prefix = /usr/local
+local_prefix = /usr/local
+exec_prefix = $(prefix)
+libdir = $(exec_prefix)/lib
+includedir = $(prefix)/include
+mandir = $(prefix)/man
+
+# Programs used by "make":
+CC = cl
+CFLAGS = $(MFLAGS) $(OPTIMFLAGS)
+CPP = cl -E
+INCLUDES = -I. -I$(srcdir)
+AR = lib
+AR_FLAGS = /out:
+MV = ren
+LN = copy
+RM = -del
+
+# Programs used by "make install":
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+
+#### End of system configuration section. ####
+
+SHELL = /bin/sh
+
+OBJECTS = vacall.obj misc.obj structcpy.obj
+
+all : $(OBJECTS) vacall.lib vacall_r.h
+
+vacall_r.h : vacall_r.h.msvc
+	$(RM) vacall_r.h
+	$(LN) vacall_r.h.msvc vacall_r.h
+
+config.h : config.h.msvc
+	$(RM) config.h
+	$(LN) config.h.msvc config.h
+
+vacall.obj : vacall-$(CPU).obj
+	$(RM) vacall.obj
+	$(LN) vacall-$(CPU).obj vacall.obj
+
+vacall-i386.obj : $(srcdir)/vacall-i386-msvc.c vacall_r.h
+	$(RM) vacall-i386.obj
+	$(CC) -c $(srcdir)/vacall-i386-msvc.c /Fovacall-i386.obj
+
+misc.obj : $(srcdir)/misc.c vacall_r.h config.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c $(srcdir)/misc.c
+
+structcpy.obj : $(srcdir)/structcpy.c
+	$(CC) $(CFLAGS) -c $(srcdir)/structcpy.c
+
+!if !$(DLL)
+vacall.lib : $(OBJECTS)
+	$(RM) vacall.lib
+	$(AR) $(AR_FLAGS)vacall.lib $(OBJECTS)
+!else
+# vacall.dll and vacall.lib are created together.
+vacall.lib : $(OBJECTS)
+	$(CC) $(MFLAGS) -LD $(OBJECTS)
+!endif
+
+check : all
+
+mostlyclean : clean
+
+clean : force
+	$(RM) *.obj *.lib *.exp *.dll core
+	$(RM) vacall-i386.s
+
+distclean : clean
+	$(RM) config.status config.log config.cache Makefile vacall_r.h config.h
+
+maintainer-clean : distclean
+
+force :
+

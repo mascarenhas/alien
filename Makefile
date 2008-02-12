@@ -1,11 +1,15 @@
 
 all: alien.so alien/struct.so
 
+alien.o: alien.c
+	cd ffcall && ./configure CC=gcc && make CC=gcc
+	$(CC) -c $(CFLAGS) -Iffcall/callback -Iffcall/avcall -o alien.o alien.c
+
 alien.so: alien.o 
-	export MACOSX_DEPLOYMENT_TARGET=10.3; ld $(LIB_OPTION) -o alien.so alien.o -lavcall -lcallback
+	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o alien.so alien.o -Lffcall/avcall/.libs -Lffcall/callback/.libs -lavcall -lcallback
 
 alien/struct.so: alien/struct.o 
-	export MACOSX_DEPLOYMENT_TARGET=10.3; ld $(LIB_OPTION) -o alien/struct.so alien/struct.o
+	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o alien/struct.so alien/struct.o
 
 install: alien.so alien/struct.so
 	cp alien.so $(LUA_LIBDIR)
@@ -14,6 +18,7 @@ install: alien.so alien/struct.so
 
 clean:
 	rm *.so *.o alien/*.so alien/*.o
+	cd ffcall && make clean
 
 upload:
 	darcs dist -d alien-current
