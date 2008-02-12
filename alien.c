@@ -18,12 +18,19 @@
 #define ALIEN_BUFFER_META "alien_buffer"
 #define ALIEN_CALLBACK_META "alien_callback"
 
+#ifndef uchar
+#define uchar unsigned char
+#endif
+
 typedef enum {
   SHORT,
   INT,
+  LONG,
   VOID,
+  FLOAT,
   DOUBLE,
   CHAR,
+  BYTE,
   STRING,
   PTR,
   REFINT,
@@ -94,7 +101,7 @@ static void *alien_load (lua_State *L, const char *libname) {
   char *path;
   const char *path_prefix, *path_suffix;
   void *lib;
-  if(libname[0] == '/') {
+  if(strchr(libname, '/')) {
     path_prefix = "";
     path_suffix = "";
   } else {
@@ -283,25 +290,35 @@ static void alien_callback_call(void *data, va_alist alist) {
   ac = (alien_Callback *)data;
   switch(ac->ret_type) {
   case VOID: va_start_void(alist); break;
-  case INT:
-  case CHAR:
-    va_start_int(alist); break;
+  case INT: va_start_int(alist); break;
+  case LONG: va_start_long(alist); break;
+  case CHAR: va_start_uchar(alist); break;
+  case BYTE: va_start_char(alist); break;
+  case SHORT: va_start_short(alist); break;
+  case FLOAT: va_start_float(alist); break;
   case DOUBLE: va_start_double(alist); break;
-  case STRING:
-    va_start_ptr(alist, char*); break;
-  case PTR: 
-    va_start_ptr(alist, void*); break;
+  case STRING: va_start_ptr(alist, char*); break;
+  case PTR: va_start_ptr(alist, void*); break;
   default: luaL_error(ac->L, "alien: unknown return type in callback");
   }
   lua_getref(ac->L, ac->fn_ref);
   nparams = ac->nparams;
   for(i = 0; i < nparams; i++) {
     switch(ac->params[i]) {
-    case CHAR: lua_pushnumber(ac->L, va_arg_char(alist)); break;
+    case BYTE: lua_pushnumber(ac->L, (double)va_arg_char(alist)); break;
+    case CHAR: lua_pushnumber(ac->L, (double)va_arg_uchar(alist)); break;
     case SHORT: lua_pushnumber(ac->L, (double)va_arg_short(alist)); break;
-    case INT: lua_pushnumber(ac->L, va_arg_int(alist)); break;
+    case INT: lua_pushnumber(ac->L, (double)va_arg_int(alist)); break;
+    case LONG: lua_pushnumber(ac->L, (double)va_arg_long(alist)); break;
+    case FLOAT: lua_pushnumber(ac->L, (double)va_arg_float(alist)); break;
     case DOUBLE: lua_pushnumber(ac->L, va_arg_double(alist)); break;
     case STRING: lua_pushstring(ac->L, va_arg_ptr(alist, char*)); break;
+    case REFINT: 
+      lua_pushnumber(ac->L, (double)(*(va_arg_ptr(alist, int*)))); break;
+    case REFCHAR:
+      lua_pushnumber(ac->L, (double)(*(va_arg_ptr(alist, uchar*)))); break;
+    case REFDOUBLE: 
+      lua_pushnumber(ac->L, *(va_arg_ptr(alist, double*))); break;
     case PTR:
       ptr = va_arg_ptr(alist, void*);
       ptr ? lua_pushlightuserdata(ac->L, ptr) : lua_pushnil(ac->L);
@@ -312,9 +329,12 @@ static void alien_callback_call(void *data, va_alist alist) {
   lua_call(ac->L, nparams, 1);
   switch(ac->ret_type) {
   case VOID: va_return_void(alist); break;
-  case INT:
-  case CHAR:
-    va_return_int(alist, lua_tointeger(ac->L, -1)); break;
+  case SHORT: va_return_short(alist, (short)lua_tointeger(ac->L, -1)); break;
+  case INT: va_return_int(alist, (int)lua_tointeger(ac->L, -1)); break;
+  case LONG: va_return_long(alist, (long)lua_tointeger(ac->L, -1)); break;
+  case CHAR: va_return_uchar(alist, (uchar)lua_tointeger(ac->L, -1)); break;
+  case BYTE: va_return_char(alist, (char)lua_tointeger(ac->L, -1)); break;
+  case FLOAT: va_return_float(alist, (float)lua_tonumber(ac->L, -1)); break;
   case DOUBLE: va_return_double(alist, lua_tonumber(ac->L, -1)); break;
   case STRING:
     if(lua_isuserdata(ac->L, -1))
@@ -323,7 +343,11 @@ static void alien_callback_call(void *data, va_alist alist) {
       va_return_ptr(alist, char*, lua_tostring(ac->L, -1)); 
     break;
   case PTR:
-    va_return_ptr(alist, void*, lua_touserdata(ac->L, -1)); break;
+    if(lua_isstring(ac->L, -1))
+      va_return_ptr(alist, void*, (void*)lua_tostring(ac->L, -1));
+    else
+      va_return_ptr(alist, void*, lua_touserdata(ac->L, -1));
+    break;
   default: luaL_error(ac->L, "alien: unknown return type in callback");
   }
 }
@@ -334,11 +358,13 @@ static int alien_callback_new(lua_State *L) {
   alien_Type at;
   __TR_function *ud;
   int i;
-  static const int types[] = {VOID, INT, DOUBLE, CHAR, STRING, PTR, REFINT, REFDOUBLE, REFCHAR,
-			      CALLBACK, SHORT};
-  static const char *const typenames[] = {"void", "int", "double", "char", "string", "pointer",
-					  "ref int", "ref double", "ref char", "callback", 
-                                          "short", NULL};
+  static const int types[] = {VOID, INT, DOUBLE, CHAR, STRING, PTR, REFINT, 
+			      REFDOUBLE, REFCHAR, CALLBACK, SHORT, BYTE, LONG,
+			      FLOAT};
+  static const char *const typenames[] = 
+    {"void", "int", "double", "char", "string", "pointer",
+     "ref int", "ref double", "ref char", "callback", 
+     "short", "byte", "long", "float", NULL};
   luaL_checktype(L, 1, LUA_TFUNCTION);
   ac = (alien_Callback *)malloc(sizeof(alien_Callback));
   ud = (__TR_function *)lua_newuserdata(L, sizeof(__TR_function));
@@ -367,20 +393,24 @@ static int alien_callback_new(lua_State *L) {
 }
 
 static int alien_sizeof(lua_State *L) {
-  static const int sizes[] = {sizeof(int), sizeof(double), sizeof(char), 
-			     sizeof(char*), sizeof(void*)};
+  static const int sizes[] = {sizeof(int), sizeof(double), sizeof(uchar), 
+			      sizeof(char*), sizeof(void*), sizeof(char),
+			      sizeof(short), sizeof(long), sizeof(float)};
   static const char *const typenames[] = {"int", "double", "char", "string", 
-					  "pointer", NULL};
+					  "pointer", "byte", "short", "long",
+					  "float", NULL};
   lua_pushnumber(L, sizes[luaL_checkoption(L, 1, "char", typenames)]);
   return 1;
 }
 
 static int alien_function_types(lua_State *L) {
-  static const int types[] = {VOID, INT, DOUBLE, CHAR, STRING, PTR, REFINT, REFDOUBLE, REFCHAR,
-			      CALLBACK, SHORT};
-  static const char *const typenames[] = {"void", "int", "double", "char", "string", "pointer",
-					  "ref int", "ref double", "ref char", "callback", 
-                                          "short", NULL};
+  static const int types[] = {VOID, INT, DOUBLE, CHAR, STRING, PTR, REFINT, 
+			      REFDOUBLE, REFCHAR, CALLBACK, SHORT, BYTE, LONG,
+			      FLOAT};
+  static const char *const typenames[] = 
+    {"void", "int", "double", "char", "string", "pointer",
+     "ref int", "ref double", "ref char", "callback", 
+     "short", "byte", "long", "float", NULL};
   alien_Function *af = alien_checkfunction(L, 1);
   int i, j;
   af->ret_type = types[luaL_checkoption(L, 2, "void", typenames)];
@@ -398,7 +428,8 @@ static int alien_function_types(lua_State *L) {
 
 static int alien_function_call(lua_State *L) {
   int i, j, nargs, nparams;
-  int iret; double dret; void *pret;
+  int iret; double dret; void *pret; short sret; 
+  char cret; uchar ucret; long lret; float fret;
   av_alist alist;
   int *refi_args, nrefi, nrefd, nrefc;
   double *refd_args;
@@ -408,9 +439,12 @@ static int alien_function_call(lua_State *L) {
   nparams = af->nparams;
   switch(af->ret_type) {
   case VOID: av_start_void(alist, af->fn); break;
-  case INT:
-  case CHAR:
-    av_start_int(alist, af->fn, &iret); break;
+  case SHORT: av_start_short(alist, af->fn, &sret); break;
+  case INT: av_start_int(alist, af->fn, &iret); break;
+  case LONG: av_start_int(alist, af->fn, &lret); break;
+  case BYTE: av_start_char(alist, af->fn, &cret); break;
+  case CHAR: av_start_uchar(alist, af->fn, &ucret); break;
+  case FLOAT: av_start_float(alist, af->fn, &fret); break;
   case DOUBLE: av_start_double(alist, af->fn, &dret); break;
   case STRING:
     av_start_ptr(alist, af->fn, char*, &pret); break;
@@ -429,18 +463,19 @@ static int alien_function_call(lua_State *L) {
   if(nrefi > 0) refi_args = (int*)alloca(sizeof(int) * nrefi);
   if(nrefd > 0) refd_args = (double*)alloca(sizeof(double) * nrefd);
   if(nrefc > 0) refc_args = (char*)alloca(sizeof(char) * nrefc);
-  nargs = lua_gettop(L) - 1 + nrefi + nrefd + nrefc;
+  nargs = lua_gettop(L) - 1;
   if(nargs < nparams)
     luaL_error(L, "alien: too few arguments (function %s)", af->name);
   else if(nargs > nparams)
     luaL_error(L, "alien: too many arguments (function %s)", af->name);
   for(i = 0, j = 2; i < nparams; i++, j++) {
     switch(af->params[i]) {
-    case INT:
-    case CHAR:
-      av_int(alist, lua_tointeger(L, j)); break;
-    case SHORT:
-      av_short(alist, (short)lua_tointeger(L, j)); break;
+    case SHORT: av_short(alist, (short)lua_tointeger(L, j)); break;
+    case INT: av_int(alist, (int)lua_tointeger(L, j)); break;
+    case LONG: av_long(alist, (long)lua_tointeger(L, j)); break;
+    case CHAR: av_uchar(alist, (uchar)lua_tointeger(L, j)); break;
+    case BYTE: av_char(alist, (char)lua_tointeger(L, j)); break;
+    case FLOAT: av_float(alist, (float)lua_tonumber(L, j)); break;
     case DOUBLE: av_double(alist, lua_tonumber(L, j)); break;
     case STRING:
       if(lua_isuserdata(L, j))
@@ -448,27 +483,46 @@ static int alien_function_call(lua_State *L) {
       else
 	av_ptr(alist, char*, lua_isnil(L, j) ? NULL : lua_tostring(L, j)); 
       break;
-    case CALLBACK: av_ptr(alist, void*, 
-			  *((__TR_function*)luaL_checkudata(L, j, ALIEN_CALLBACK_META))); break;
-    case PTR: av_ptr(alist, void*, lua_isnil(L, j) ? NULL :lua_touserdata(L, j)); break;
-    case REFINT: av_ptr(alist, int*, refi_args); refi_args++; j--; break;
-    case REFDOUBLE: av_ptr(alist, double*, refd_args); refd_args++; j--; break;
-    case REFCHAR: av_ptr(alist, char*, refc_args); refc_args++; j--; break;
-    default: luaL_error(L, "alien: parameter %i is of unknown type (function %s)", j, 
+    case CALLBACK: 
+      av_ptr(alist, void*, 
+	     *((__TR_function*)luaL_checkudata(L, j, ALIEN_CALLBACK_META))); 
+      break;
+    case PTR:
+      av_ptr(alist, void*, lua_isnil(L, j) ? NULL : 
+	     (lua_isstring(L, j) ? (void*)lua_tostring(L, j) : 
+	      lua_touserdata(L, j))); 
+      break;
+    case REFINT: 
+      *refi_args = (int)lua_tointeger(L, j);
+      av_ptr(alist, int*, refi_args); refi_args++; 
+      break;
+    case REFCHAR: 
+      *refc_args = (char)lua_tointeger(L, j);
+      av_ptr(alist, char*, refc_args); refc_args++; 
+      break;
+    case REFDOUBLE: 
+      *refd_args = lua_tonumber(L, j);
+      av_ptr(alist, double*, refd_args); refd_args++; 
+      break;
+    default: 
+      luaL_error(L, "alien: parameter %i is of unknown type (function %s)", j, 
 			af->name);
     }
   }
   av_call(alist);
   switch(af->ret_type) {
-  case VOID: return 0;
-  case INT:
-  case CHAR:
-    lua_pushnumber(L, iret); break;
+  case VOID: lua_pushnil(L); break;
+  case SHORT: lua_pushnumber(L, sret); break;
+  case INT: lua_pushnumber(L, iret); break;
+  case LONG: lua_pushnumber(L, lret); break;
+  case CHAR: lua_pushnumber(L, ucret); break;
+  case BYTE: lua_pushnumber(L, cret); break;
+  case FLOAT: lua_pushnumber(L, fret); break;
   case DOUBLE: lua_pushnumber(L, dret); break;
   case STRING: lua_pushstring(L, (const char *)pret); break;
   case PTR: pret ? lua_pushlightuserdata(L, pret) : lua_pushnil(L); break;
-  default: luaL_error(L, "alien: unknown return type (function %s, library %s)", af->name,
-		      af->lib->name);
+  default: 
+    luaL_error(L, "alien: unknown return type (function %s)", af->name);
   }
   refi_args -= nrefi; refd_args -= nrefd; refc_args -= nrefc;
   for(i = 0; i < nparams; i++) {
@@ -552,11 +606,21 @@ static int alien_unpack(lua_State *L) {
 }
 
 static int alien_buffer_new(lua_State *L) {
-  char *b;
-  int size;
-  size = luaL_optint(L, 1, BUFSIZ);
+  char *b; const char *s;
+  size_t size;
+  if(lua_isstring(L, 1)) {
+    s = lua_tolstring(L, 1, &size);
+    size++;
+  }
+  else {
+    size = luaL_optint(L, 1, BUFSIZ);
+  }
   b = (char *)lua_newuserdata(L, sizeof(char) * size);
   if(b) {
+    if(s) {
+      memcpy(b, s, sizeof(char) * (size - 1));
+      b[size - 1] = '\0';
+    }
     luaL_getmetatable(L, ALIEN_BUFFER_META);
     lua_setmetatable(L, -2);
     return 1;
@@ -566,9 +630,20 @@ static int alien_buffer_new(lua_State *L) {
 }
 
 static int alien_buffer_tostring(lua_State *L) {
-  char *b = alien_checkbuffer(L, 1);
-  int size = luaL_optint(L, 2, BUFSIZ);
+  char *b;
+  int size;
+  b = alien_checkbuffer(L, 1);
+  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
+    size = strlen(b);
+  else
+    size = luaL_checkinteger(L, 2);
   lua_pushlstring(L, b, size);
+  return 1;
+}
+
+static int alien_buffer_len(lua_State *L) {
+  char *b = alien_checkbuffer(L, 1);
+  lua_pushinteger(L, strlen(b));
   return 1;
 }
 
@@ -616,6 +691,9 @@ static int alien_register_buffer_meta(lua_State *L) {
   lua_pushliteral(L, "tostring");
   lua_pushcfunction(L, alien_buffer_tostring);
   lua_settable(L, -3);
+  lua_pushliteral(L, "len");
+  lua_pushcfunction(L, alien_buffer_len);
+  lua_settable(L, -3);
   lua_settable(L, -3);
   lua_pushliteral(L, "__tostring");
   lua_pushcfunction(L, alien_buffer_tostring);
@@ -632,15 +710,26 @@ static int alien_errno(lua_State *L) {
 static int alien_udata2str(lua_State *L) {
   char *ud;
   int size;
+  if(lua_isnil(L, 1)) {
+    lua_pushnil(L);
+    return 1;
+  }
   luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
-  size = luaL_checkinteger(L, 2);
   ud = (char *)lua_touserdata(L, 1);
+  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
+    size = strlen(ud);
+  else
+    size = luaL_checkinteger(L, 2);
   lua_pushlstring(L, ud, size);
   return 1;
 }
 
 static int alien_udata2double(lua_State *L) {
   double *ud;
+  if(lua_isnil(L, 1)) {
+    lua_pushnil(L);
+    return 1;
+  }
   luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
   ud = (double *)lua_touserdata(L, 1);
   lua_pushnumber(L, *ud);
@@ -649,6 +738,10 @@ static int alien_udata2double(lua_State *L) {
 
 static int alien_udata2int(lua_State *L) {
   int *ud;
+  if(lua_isnil(L, 1)) {
+    lua_pushnil(L);
+    return 1;
+  }
   luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
   ud = (int *)lua_touserdata(L, 1);
   lua_pushnumber(L, *ud);
@@ -664,7 +757,7 @@ static int alien_isnull(lua_State *L) {
 }
 
 static const struct luaL_reg alienlib[] = {
-  {"new_tag", alien_register},
+  {"tag", alien_register},
   {"wrap", alien_pack},
   {"unwrap", alien_unpack},
   {"errno", alien_errno},
@@ -672,9 +765,9 @@ static const struct luaL_reg alienlib[] = {
   {"isnull", alien_isnull},
   {"sizeof", alien_sizeof},
   {"todouble", alien_udata2double},
-  {"toint", alien_udata2double},
-  {"new_buffer", alien_buffer_new},
-  {"new_callback", alien_callback_new},
+  {"tointeger", alien_udata2int},
+  {"buffer", alien_buffer_new},
+  {"callback", alien_callback_new},
   {NULL, NULL},
 };
 

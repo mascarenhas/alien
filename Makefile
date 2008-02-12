@@ -1,5 +1,5 @@
 
-all: alien.so alien/struct.so
+all: alien.so alien/struct.so test/libalientest.so
 
 osx:
 	cd ffcall && cat executables | xargs chmod +x && ./configure CC=gcc && make CC=gcc
@@ -22,8 +22,14 @@ install: alien.so alien/struct.so
 	cp constants $(BIN_DIR)/
 
 clean:
-	rm *.so *.o alien/*.so alien/*.o
+	find . -name "*.so" -o -name "*.o" | xargs rm
 
 upload:
 	darcs dist -d alien-current
 	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs alien-current.tar.gz
+
+test/libalientest.so: test/alientest.c
+	$(CC) $(LIB_OPTION) $(CFLAGS) -o test/libalientest.so test/alientest.c
+
+run_test:
+	cd test && lua -l luarocks.require test_alien.lua
