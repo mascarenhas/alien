@@ -12,10 +12,9 @@ description = {
   homepage = "http://alien.luaforge.net"
 }
 
-dependencies = { "bitlib" }
+dependencies = { }
 
 external_dependencies = { 
-  LIBEVENT = { header = "event.h" },
   platforms = {
     linux = {
 	FFCALL = { header = "avcall.h" }
@@ -38,7 +37,6 @@ build = {
    install_variables = {
       LUA_LIBDIR = "$(LIBDIR)",
       BIN_DIR = "$(BINDIR)",
-      LIBEVENT_INCDIR = "$(LIBEVENT_INCDIR)"
    },
    platforms = {
      linux = {

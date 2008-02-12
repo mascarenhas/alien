@@ -20,12 +20,9 @@ install: alien.so alien/struct.so
 	cp alien/struct.so $(LUA_LIBDIR)/alien
 	chmod +x constants
 	cp constants $(BIN_DIR)/
-	cd aio && make all LIBEVENT_INCDIR=$(LIBEVENT_INCDIR)
 
 clean:
 	rm *.so *.o alien/*.so alien/*.o
-	cd ffcall && make clean
-	cd aio && make clean
 
 upload:
 	darcs dist -d alien-current
