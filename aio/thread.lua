@@ -15,12 +15,7 @@ event.event_loop:types("int", "int")
 
 event.event_init()
 
-local EV_SIZE = 84 -- MAGIC!!!!!
-local EV_READ = 0x02
-local EV_WRITE = 0x04
-local EV_TIMEOUT = 0x01
-local EVLOOP_NONBLOCK = 0x02
-local EVLOOP_ONCE = 0x01
+require("event_constants")
 
 local events = {
   read = EV_READ,
