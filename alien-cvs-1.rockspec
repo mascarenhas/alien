@@ -14,6 +14,10 @@ description = {
 
 dependencies = { "bitlib" }
 
+external_dependencies = { 
+  LIBEVENT = { header = "event.h" }
+}
+
 source = {
    url = "http://alien.luaforge.net/alien-current.tar.gz"
 }
@@ -21,7 +25,9 @@ source = {
 build = {
    type = "make",
    install_variables = {
-      LUA_LIBDIR = "$(LIBDIR)"
+      LUA_LIBDIR = "$(LIBDIR)",
+      BIN_DIR = "$(BINDIR)",
+      LIBEVENT_INCDIR = "$(LIBEVENT_INCDIR)"
    },
    platforms = {
      linux = {

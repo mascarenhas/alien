@@ -1,3 +1,5 @@
+#!/usr/bin/env lua
+
 -- Generates a .c file that outputs a Lua script with C constants
 
 local const_file = select(1, ...)
