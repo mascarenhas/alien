@@ -47,6 +47,7 @@ local function handle_io(fd, ev_code, arg)
   else
     error("no thread waiting for event " .. ev_code .. " on fd " .. fd)
   end
+  return 0
 end
 
 local handle_io_cb = alien.new_callback(handle_io, "void", "int", "int",
