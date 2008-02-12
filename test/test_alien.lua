@@ -140,11 +140,6 @@ do
     assert(alien.GLU.gluBeginCurve)
     assert(alien.glut)
     assert(alien.glut.glutWireTetrahedron)
-  elseif alien.platform == "osx" then
-    assert(alien.OpenGL)
-    assert(alien.OpenGL.glClearIndex)
-    assert(alien.GLUT)
-    assert(alien.GLUT.glutWireTetrahedron)
   elseif alien.platform == "windows" then
     assert(alien.OpenGL32)
     assert(alien.OpenGL32.glClearIndex)
