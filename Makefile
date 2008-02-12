@@ -1,12 +1,15 @@
 
 all: alien.so alien/struct.so
 
-alien.o: alien.c
+osx:
 	cd ffcall && cat executables | xargs chmod +x && ./configure CC=gcc && make CC=gcc
-	$(CC) -c $(CFLAGS) -Iffcall/callback -Iffcall/avcall -o alien.o alien.c
+	make all	
+
+alien.o: alien.c
+	$(CC) -c $(CFLAGS) $(FFCALL_INCDIR) -o alien.o alien.c
 
 alien.so: alien.o 
-	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o alien.so alien.o -Lffcall/avcall/.libs -Lffcall/callback/.libs -lavcall -lcallback
+	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o alien.so alien.o $(FFCALL_LIBDIR)  -lavcall -lcallback
 
 alien/struct.so: alien/struct.o 
 	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o alien/struct.so alien/struct.o

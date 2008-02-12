@@ -15,7 +15,18 @@ description = {
 dependencies = { "bitlib" }
 
 external_dependencies = { 
-  LIBEVENT = { header = "event.h" }
+  LIBEVENT = { header = "event.h" },
+  platforms = {
+    linux = {
+	FFCALL = { header = "avcall.h" }
+    },
+    bsd = {
+	FFCALL = { header = "avcall.h" }
+    },
+    win32 = {
+	FFCALL = { header = "avcall.h" }
+    }
+  }
 }
 
 source = {
@@ -34,24 +45,31 @@ build = {
        	build_variables = {
          LIB_OPTION = "-shared",
          CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DUSE_DLOPEN",
+	 FFCALL_INCDIR = "-I$(FFCALL_INCDIR)",
+	 FFCALL_LIBDIR = "-L$(FFCALL_LIBDIR)"
        	},
      },
      bsd = {
        	build_variables = {
          LIB_OPTION = "-shared",
          CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DUSE_DLOPEN",
+	 FFCALL_INCDIR = "-I$(FFCALL_INCDIR)",
+	 FFCALL_LIBDIR = "-L$(FFCALL_LIBDIR)"
        	},
      },
      macosx = {
+        build_target = "osx",
        	build_variables = {
          LIB_OPTION = "-bundle -undefined dynamic_lookup",
          CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DARCH_OSX",
+	 FFCALL_INCDIR = "-Iffcall/avcall -Iffcall/callback",
+         FFCALL_LIBDIR = "-Lffcall/alcall/.libs -Lffcall/callback/.libs"
        	},
      },
      win32 = {
        	build_variables = {
-         LIB_OPTION = "$(LUA_LIBDIR)\\lua5.1.lib",
-         CFLAGS = "$(CFLAGS) /I$(LUA_INCDIR) /DUSE_LOADLIBRARY",
+         LIB_OPTION = "$(LUA_LIBDIR)\\lua5.1.lib $(FFCALL_LIBDIR)\\libavcall.lib $(FFCALL_LIBDIR)\\libcallback.lib",
+         CFLAGS = "$(CFLAGS) /I$(LUA_INCDIR) /I$(FFCALL_INCDIR) /DUSE_LOADLIBRARY",
        	}
      }
   }
