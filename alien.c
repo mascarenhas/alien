@@ -597,12 +597,31 @@ static int alien_unpack(lua_State *L) {
   while(ud->tag != VOID) {
     switch(ud->tag) {
     case INT: lua_pushnumber(L, ud->val.i); break;
-    case PTR: ud->val.p ? lua_pushlightuserdata(L, ud->val.p) : lua_pushnil(L); break;
+    case PTR: ud->val.p ? lua_pushlightuserdata(L, ud->val.p) :
+      lua_pushnil(L); break;
     default: luaL_error(L, "wrong type in wrapped value");
     }
     ud++;
   }
   return lua_gettop(L) - 2;
+}
+
+static int alien_repack(lua_State *L) {
+  int size, i;
+  alien_Wrap *ud;
+  const char *meta = luaL_checkstring(L, 1);
+  ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
+  i = 3;
+  while(ud->tag != VOID) {
+    switch(ud->tag) {
+    case INT: ud->val.i = lua_tointeger(L, i); break;
+    case PTR: lua_isnil(L, i) ? (ud->val.p = NULL) : 
+      (ud->val.p = lua_touserdata(L, i)); break;
+    default: luaL_error(L, "wrong type in wrapped value");
+    }
+    ud++; i++;
+  }
+  return 0;
 }
 
 static int alien_buffer_new(lua_State *L) {
@@ -759,6 +778,7 @@ static int alien_isnull(lua_State *L) {
 static const struct luaL_reg alienlib[] = {
   {"tag", alien_register},
   {"wrap", alien_pack},
+  {"rewrap", alien_repack},
   {"unwrap", alien_unpack},
   {"errno", alien_errno},
   {"tostring", alien_udata2str},
