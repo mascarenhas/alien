@@ -1,0 +1,9 @@
+#include <sys/types.h>
+#include <event.h>
+
+EV_SIZE = sizeof(struct event)
+EV_READ
+EV_WRITE
+EV_TIMEOUT
+EVLOOP_NONBLOCK
+EVLOOP_ONCE

@@ -1,0 +1,28 @@
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <limits.h>
+
+O_ACCMODE
+O_RDONLY
+O_WRONLY
+O_RDWR
+O_CREAT
+O_EXCL
+O_NOCTTY
+O_TRUNC
+O_APPEND
+O_NONBLOCK
+O_SYNC
+O_ASYNC
+
+F_GETFL
+F_SETFL
+
+DEFFILEMODE
+
+EAGAIN
+
+MAXINT = INT_MAX
+
+BUFSIZ

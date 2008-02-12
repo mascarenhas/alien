@@ -23,29 +23,7 @@ libc.fcntl:types("int", "int", "int", "int")
 libc.popen:types("pointer", "string", "string")
 libc.fileno:types("int", "pointer")
 
-local O_ACCMODE = tonumber("0003", 8)
-local O_RDONLY = tonumber("00", 8)
-local O_WRONLY = tonumber("01", 8)
-local O_RDWR = tonumber("02", 8)
-local O_CREAT = tonumber("0100", 8)
-local O_EXCL = tonumber("0200", 8)
-local O_NOCTTY = tonumber("0400", 8)
-local O_TRUNC = tonumber("01000", 8)
-local O_APPEND = tonumber("02000", 8)
---local O_NONBLOCK = tonumber("04000", 8)
-local O_NONBLOCK = 0x0004
-local O_SYNC = tonumber("010000", 8)
-local O_ASYNC = tonumber("020000", 8)
-
-local F_GETFL = 3
-local F_SETFL = 4
-
-local DEFFILEMODE = tonumber("666", 8)
-
---local EAGAIN = 11
-local EAGAIN = 35
-
-local MAXINT = 2^32 - 1
+require("aio_constants")
 
 local STDIN, STDOUT, STDERR = 0, 1, 2
 
@@ -100,8 +78,6 @@ function close(file)
     return aio_error()
   end
 end
-
-local BUFSIZ = 8192
 
 local function aio_read_bytes(fd, n)
   local buf = alien.new_buffer(math.min(n, BUFSIZ))
