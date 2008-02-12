@@ -19,6 +19,7 @@
 #define ALIEN_CALLBACK_META "alien_callback"
 
 typedef enum {
+  SHORT,
   INT,
   VOID,
   DOUBLE,
@@ -296,7 +297,8 @@ static void alien_callback_call(void *data, va_alist alist) {
   nparams = ac->nparams;
   for(i = 0; i < nparams; i++) {
     switch(ac->params[i]) {
-    case CHAR:
+    case CHAR: lua_pushnumber(ac->L, va_arg_char(alist)); break;
+    case SHORT: lua_pushnumber(ac->L, (double)va_arg_short(alist)); break;
     case INT: lua_pushnumber(ac->L, va_arg_int(alist)); break;
     case DOUBLE: lua_pushnumber(ac->L, va_arg_double(alist)); break;
     case STRING: lua_pushstring(ac->L, va_arg_ptr(alist, char*)); break;
@@ -333,9 +335,10 @@ static int alien_callback_new(lua_State *L) {
   __TR_function *ud;
   int i;
   static const int types[] = {VOID, INT, DOUBLE, CHAR, STRING, PTR, REFINT, REFDOUBLE, REFCHAR,
-			      CALLBACK};
+			      CALLBACK, SHORT};
   static const char *const typenames[] = {"void", "int", "double", "char", "string", "pointer",
-					  "ref int", "ref double", "ref char", "callback", NULL};
+					  "ref int", "ref double", "ref char", "callback", 
+                                          "short", NULL};
   luaL_checktype(L, 1, LUA_TFUNCTION);
   ac = (alien_Callback *)malloc(sizeof(alien_Callback));
   ud = (__TR_function *)lua_newuserdata(L, sizeof(__TR_function));
@@ -374,9 +377,10 @@ static int alien_sizeof(lua_State *L) {
 
 static int alien_function_types(lua_State *L) {
   static const int types[] = {VOID, INT, DOUBLE, CHAR, STRING, PTR, REFINT, REFDOUBLE, REFCHAR,
-			      CALLBACK};
+			      CALLBACK, SHORT};
   static const char *const typenames[] = {"void", "int", "double", "char", "string", "pointer",
-					  "ref int", "ref double", "ref char", "callback", NULL};
+					  "ref int", "ref double", "ref char", "callback", 
+                                          "short", NULL};
   alien_Function *af = alien_checkfunction(L, 1);
   int i, j;
   af->ret_type = types[luaL_checkoption(L, 2, "void", typenames)];
@@ -435,6 +439,8 @@ static int alien_function_call(lua_State *L) {
     case INT:
     case CHAR:
       av_int(alist, lua_tointeger(L, j)); break;
+    case SHORT:
+      av_short(alist, (short)lua_tointeger(L, j)); break;
     case DOUBLE: av_double(alist, lua_tonumber(L, j)); break;
     case STRING:
       if(lua_isuserdata(L, j))
@@ -448,8 +454,8 @@ static int alien_function_call(lua_State *L) {
     case REFINT: av_ptr(alist, int*, refi_args); refi_args++; j--; break;
     case REFDOUBLE: av_ptr(alist, double*, refd_args); refd_args++; j--; break;
     case REFCHAR: av_ptr(alist, char*, refc_args); refc_args++; j--; break;
-    default: luaL_error(L, "alien: parameter %i is of unknown type (function %s, library %s)", j, 
-			af->name, af->lib->name);
+    default: luaL_error(L, "alien: parameter %i is of unknown type (function %s)", j, 
+			af->name);
     }
   }
   av_call(alist);
