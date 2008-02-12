@@ -37,6 +37,7 @@ build = {
    install_variables = {
       LUA_LIBDIR = "$(LIBDIR)",
       BIN_DIR = "$(BINDIR)",
+      PREFIX = "$(PREFIX)"
    },
    platforms = {
      linux = {

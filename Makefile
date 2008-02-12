@@ -20,6 +20,9 @@ install: src/alien.so src/alien/struct.so
 	cp src/alien/struct.so $(LUA_LIBDIR)/alien
 	chmod +x src/constants
 	cp src/constants $(BIN_DIR)/
+	cp -r tests $(PREFIX)/
+	cp -r samples $(PREFIX)/
+	cp -r doc $(PREFIX)/
 
 clean:
 	find . -name "*.so" -o -name "*.o" | xargs rm -f
