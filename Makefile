@@ -2,7 +2,7 @@
 all: alien.so alien/struct.so
 
 alien.o: alien.c
-	cd ffcall && ./configure CC=gcc && make CC=gcc
+	cd ffcall && cat executables | xargs chmod +x && ./configure CC=gcc && make CC=gcc
 	$(CC) -c $(CFLAGS) -Iffcall/callback -Iffcall/avcall -o alien.o alien.c
 
 alien.so: alien.o 
