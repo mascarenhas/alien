@@ -283,6 +283,13 @@ static int alien_library_get(lua_State *L) {
   }
 }
 
+static int alien_library_tostring(lua_State *L) {
+  alien_Library *al;
+  al = alien_checklibrary(L, 1);
+  lua_pushfstring(L, "alien library %s", (al->name ? al->name : "default"));
+  return 1;
+}
+
 static void alien_callback_call(void *data, va_alist alist) {
   alien_Callback *ac;
   int nparams, i;
@@ -426,6 +433,14 @@ static int alien_function_types(lua_State *L) {
   return 0;
 }
 
+static int alien_function_tostring(lua_State *L) {
+  alien_Function*af;
+  af = alien_checkfunction(L, 1);
+  lua_pushfstring(L, "alien function %s, library %s", af->name,
+		   ((af->lib && af->lib->name) ? af->lib->name : "default"));
+  return 1;
+}
+
 static int alien_function_call(lua_State *L) {
   int i, j, nargs, nparams;
   int iret; double dret; void *pret; short sret; 
@@ -559,7 +574,9 @@ static int alien_callback_gc(lua_State *L) {
 
 static int alien_register(lua_State *L) {
   const char *meta = luaL_checkstring(L, 1);
-  luaL_newmetatable(L, meta);
+  luaL_getmetatable(L, meta);
+  if(lua_isnil(L, -1))
+    luaL_newmetatable(L, meta);
   return 1;
 }
 
@@ -671,6 +688,9 @@ static int alien_register_library_meta(lua_State *L) {
   lua_pushliteral(L, "__gc");
   lua_pushcfunction(L, alien_library_gc);
   lua_settable(L, -3);
+  lua_pushliteral(L, "__tostring");
+  lua_pushcfunction(L, alien_library_tostring);
+  lua_settable(L, -3);
   lua_pushliteral(L, "__index");
   lua_newtable(L);
   lua_pushcclosure(L, alien_library_get, 1);
@@ -698,6 +718,9 @@ static int alien_register_function_meta(lua_State *L) {
   lua_settable(L, -3);
   lua_pushliteral(L, "__call");
   lua_pushcfunction(L, alien_function_call);
+  lua_settable(L, -3);
+  lua_pushliteral(L, "__tostring");
+  lua_pushcfunction(L, alien_function_tostring);
   lua_settable(L, -3);
   lua_pop(L, 1);
   return 0;
@@ -745,26 +768,92 @@ static int alien_udata2str(lua_State *L) {
 
 static int alien_udata2double(lua_State *L) {
   double *ud;
+  int size, i;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
   }
   luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
+    size = 1;
+  else
+    size = luaL_checkinteger(L, 2);
   ud = (double *)lua_touserdata(L, 1);
-  lua_pushnumber(L, *ud);
-  return 1;
+  for(i = 0; i < size; i++)
+    lua_pushnumber(L, *ud++);
+  return size;
 }
 
 static int alien_udata2int(lua_State *L) {
   int *ud;
+  int size, i;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
   }
   luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
+    size = 1;
+  else
+    size = luaL_checkinteger(L, 2);
   ud = (int *)lua_touserdata(L, 1);
-  lua_pushnumber(L, *ud);
-  return 1;
+  for(i = 0; i < size; i++)
+    lua_pushnumber(L, *ud++);
+  return size;
+}
+
+static int alien_udata2short(lua_State *L) {
+  short *ud;
+  int size, i;
+  if(lua_isnil(L, 1)) {
+    lua_pushnil(L);
+    return 1;
+  }
+  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
+    size = 1;
+  else
+    size = luaL_checkinteger(L, 2);
+  ud = (short *)lua_touserdata(L, 1);
+  for(i = 0; i < size; i++)
+    lua_pushnumber(L, *ud++);
+  return size;
+}
+
+static int alien_udata2long(lua_State *L) {
+  long *ud;
+  int size, i;
+  if(lua_isnil(L, 1)) {
+    lua_pushnil(L);
+    return 1;
+  }
+  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
+    size = 1;
+  else
+    size = luaL_checkinteger(L, 2);
+  ud = (long *)lua_touserdata(L, 1);
+  for(i = 0; i < size; i++)
+    lua_pushnumber(L, *ud++);
+  return size;
+}
+
+static int alien_udata2float(lua_State *L) {
+  float *ud;
+  int size, i;
+  if(lua_isnil(L, 1)) {
+    lua_pushnil(L);
+    return 1;
+  }
+  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
+    size = 1;
+  else
+    size = luaL_checkinteger(L, 2);
+  ud = (float *)lua_touserdata(L, 1);
+  for(i = 0; i < size; i++)
+    lua_pushnumber(L, *ud++);
+  return size;
 }
 
 static int alien_isnull(lua_State *L) {
@@ -786,6 +875,9 @@ static const struct luaL_reg alienlib[] = {
   {"sizeof", alien_sizeof},
   {"todouble", alien_udata2double},
   {"tointeger", alien_udata2int},
+  {"tolong", alien_udata2long},
+  {"tofloat", alien_udata2float},
+  {"toshort", alien_udata2short},
   {"buffer", alien_buffer_new},
   {"callback", alien_callback_new},
   {NULL, NULL},
