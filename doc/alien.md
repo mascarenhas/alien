@@ -4,7 +4,14 @@ Alien - Pure Lua extensions
 Status
 ------
 
-This is Alien version 0.3.1.
+This is Alien version 0.3.2.
+
+Changelog
+---------
+
+* 0.3.2 - fixes callback bug on NX-bit platforms
+* 0.3.1 - initial release with libffi
+* 0.3 - retracted due to license conflict
 
 What is Alien
 -------------

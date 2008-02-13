@@ -1,7 +1,7 @@
 
 require "alien"
 
-local libc = alien.c
+local libc = alien.default
 
 libc.malloc:types("pointer", "int")
 libc.free:types("void", "pointer")

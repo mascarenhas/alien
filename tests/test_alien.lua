@@ -133,24 +133,6 @@ do
 end
 
 do
-  if alien.platform == "unix" then
-    assert(alien.GL)
-    assert(alien.GL.glClearIndex)
-    assert(alien.GLU)
-    assert(alien.GLU.gluBeginCurve)
-    assert(alien.glut)
-    assert(alien.glut.glutWireTetrahedron)
-  elseif alien.platform == "windows" then
-    assert(alien.OpenGL32)
-    assert(alien.OpenGL32.glClearIndex)
-    assert(alien.Glu32)
-    assert(alien.Glu32.gluBeginCurve)
-    assert(alien.glut32)
-    assert(alien.glut32.glutWireTetrahedron)
-  end
-end
-
-do
   local strchr = dll.my_strchr
   strchr:types("pointer", "string", "char")
   assert(alien.tostring(strchr("abcdefghi", string.byte("b"))) == "bcdefghi") 
