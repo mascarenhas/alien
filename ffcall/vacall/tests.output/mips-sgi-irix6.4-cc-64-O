@@ -1,4 +1,0 @@
-Double f(float,Double,double):(0.1,{0.2},0.3)->{0.6}
-Double f(float,Double,double):(0.1,{0},0.3)->{0.4}
-X f(B,char,double,B):({0.1,{1,2,3}},'',0.3,{0.2,{5,4,3}})->{"return val",''}
-X f(B,char,double,B):({0,{1,2,3}},'',0.3,{1.32634e-315,{5,4,3}})->{"return val",''}

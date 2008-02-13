@@ -1,2 +1,0 @@
-Char f(Char,double,Char):({'A'},0.2,{'C'})->{'B'}
-Char f(Char,double,Char):({'A'},0.2,{'€'})->{'á'}

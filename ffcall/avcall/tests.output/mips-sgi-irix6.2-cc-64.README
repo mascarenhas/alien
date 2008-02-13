@@ -1,4 +1,0 @@
-On mips-sgi-irix6.2 with "cc -64", avcall does not handle correctly
-structure return values which consist of 1 or 2 floats or doubles.
-(The return values are found in $f0 and $f2, but avcall expects them
-in $2 and $3.)

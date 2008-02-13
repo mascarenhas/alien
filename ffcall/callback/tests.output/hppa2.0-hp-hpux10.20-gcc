@@ -1,6 +1,0 @@
-Char f(Char,double,Char):({'A'},0.2,{'C'})->{'B'}
-Char f(Char,double,Char):({'A'},0.2,{''})->{'''}
-Float f(Float,float,double):({0.1},0.2,0.3)->{0.6}
-Float f(Float,float,double):({0.1},0.2,0.3)->{0}
-Double f(float,Double,double):(0.1,{0.2},0.3)->{0.6}
-Double f(float,Double,double):(0.1,{0.2},0.3)->{0}

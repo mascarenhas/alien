@@ -73,7 +73,7 @@ EXPORT(double) _testfunc_d_bhilfd(signed char b, short h, int i, long l, float f
 
 EXPORT(char *) _testfunc_p_p(void *s)
 {
-	return (char *)s;
+  return (char *)s;
 }
 
 EXPORT(void *) _testfunc_c_p_p(int *argcp, char **argv)

@@ -1,5 +1,0 @@
-This directory contains a set of `config.cache' files for different platforms.
-It is not actually used. The only purpose of saving these files is to have
-a reference for questions like
-"Does AIX c89 return small structs in registers?"
-"Does HP-UX have mmap?"

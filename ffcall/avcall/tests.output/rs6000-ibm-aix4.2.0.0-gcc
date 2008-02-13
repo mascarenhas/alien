@@ -1,8 +1,0 @@
-Float f(Float,float,double):({0.1},0.2,0.3)->{0.6}
-Float f(Float,float,double):({0.2},0.3,0)->{0.5}
-Double f(float,Double,double):(0.1,{0.2},0.3)->{0.6}
-Double f(float,Double,double):(0.1,{0.3},0)->{0.4}
-T f(T,char,T):({"the"},' ',{"fox"})->{"box"}
-T f(T,char,T):({"/ò"},' ',{" "})->{"b"}
-X f(B,char,double,B):({0.1,{1,2,3}},'',0.3,{0.2,{5,4,3}})->{"return val",''}
-X f(B,char,double,B):({1.81635e-306,{-1717986918,1,2}},'

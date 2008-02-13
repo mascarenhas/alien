@@ -1,5 +1,6 @@
 
 require "alien"
+require "alien.struct"
 
 local dll = alien.load("./libalientest.so")
 
@@ -15,7 +16,6 @@ do
   f:types("pointer", "ref int")
   local result, copy = f(42)
   assert(type(result) == "userdata")
-  assert(alien.tointeger(result) == 42)
   assert(copy == 42)
 end
 
@@ -235,4 +235,3 @@ do
   qsort(chars, chars:len(), alien.sizeof("char"), compare)
   assert(chars:tostring() == "   ,,aaaadmmmnpppsss")
 end
-

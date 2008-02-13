@@ -1,15 +1,11 @@
 
 all: src/alien.so src/alien/struct.so tests/libalientest.so
 
-osx:
-	cd ffcall && cat executables | xargs chmod +x && ./configure CC=gcc && make CC=gcc
-	make all	
-
 src/alien.o: src/alien.c
-	$(CC) -c $(CFLAGS) $(FFCALL_INCDIR) -o src/alien.o src/alien.c
+	$(CC) -c $(CFLAGS) $(LIBFFI_INCDIR) -o src/alien.o src/alien.c
 
 src/alien.so: src/alien.o 
-	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o src/alien.so src/alien.o $(FFCALL_LIBDIR)  -lavcall -lcallback
+	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o src/alien.so src/alien.o $(LIBFFI_LIBDIR) -lffi
 
 src/alien/struct.so: src/alien/struct.o 
 	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o src/alien/struct.so src/alien/struct.o

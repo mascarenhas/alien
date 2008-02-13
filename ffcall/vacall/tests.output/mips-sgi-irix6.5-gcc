@@ -1,5 +1,0 @@
-Float f(Float,float,double):({0.1},0.2,0.3)->{0.6}
-Float f(Float,float,double):({0},0.2,0.3)->{5.64237e-38}
-Double f(float,Double,double):(0.1,{0.2},0.3)->{0.6}
-Double f(float,Double,double):(0.1,{0},0.3)->{0.1}
-T f(T,char,T):({"the"},' ',{"fox"})->{"box"}
