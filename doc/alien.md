@@ -4,7 +4,7 @@ Alien - Pure Lua extensions
 Status
 ------
 
-This is Alien version 0.3, the first public release of Alien.
+This is Alien version 0.3.1.
 
 What is Alien
 -------------
@@ -335,8 +335,8 @@ Credits
 -------
 
 Alien is designed and implemented by Fabio Mascarenhas. It uses the
-great [ffcall](http://www.haible.de/bruno/packages-ffcall.html)
-library by Bruno Haible to do the heavy lifting of calling to and from C. The
+great [libffi](http://sources.redhat.com/libffi)
+library by Anthony Green (and others) to do the heavy lifting of calling to and from C. The
 name is stolen from Common Lisp FFIs.
 
 License
