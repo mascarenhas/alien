@@ -12,6 +12,18 @@
 #include "lauxlib.h"
 #include "ffi.h"
 
+#ifdef MS_WIN32
+#include <windows.h>
+#else
+#include <sys/mman.h>
+#include <unistd.h>
+# if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
+#  define MAP_ANONYMOUS MAP_ANON
+# endif
+#endif
+
+#define BLOCKSIZE _pagesize
+
 #define ALIEN_LIBRARY_META "alien_library"
 #define ALIEN_FUNCTION_META "alien_function"
 #define ALIEN_BUFFER_META "alien_buffer"
@@ -72,6 +84,85 @@ typedef struct _alien_Wrap {
     int i;
   } val;
 } alien_Wrap;
+
+typedef union _tagITEM {
+	ffi_closure closure;
+	union _tagITEM *next;
+} ITEM;
+
+static ITEM *free_list;
+int _pagesize;
+
+static void more_core(void)
+{
+	ITEM *item;
+	int count, i;
+
+/* determine the pagesize */
+#ifdef MS_WIN32
+	if (!_pagesize) {
+		SYSTEM_INFO systeminfo;
+		GetSystemInfo(&systeminfo);
+		_pagesize = systeminfo.dwPageSize;
+	}
+#else
+	if (!_pagesize) {
+		_pagesize = getpagesize();
+	}
+#endif
+
+	/* calculate the number of nodes to allocate */
+	count = BLOCKSIZE / sizeof(ITEM);
+
+	/* allocate a memory block */
+#ifdef MS_WIN32
+	item = (ITEM *)VirtualAlloc(NULL,
+					       count * sizeof(ITEM),
+					       MEM_COMMIT,
+					       PAGE_EXECUTE_READWRITE);
+	if (item == NULL)
+		return;
+#else
+	item = (ITEM *)mmap(NULL,
+			    count * sizeof(ITEM),
+			    PROT_READ | PROT_WRITE | PROT_EXEC,
+			    MAP_PRIVATE | MAP_ANONYMOUS,
+			    -1,
+			    0);
+	if (item == (void *)MAP_FAILED)
+		return;
+#endif
+
+	/* put them into the free list */
+	for (i = 0; i < count; ++i) {
+		item->next = free_list;
+		free_list = item;
+		++item;
+	}
+}
+
+/******************************************************************/
+
+/* put the item back into the free list */
+void free_closure(void *p)
+{
+	ITEM *item = (ITEM *)p;
+	item->next = free_list;
+	free_list = item;
+}
+
+/* return one item from the free list, allocating more if needed */
+void *malloc_closure(void)
+{
+	ITEM *item;
+	if (!free_list)
+		more_core();
+	if (!free_list)
+		return NULL;
+	item = free_list;
+	free_list = item->next;
+	return item;
+}
 
 #if defined(ARCH_OSX)
 
@@ -210,7 +301,7 @@ static alien_Function *alien_checkfunction(lua_State *L, int index) {
 static ffi_closure *alien_checkcallback(lua_State *L, int index) {
   void *ud = luaL_checkudata(L, index, ALIEN_CALLBACK_META);
   luaL_argcheck(L, ud != NULL, index, "alien callback expected");
-  return (ffi_closure *)ud;
+  return *((ffi_closure **)ud);
 }
 
 static char *alien_checkbuffer(lua_State *L, int index) {
@@ -354,7 +445,7 @@ static int alien_callback_new(lua_State *L) {
   int fn_ref;
   alien_Callback *ac;
   alien_Type at;
-  ffi_closure *ud;
+  ffi_closure **ud;
   int i;
   ffi_status status;
   static ffi_type* ffitypes[] = {&ffi_type_void, &ffi_type_sint, &ffi_type_double, 
@@ -371,9 +462,11 @@ static int alien_callback_new(lua_State *L) {
      "short", "byte", "long", "float", NULL};
   luaL_checktype(L, 1, LUA_TFUNCTION);
   ac = (alien_Callback *)malloc(sizeof(alien_Callback));
-  ud = (ffi_closure *)lua_newuserdata(L, sizeof(ffi_closure));
+  ud = (ffi_closure **)lua_newuserdata(L, sizeof(ffi_closure**));
   if(ac != NULL && ud != NULL) {
     int j;
+    *ud = malloc_closure();
+    if(*ud == NULL) { free(ac); luaL_error(L, "alien: cannot allocate callback"); }
     ac->L = L;
     ac->ret_type = types[luaL_checkoption(L, 2, "void", typenames)];
     ac->ffi_ret_type = ffitypes[luaL_checkoption(L, 2, "void", typenames)];
@@ -395,7 +488,7 @@ static int alien_callback_new(lua_State *L) {
     status = ffi_prep_cif(&(ac->cif), FFI_DEFAULT_ABI, ac->nparams,
 			  ac->ffi_ret_type, ac->ffi_params);
     if(status != FFI_OK) luaL_error(L, "alien: cannot create callback");
-    status = ffi_prep_closure(ud, &(ac->cif), &alien_callback_call, ac);
+    status = ffi_prep_closure(*ud, &(ac->cif), &alien_callback_call, ac);
     if(status != FFI_OK) luaL_error(L, "alien: cannot create callback");
     return 1;
   } else {
@@ -525,7 +618,7 @@ static int alien_function_call(lua_State *L) {
       break;
     case CALLBACK: 
       arg = alloca(sizeof(void*));
-      *((void**)arg) = luaL_checkudata(L, j, ALIEN_CALLBACK_META); 
+      *((void**)arg) = alien_checkcallback(L, j); 
       args[i] = arg;
       break;
     case PTR:
@@ -607,6 +700,7 @@ static int alien_callback_gc(lua_State *L) {
   lua_unref(ac->L, ac->fn_ref);
   if(ac->params) free(ac->params);
   if(ac->ffi_params) free(ac->ffi_params);
+  free_closure(ud);
 }
 
 static int alien_register(lua_State *L) {
