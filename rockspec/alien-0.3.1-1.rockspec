@@ -15,7 +15,7 @@ description = {
 dependencies = { }
 
 source = {
-   url = "http://alien.luaforge.net/alien-current.tar.gz"
+   url = "http://alien.luaforge.net/alien-0.3.1.tar.gz"
 }
 
 build = {
