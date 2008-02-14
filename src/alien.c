@@ -12,7 +12,7 @@
 #include "lauxlib.h"
 #include "ffi.h"
 
-#ifdef MS_WIN32
+#ifdef USE_LOADLIBRARY
 #include <windows.h>
 #else
 #include <sys/mman.h>
@@ -100,7 +100,7 @@ static void more_core(void)
 	int count, i;
 
 /* determine the pagesize */
-#ifdef MS_WIN32
+#ifdef USE_LOADLIBRARY
 	if (!_pagesize) {
 		SYSTEM_INFO systeminfo;
 		GetSystemInfo(&systeminfo);
@@ -116,7 +116,7 @@ static void more_core(void)
 	count = BLOCKSIZE / sizeof(ITEM);
 
 	/* allocate a memory block */
-#ifdef MS_WIN32
+#ifdef USE_LOADLIBRARY
 	item = (ITEM *)VirtualAlloc(NULL,
 					       count * sizeof(ITEM),
 					       MEM_COMMIT,
@@ -195,27 +195,20 @@ static void alien_unload (void *lib) {
 
 static void *alien_load (lua_State *L, const char *libname) {
   char *path;
-  const char *path_prefix, *path_suffix;
   void *lib;
-  if(strchr(libname, '/')) {
-    path_prefix = "";
-    path_suffix = "";
+  if(strchr(libname, '/') || strstr(libname, LIB_EXT)) {
+    path = (char*)libname;
   } else {
-    path_prefix = "lib";
-    path_suffix = LIB_EXT;
-  }
-  path = (char*)malloc(strlen(libname) + strlen(path_prefix) + strlen(path_suffix) + 1);
-  if(path) {
-    strcpy(path, path_prefix);
+    path = (char*)alloca(sizeof(char) * (strlen("lib") + 
+					 strlen(libname)+
+					 strlen(LIB_EXT) + 1));
+    strcpy(path, "lib");
     strcat(path, libname);
-    strcat(path, path_suffix);
-    lib = dlopen(path, RTLD_NOW);
-    free(path);
-    if (lib == NULL) lua_pushstring(L, dlerror());
-    return lib;
-  } else {
-    luaL_error(L, "out of memory!");
+    strcat(path, LIB_EXT);
   }
+  lib = dlopen(path, RTLD_NOW);
+  if(lib == NULL) lua_pushstring(L, dlerror());
+  return lib;
 }
 
 static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
@@ -228,8 +221,6 @@ static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
 #elif defined(USE_LOADLIBRARY)
 
 #define PLATFORM "windows"
-
-#include <windows.h>
 
 static void pusherror (lua_State *L) {
   int error = GetLastError();
@@ -318,11 +309,11 @@ static int alien_get(lua_State *L) {
   libname = luaL_checklstring(L, lua_gettop(L), &len);
   lua_getfield(L, lua_upvalueindex(1), libname);
   if(!lua_isnil(L, -1)) return 1;
-  name = (char*)malloc(len);
+  name = (char*)malloc(sizeof(char) * (len + 1));
   if(name) {
     void *lib;
     alien_Library *al;
-    memcpy(name, libname, len);
+    strcpy(name, libname);
     al = (alien_Library *)lua_newuserdata(L, sizeof(alien_Library));
     lib = alien_load(L, libname);
     if(lib && al) {
@@ -852,6 +843,9 @@ static int alien_register_function_meta(lua_State *L) {
   lua_settable(L, -3);
   lua_pushliteral(L, "__call");
   lua_pushcfunction(L, alien_function_call);
+  lua_settable(L, -3);
+  lua_pushliteral(L, "__gc");
+  lua_pushcfunction(L, alien_function_gc);
   lua_settable(L, -3);
   lua_pushliteral(L, "__tostring");
   lua_pushcfunction(L, alien_function_tostring);
