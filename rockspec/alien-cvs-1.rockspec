@@ -33,7 +33,7 @@ build = {
          CFLAGS = '$(CFLAGS) -I$(LUA_INCDIR) -DLINUX',
        	},
      },
-     bsd = {
+     freebsd = {
        	build_variables = {
          LIB_OPTION = "-shared",
          CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DBSD",
