@@ -22,6 +22,7 @@ build = {
    type = "make",
    install_variables = {
       LUA_LIBDIR = "$(LIBDIR)",
+      LUA_DIR = "$(LUADIR)",
       BIN_DIR = "$(BINDIR)",
       PREFIX = "$(PREFIX)"
    },
@@ -29,25 +30,25 @@ build = {
      linux = {
        	build_variables = {
          LIB_OPTION = "-shared",
-         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DUSE_DLOPEN",
+         CFLAGS = '$(CFLAGS) -I$(LUA_INCDIR) -DLINUX',
        	},
      },
      bsd = {
        	build_variables = {
          LIB_OPTION = "-shared",
-         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DUSE_DLOPEN",
+         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DBSD",
        	},
      },
      macosx = {
        	build_variables = {
          LIB_OPTION = "-bundle -undefined dynamic_lookup",
-         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DARCH_OSX",
+         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DDARWIN",
        	},
      },
      win32 = {
        	build_variables = {
          LIB_OPTION = "$(LUA_LIBDIR)\\lua5.1.lib",
-         CFLAGS = "$(CFLAGS) /I$(LUA_INCDIR) /DUSE_LOADLIBRARY",
+         CFLAGS = "$(CFLAGS) /I$(LUA_INCDIR) /DWINDOWS",
        	}
      }
   }

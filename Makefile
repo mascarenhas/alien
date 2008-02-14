@@ -1,8 +1,8 @@
 
-all: src/alien.so src/alien/struct.so tests/libalientest.so
+all: src/alien/core.so src/alien/struct.so tests/libalientest.so
 
-src/alien.o: src/alien.c libffi/include/ffi.h
-	$(CC) -c $(CFLAGS) -Ilibffi/include -o src/alien.o src/alien.c
+src/alien/core.o: src/alien/core.c libffi/include/ffi.h
+	$(CC) -c $(CFLAGS) -Ilibffi/include -o src/alien/core.o src/alien/core.c
 
 libffi/include/ffi.h:
 	cat executables | xargs chmod +x
@@ -15,16 +15,18 @@ libffi/Makefile:
 libffi/.libs/libffi.a: libffi/Makefile
 	cd libffi && make CC=gcc
 
-src/alien.so: src/alien.o libffi/.libs/libffi.a
-	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o src/alien.so src/alien.o -Llibffi/.libs -lffi
+src/alien/core.so: src/alien/core.o libffi/.libs/libffi.a
+	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o src/alien/core.so src/alien/core.o -Llibffi/.libs -lffi
 
 src/alien/struct.so: src/alien/struct.o 
 	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o src/alien/struct.so src/alien/struct.o
 
-install: src/alien.so src/alien/struct.so
-	cp src/alien.so $(LUA_LIBDIR)
+install: src/alien/core.so src/alien/struct.so
+	mkdir -p $(LUA_LIBDIR)/alien
+	cp src/alien/core.so $(LUA_LIBDIR)/alien
 	mkdir -p $(LUA_LIBDIR)/alien
 	cp src/alien/struct.so $(LUA_LIBDIR)/alien
+	cp src/alien.lua $(LUA_DIR)/
 	chmod +x src/constants
 	cp src/constants $(BIN_DIR)/
 	cp -r tests $(PREFIX)/

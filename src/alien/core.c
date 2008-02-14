@@ -12,7 +12,7 @@
 #include "lauxlib.h"
 #include "ffi.h"
 
-#ifdef USE_LOADLIBRARY
+#ifdef WINDOWS
 #include <windows.h>
 #else
 #include <sys/mman.h>
@@ -100,7 +100,7 @@ static void more_core(void)
 	int count, i;
 
 /* determine the pagesize */
-#ifdef USE_LOADLIBRARY
+#ifdef WINDOWS
 	if (!_pagesize) {
 		SYSTEM_INFO systeminfo;
 		GetSystemInfo(&systeminfo);
@@ -116,7 +116,7 @@ static void more_core(void)
 	count = BLOCKSIZE / sizeof(ITEM);
 
 	/* allocate a memory block */
-#ifdef USE_LOADLIBRARY
+#ifdef WINDOWS
 	item = (ITEM *)VirtualAlloc(NULL,
 					       count * sizeof(ITEM),
 					       MEM_COMMIT,
@@ -165,22 +165,18 @@ void *malloc_closure(void)
 	return item;
 }
 
-#if defined(ARCH_OSX)
-
-#define LIB_EXT ".dylib"
-#define PLATFORM "osx"
+#if defined(LINUX)
+#define PLATFORM "linux"
 #define USE_DLOPEN
-
+#elif defined(BSD)
+#define PLATFORM "bsd"
+#define USE_DLOPEN
+#elif defined(DARWIN)
+#define PLATFORM "darwin"
+#define USE_DLOPEN
 #endif
 
 #if defined(USE_DLOPEN)
-
-#ifndef LIB_EXT
-#define LIB_EXT ".so"
-#endif
-#ifndef PLATFORM
-#define PLATFORM "unix"
-#endif
 
 #ifndef RTLD_DEFAULT
 #define RTLD_DEFAULT 0
@@ -194,19 +190,8 @@ static void alien_unload (void *lib) {
 }
 
 static void *alien_load (lua_State *L, const char *libname) {
-  char *path;
   void *lib;
-  if(strchr(libname, '/') || strstr(libname, LIB_EXT)) {
-    path = (char*)libname;
-  } else {
-    path = (char*)alloca(sizeof(char) * (strlen("lib") + 
-					 strlen(libname)+
-					 strlen(LIB_EXT) + 1));
-    strcpy(path, "lib");
-    strcat(path, libname);
-    strcat(path, LIB_EXT);
-  }
-  lib = dlopen(path, RTLD_NOW);
+  lib = dlopen(libname, RTLD_NOW);
   if(lib == NULL) lua_pushstring(L, dlerror());
   return lib;
 }
@@ -218,7 +203,7 @@ static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
   return f;
 }
 
-#elif defined(USE_LOADLIBRARY)
+#elif defined(WINDOWS)
 
 #define PLATFORM "windows"
 
@@ -307,25 +292,21 @@ static int alien_get(lua_State *L) {
   const char *libname;
   size_t len;
   libname = luaL_checklstring(L, lua_gettop(L), &len);
-  lua_getfield(L, lua_upvalueindex(1), libname);
-  if(!lua_isnil(L, -1)) return 1;
   name = (char*)malloc(sizeof(char) * (len + 1));
   if(name) {
     void *lib;
     alien_Library *al;
     strcpy(name, libname);
     al = (alien_Library *)lua_newuserdata(L, sizeof(alien_Library));
+    if(!al) luaL_error(L, "out of memory!");
     lib = alien_load(L, libname);
-    if(lib && al) {
+    if(lib) {
       luaL_getmetatable(L, ALIEN_LIBRARY_META);
       lua_setmetatable(L, -2);
       al->lib = lib;
       al->name = name;
-      lua_pushvalue(L, -1);
-      lua_setfield(L, lua_upvalueindex(1), libname);
       return 1;
     } else {
-      free(name);
       lua_error(L);
     }
   } else {
@@ -994,6 +975,7 @@ static int alien_isnull(lua_State *L) {
 }
 
 static const struct luaL_reg alienlib[] = {
+  {"load", alien_get},
   {"tag", alien_register},
   {"wrap", alien_pack},
   {"rewrap", alien_repack},
@@ -1014,7 +996,7 @@ static const struct luaL_reg alienlib[] = {
 
 static int alien_register_main(lua_State *L) {
   alien_Library *al;
-  luaL_register (L, lua_tostring(L, -1), alienlib);
+  luaL_register (L, NULL, alienlib);
   lua_pushliteral(L, PLATFORM);
   lua_setfield(L, -2, "platform");
   al = (alien_Library *)lua_newuserdata(L, sizeof(alien_Library));
@@ -1023,20 +1005,22 @@ static int alien_register_main(lua_State *L) {
   luaL_getmetatable(L, ALIEN_LIBRARY_META);
   lua_setmetatable(L, -2);
   lua_setfield(L, -2, "default");
-  lua_newtable(L);
-  lua_pushcclosure(L, alien_get, 1);
-  lua_setfield(L, -2, "load");
-  lua_newtable(L);
-  lua_getfield(L, -2, "load");
-  lua_setfield(L, -2, "__index");
-  lua_setmetatable(L, -2);
 }
 
-int luaopen_alien(lua_State *L) {
+int luaopen_alien_core(lua_State *L) {
   alien_register_library_meta(L);
   alien_register_callback_meta(L);
   alien_register_function_meta(L);
   alien_register_buffer_meta(L);
+  lua_getglobal(L, "alien");
+  if(lua_isnil(L, -1)) {
+    lua_newtable(L);
+    lua_pushvalue(L, -1);
+    lua_setglobal(L, "alien");
+  }
+  lua_newtable(L);
+  lua_pushvalue(L, -1);
+  lua_setfield(L, -3, "core");
   alien_register_main(L);
   return 1;
 }
