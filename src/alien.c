@@ -1,4 +1,4 @@
-/* Lua FFI using avcall/callback */
+/* Lua FFI using libffi */
 /* Author: Fabio Mascarenhas */
 /* License: MIT/X11 */
 
