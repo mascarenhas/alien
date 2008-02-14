@@ -60,6 +60,7 @@ typedef struct _alien_Function {
   void *fn;
   char *name;
   alien_Type ret_type;
+  ffi_cif cif;
   ffi_type *ffi_ret_type;
   int nparams;
   alien_Type *params;
@@ -521,6 +522,7 @@ static int alien_function_types(lua_State *L) {
     {"void", "int", "double", "char", "string", "pointer",
      "ref int", "ref double", "ref char", "callback", 
      "short", "byte", "long", "float", NULL};
+  ffi_status status;
   alien_Function *af = alien_checkfunction(L, 1);
   int i, j, ret_type;
   ret_type = luaL_checkoption(L, 2, "int", typenames);
@@ -542,6 +544,11 @@ static int alien_function_types(lua_State *L) {
     af->ffi_params[i] = ffitypes[type];
     af->params[i] = types[type];
   }
+  status = ffi_prep_cif(&(af->cif), FFI_DEFAULT_ABI, af->nparams, 
+			af->ffi_ret_type,
+			af->ffi_params);
+  if(status != FFI_OK)
+    luaL_error(L, "alien: error in libffi preparation");
   return 0;
 }
 
@@ -560,19 +567,15 @@ static int alien_function_call(lua_State *L) {
   double *refd_args;
   int *refc_args;
   void **args;
+  ffi_cif *cif;
   alien_Function *af = alien_checkfunction(L, 1);
-  ffi_cif cif;
-  ffi_status status;
+  cif = &(af->cif);
   nparams = af->nparams;
   nargs = lua_gettop(L) - 1;
   if(nargs < nparams)
     luaL_error(L, "alien: too few arguments (function %s)", af->name);
   else if(nargs > nparams)
     luaL_error(L, "alien: too many arguments (function %s)", af->name);
-  status = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, af->nparams, af->ffi_ret_type,
-			af->ffi_params);
-  if(status != FFI_OK)
-    luaL_error(L, "alien: error in libffi preparation");
   for(i = 0, nrefi = 0, nrefd = 0, nrefc = 0; i < nparams; i++) {
     switch(af->params[i]) {
     case REFINT: nrefi++; break;
@@ -653,17 +656,17 @@ static int alien_function_call(lua_State *L) {
   }
   pret = NULL;
   switch(af->ret_type) {
-  case VOID: ffi_call(&cif, af->fn, NULL, args); lua_pushnil(L); break;
-  case SHORT: ffi_call(&cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
-  case INT: ffi_call(&cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
-  case LONG: ffi_call(&cif, af->fn, &lret, args); lua_pushnumber(L, lret); break;
-  case CHAR: ffi_call(&cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
-  case BYTE: ffi_call(&cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
-  case FLOAT: ffi_call(&cif, af->fn, &fret, args); lua_pushnumber(L, fret); break;
-  case DOUBLE: ffi_call(&cif, af->fn, &dret, args); lua_pushnumber(L, dret); break;
-  case STRING: ffi_call(&cif, af->fn, &pret, args); 
+  case VOID: ffi_call(cif, af->fn, NULL, args); lua_pushnil(L); break;
+  case SHORT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
+  case INT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
+  case LONG: ffi_call(cif, af->fn, &lret, args); lua_pushnumber(L, lret); break;
+  case CHAR: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
+  case BYTE: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
+  case FLOAT: ffi_call(cif, af->fn, &fret, args); lua_pushnumber(L, fret); break;
+  case DOUBLE: ffi_call(cif, af->fn, &dret, args); lua_pushnumber(L, dret); break;
+  case STRING: ffi_call(cif, af->fn, &pret, args); 
     (pret ? lua_pushstring(L, (const char *)pret) : lua_pushnil(L)); break;
-  case PTR: ffi_call(&cif, af->fn, &pret, args); 
+  case PTR: ffi_call(cif, af->fn, &pret, args); 
     (pret ? lua_pushlightuserdata(L, pret) : lua_pushnil(L)); break;
   default: 
     luaL_error(L, "alien: unknown return type (function %s)", af->name);
