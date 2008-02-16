@@ -49,11 +49,14 @@ function load_library_helper(libname, libext)
   else
     local ok, lib = pcall(core.load, "lib" .. libname .. libext)
     if not ok then
-      local name = find_library[core.platform](libname)
-      if name then
-	lib = core.load(name)
-      else
-	error("library " .. libname .. " not found")
+      ok, lib = pcall(core.load, "./lib" .. libname .. libext)
+      if not ok then
+	local name = find_library[core.platform](libname)
+	if name then
+	  lib = core.load(name)
+	else
+	  error("library " .. libname .. " not found")
+	end
       end
     end
     return lib
