@@ -4,11 +4,11 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef MS_WIN32
+#ifdef _WIN32
 #include <windows.h>
 #endif
 
-#if defined(MS_WIN32) || defined(__CYGWIN__)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define EXPORT(x) __declspec(dllexport) x
 #else
 #define EXPORT(x) x
@@ -49,25 +49,25 @@ EXPORT(void) _testfunc_v(int a, int b, int *presult)
 
 EXPORT(int) _testfunc_i_bhilfd(signed char b, short h, int i, long l, float f, double d)
 {
-/*	printf("_testfunc_i_bhilfd got %d %d %d %ld %f %f\n",
-	       b, h, i, l, f, d);
-*/
+  /*	printf("_testfunc_i_bhilfd got %d %d %d %ld %f %f\n",
+	b, h, i, l, f, d);*/
+
 	return (int)(b + h + i + l + f + d);
 }
 
 EXPORT(float) _testfunc_f_bhilfd(signed char b, short h, int i, long l, float f, double d)
 {
-/*	printf("_testfunc_f_bhilfd got %d %d %d %ld %f %f\n",
-	       b, h, i, l, f, d);
-*/
+  /*	printf("_testfunc_f_bhilfd got %d %d %d %ld %f %f\n",
+	b, h, i, l, f, d);*/
+
 	return (float)(b + h + i + l + f + d);
 }
 
 EXPORT(double) _testfunc_d_bhilfd(signed char b, short h, int i, long l, float f, double d)
 {
-/*	printf("_testfunc_d_bhilfd got %d %d %d %ld %f %f\n",
-	       b, h, i, l, f, d);
-*/
+  /*	printf("_testfunc_d_bhilfd got %d %d %d %ld %f %f\n",
+	b, h, i, l, f, d);*/
+
 	return (double)(b + h + i + l + f + d);
 }
 
@@ -117,7 +117,7 @@ EXPORT(size_t) my_wcslen(wchar_t *src)
 }
 #endif
 
-#ifndef MS_WIN32
+#ifndef _WIN32
 # ifndef __stdcall
 #  define __stdcall /* */
 # endif
@@ -139,14 +139,6 @@ EXPORT(int) _testfunc_deref_pointer(int *pi)
 {
 	return *pi;
 }
-
-#ifdef MS_WIN32
-EXPORT(int) _testfunc_piunk(IUnknown FAR *piunk)
-{
-	piunk->lpVtbl->AddRef(piunk);
-	return piunk->lpVtbl->Release(piunk);
-}
-#endif
 
 EXPORT(int) _testfunc_callback_i_if(int value, int (*func)(int))
 {
@@ -245,17 +237,9 @@ EXPORT(xxx_library) *library_get(void)
 	return &_xxx_lib;
 }
 
-#ifdef MS_WIN32
-/* See Don Box (german), pp 79ff. */
-EXPORT(void) GetString(BSTR *pbstr)
-{
-	*pbstr = SysAllocString(L"Goodbye!");
-}
-#endif
-
 /********/
  
-#ifndef MS_WIN32
+#ifndef _WIN32
 
 typedef struct {
 	long x;
@@ -329,29 +313,6 @@ EXPORT(void) TwoOutArgs(int a, int *pi, int b, int *pj)
 	*pi += a;
 	*pj += b;
 }
-
-#ifdef MS_WIN32
-EXPORT(S2H) __stdcall s_ret_2h_func(S2H inp) { return ret_2h_func(inp); }
-EXPORT(S8I) __stdcall s_ret_8i_func(S8I inp) { return ret_8i_func(inp); }
-#endif
-
-#ifdef MS_WIN32
-/* Should port this */
-#include <stdlib.h>
-#include <search.h>
-
-EXPORT (HRESULT) KeepObject(IUnknown *punk)
-{
-	static IUnknown *pobj;
-	if (punk)
-		punk->lpVtbl->AddRef(punk);
-	if (pobj)
-		pobj->lpVtbl->Release(pobj);
-	pobj = punk;
-	return S_OK;
-}
-
-#endif
 
 EXPORT(signed char) tf_b(signed char c) { return c/3; }
 EXPORT(unsigned char) tf_B(unsigned char c) { return c/3; }

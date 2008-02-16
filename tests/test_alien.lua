@@ -1,13 +1,14 @@
 
+pcall(require, "luarocks.require")
 require "alien"
 require "alien.struct"
 
-local dll = alien.load("./libalientest.so")
+local dll = alien.alientest
 
 do
   local f = dll._testfunc_i_bhilfd
-  f:types("int", "byte", "char", "int", "long", "float", "double")
-  local result = f(1, string.byte("x"), 3, 4, 5, 6)
+  f:types("int", "byte", "short", "int", "int",  "float", "double")
+  local result = f(string.byte("x"), 1, 3, 4, 5, 6)
   assert(result == 139)
 end
 
@@ -160,12 +161,12 @@ end
 
 do
   local f = dll._testfunc_i_bhilfd
-  f:types("int", "byte", "short", "int", "long", "float", "double")
+  f:types("int", "byte", "short", "int", "int", "float", "double")
   local result = f(1, 2, 3, 4, 5, 6)
   assert(result == 21)
   local result = f(-1, -2, -3, -4, -5, -6)
   assert(result == -21)
-  f:types("short", "byte", "short", "int", "long", "float", "double")
+  f:types("short", "byte", "short", "int", "int", "float", "double")
   local result = f(1, 2, 3, 4, 5, 6)
   assert(result == 21)
   local result = f(1, 2, 3, 0x10004, 5.0, 6.0)
@@ -174,7 +175,7 @@ end
 
 do
   local f = dll._testfunc_f_bhilfd
-  f:types("float", "byte", "short", "int", "long", "float", "double")
+  f:types("float", "byte", "short", "int", "int", "float", "double")
   local result = f(1, 2, 3, 4, 5.0, 6.0)
   assert(result == 21)
   local result = f(-1, -2, -3, -4, -5, -6)
@@ -183,7 +184,7 @@ end
 
 do
   local f = dll._testfunc_d_bhilfd
-  f:types("double", "byte", "short", "int", "long", "float", "double")
+  f:types("double", "byte", "short", "int", "int", "float", "double")
   local result = f(1, 2, 3, 4, 5.0, 6.0)
   assert(result == 21)
   local result = f(-1, -2, -3, -4, -5, -6)
