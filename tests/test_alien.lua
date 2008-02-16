@@ -7,7 +7,21 @@ local dll = alien.alientest
 
 do
   local f = dll._testfunc_i_bhilfd
-  f:types("int", "byte", "short", "int", "int",  "float", "double")
+  f:types("int", "byte", "short", "int", "long",  "float", "double")
+  local result = f(string.byte("x"), 1, 3, 4, 5, 6)
+  assert(result == 139)
+end
+
+do
+  local f = dll._testfunc_i_bhilfd
+  f:types{ ret = "int", "byte", "short", "int", "long",  "float", "double" }
+  local result = f(string.byte("x"), 1, 3, 4, 5, 6)
+  assert(result == 139)
+end
+
+do
+  local f = dll._testfunc_i_bhilfd
+  f:types{ "byte", "short", "int", "long",  "float", "double" }
   local result = f(string.byte("x"), 1, 3, 4, 5, 6)
   assert(result == 139)
 end
@@ -42,7 +56,13 @@ do
     return value
   end
   local cb = alien.callback(callback, "int", "int")
+  local cb2 = alien.callback(callback, { ret = "int", "int" })
+  local cb3 = alien.callback(callback, { "int" })
   local result = f(-10, cb)
+  assert(result == -18)
+  local result = f(-10, cb2)
+  assert(result == -18)
+  local result = f(-10, cb3)
   assert(result == -18)
 end
 
@@ -175,7 +195,7 @@ end
 
 do
   local f = dll._testfunc_f_bhilfd
-  f:types("float", "byte", "short", "int", "int", "float", "double")
+  f:types("float", "byte", "short", "int", "long", "float", "double")
   local result = f(1, 2, 3, 4, 5.0, 6.0)
   assert(result == 21)
   local result = f(-1, -2, -3, -4, -5, -6)
@@ -184,7 +204,7 @@ end
 
 do
   local f = dll._testfunc_d_bhilfd
-  f:types("double", "byte", "short", "int", "int", "float", "double")
+  f:types("double", "byte", "short", "int", "long", "float", "double")
   local result = f(1, 2, 3, 4, 5.0, 6.0)
   assert(result == 21)
   local result = f(-1, -2, -3, -4, -5, -6)
@@ -217,4 +237,22 @@ do
   local chars = alien.buffer("spam, spam, and spam")
   qsort(chars, chars:len(), alien.sizeof("char"), compare)
   assert(chars:tostring() == "   ,,aaaadmmmnpppsss")
+end
+
+do
+  local funcs = alien.buffer(2 * alien.sizeof("callback"))
+  local res = {}
+  local function callback(a, b)
+    table.insert(res, a + b)
+  end
+  local cb1 = alien.callback(callback, { "int", "int" })
+  local cb2 = alien.callback(callback, { abi = "stdcall", "int", "int" })
+  funcs:set(1, cb1, "callback")
+  funcs:set(1 + alien.sizeof("callback"), cb2, "callback")
+  local f = dll._testfunc_callfuncp
+  f:types("int", "pointer")
+  f(funcs)
+  assert(#res == 2)
+  assert(res[1] == 3)
+  assert(res[2] == 7)
 end

@@ -289,6 +289,8 @@ static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
 
 #endif
 
+static const ffi_abi ffi_abis[] = { FFI_DEFAULT_ABI, FFI_SYSV, FFI_STDCALL };
+static const char *const ffi_abi_names[] = { "default", "cdecl", "stdcall", NULL };
 
 static alien_Library *alien_checklibrary(lua_State *L, int index) {
   void *ud = luaL_checkudata(L, index, ALIEN_LIBRARY_META);
@@ -430,9 +432,7 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
     case AT_CHAR: lua_pushnumber(ac->L, *((int*)args[i])); break;
     case AT_SHORT: lua_pushnumber(ac->L, *((int*)args[i])); break;
     case AT_LONG: 
-#ifndef WINDOWS
       lua_pushnumber(ac->L, *((long*)args[i])); break;
-#endif
     case AT_INT: lua_pushnumber(ac->L, *((int*)args[i])); break;
     case AT_FLOAT: lua_pushnumber(ac->L, *((float*)args[i])); break;
     case AT_DOUBLE: lua_pushnumber(ac->L, *((double*)args[i])); break;
@@ -455,9 +455,7 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
   case AT_VOID: break;
   case AT_SHORT: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
   case AT_LONG: 
-#ifndef WINDOWS
     *((long*)resp) = (long)lua_tointeger(ac->L, -1); break;
-#endif
   case AT_INT: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
   case AT_CHAR: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
   case AT_BYTE: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
@@ -486,12 +484,18 @@ static int alien_callback_new(lua_State *L) {
   ffi_closure **ud;
   int i, nparams;
   ffi_status status;
-  static ffi_type* ffitypes[] = {&ffi_type_void, &ffi_type_sint, &ffi_type_double, 
+  ffi_abi abi;
+  static ffi_type *const ffitypes[] = {&ffi_type_void, &ffi_type_sint, &ffi_type_double, 
 				 &ffi_type_uchar, &ffi_type_pointer, &ffi_type_pointer,
 				 &ffi_type_pointer, &ffi_type_pointer, &ffi_type_pointer,
 				 &ffi_type_pointer, &ffi_type_sshort, &ffi_type_schar,
-				 &ffi_type_slong, &ffi_type_float};
-  static const int types[] = {AT_VOID, AT_INT, AT_DOUBLE, AT_CHAR, AT_STRING, AT_PTR, AT_REFINT, 
+#ifndef WINDOWS
+				 &ffi_type_slong, 
+#else
+				 &ffi_type_sint,
+#endif
+				 &ffi_type_float};
+  static int const types[] = {AT_VOID, AT_INT, AT_DOUBLE, AT_CHAR, AT_STRING, AT_PTR, AT_REFINT, 
 			      AT_REFDOUBLE, AT_REFCHAR, AT_CALLBACK, AT_SHORT, AT_BYTE, AT_LONG,
 			      AT_FLOAT};
   static const char *const typenames[] = 
@@ -499,7 +503,11 @@ static int alien_callback_new(lua_State *L) {
      "ref int", "ref double", "ref char", "callback", 
      "short", "byte", "long", "float", NULL};
   luaL_checktype(L, 1, LUA_TFUNCTION);
-  nparams = lua_gettop(L) - 2;
+  if(lua_istable(L, 2)) {
+    nparams = lua_objlen(L, 2);
+  } else {
+    nparams = lua_gettop(L) - 2;
+  }
   ac = (alien_Callback *)malloc(sizeof(alien_Callback));
   ud = (ffi_closure **)lua_newuserdata(L, sizeof(ffi_closure**));
   if(ac != NULL && ud != NULL) {
@@ -507,8 +515,18 @@ static int alien_callback_new(lua_State *L) {
     *ud = malloc_closure();
     if(*ud == NULL) { free(ac); luaL_error(L, "alien: cannot allocate callback"); }
     ac->L = L;
-    ac->ret_type = types[luaL_checkoption(L, 2, "void", typenames)];
-    ac->ffi_ret_type = ffitypes[luaL_checkoption(L, 2, "void", typenames)];
+    if(lua_istable(L, 2)) {
+      lua_getfield(L, 2, "ret");
+      ac->ret_type = types[luaL_checkoption(L, -1, "int", typenames)];
+      ac->ffi_ret_type = ffitypes[luaL_checkoption(L, -1, "int", typenames)];
+      lua_getfield(L, 2, "abi");
+      abi = ffi_abis[luaL_checkoption(L, -1, "default", ffi_abi_names)];
+      lua_pop(L, 2);
+    } else {
+      ac->ret_type = types[luaL_checkoption(L, 2, "int", typenames)];
+      ac->ffi_ret_type = ffitypes[luaL_checkoption(L, 2, "int", typenames)];
+      abi = FFI_DEFAULT_ABI;
+    }
     ac->nparams = nparams;
     if(ac->nparams > 0) {
       ac->params = (alien_Type *)malloc(ac->nparams * sizeof(alien_Type));
@@ -516,15 +534,24 @@ static int alien_callback_new(lua_State *L) {
       ac->ffi_params = (ffi_type **)malloc(ac->nparams * sizeof(ffi_type*));
       if(!ac->ffi_params) luaL_error(L, "alien: out of memory");
     }
-    for(i = 0, j = 3; i < ac->nparams; i++, j++) {
-      ac->ffi_params[i] = ffitypes[luaL_checkoption(L, j, "int", typenames)];
-      ac->params[i] = types[luaL_checkoption(L, j, "int", typenames)];
+    if(lua_istable(L, 2)) {
+      for(i = 0, j = 1; i < ac->nparams; i++, j++) {
+	lua_rawgeti(L, 2, j);
+	ac->ffi_params[i] = ffitypes[luaL_checkoption(L, -1, "int", typenames)];
+	ac->params[i] = types[luaL_checkoption(L, -1, "int", typenames)];
+	lua_pop(L, 1);
+      }
+    } else {
+      for(i = 0, j = 3; i < ac->nparams; i++, j++) {
+	ac->ffi_params[i] = ffitypes[luaL_checkoption(L, j, "int", typenames)];
+	ac->params[i] = types[luaL_checkoption(L, j, "int", typenames)];
+      }
     }
     lua_pushvalue(L, 1);
     ac->fn_ref = lua_ref(L, 1);
     luaL_getmetatable(L, ALIEN_CALLBACK_META);
     lua_setmetatable(L, -2);
-    status = ffi_prep_cif(&(ac->cif), FFI_DEFAULT_ABI, ac->nparams,
+    status = ffi_prep_cif(&(ac->cif), abi, ac->nparams,
 			  ac->ffi_ret_type, ac->ffi_params);
     if(status != FFI_OK) luaL_error(L, "alien: cannot create callback");
     status = ffi_prep_closure(*ud, &(ac->cif), &alien_callback_call, ac);
@@ -573,7 +600,12 @@ static int alien_function_types(lua_State *L) {
 				 &ffi_type_uchar, &ffi_type_pointer, &ffi_type_pointer,
 				 &ffi_type_pointer, &ffi_type_pointer, &ffi_type_pointer,
 				 &ffi_type_pointer, &ffi_type_sshort, &ffi_type_schar,
-				 &ffi_type_slong, &ffi_type_float};
+#ifndef WINDOWS
+				 &ffi_type_slong, 
+#else
+				 &ffi_type_sint,
+#endif
+				 &ffi_type_float};
   static const int types[] = {AT_VOID, AT_INT, AT_DOUBLE, AT_CHAR, AT_STRING, AT_PTR, AT_REFINT, 
 			      AT_REFDOUBLE, AT_REFCHAR, AT_CALLBACK, AT_SHORT, AT_BYTE, AT_LONG,
 			      AT_FLOAT};
@@ -582,26 +614,51 @@ static int alien_function_types(lua_State *L) {
      "ref int", "ref double", "ref char", "callback", 
      "short", "byte", "long", "float", NULL};
   ffi_status status;
+  ffi_abi abi;
   alien_Function *af = alien_checkfunction(L, 1);
   int i, j, ret_type;
-  ret_type = luaL_checkoption(L, 2, "int", typenames);
-  af->ret_type = types[ret_type];
-  af->ffi_ret_type = ffitypes[ret_type];
+  if(lua_istable(L, 2)) {
+    lua_getfield(L, 2, "ret");
+    ret_type = luaL_checkoption(L, -1, "int", typenames);
+    af->ret_type = types[ret_type];
+    af->ffi_ret_type = ffitypes[ret_type];
+    lua_getfield(L, 2, "abi");
+    abi = ffi_abis[luaL_checkoption(L, -1, "default", ffi_abi_names)];
+    lua_pop(L, 2);
+  } else {
+    ret_type = luaL_checkoption(L, 2, "int", typenames);
+    af->ret_type = types[ret_type];
+    af->ffi_ret_type = ffitypes[ret_type];
+    abi = FFI_DEFAULT_ABI;
+  }
   if(af->params) { 
     free(af->params); free(af->ffi_params); 
     af->params = NULL; af->ffi_params = NULL;
   }
-  af->nparams = lua_gettop(L) - 2;
+  if(lua_istable(L, 2)) {
+    af->nparams = lua_objlen(L, 2);
+  } else {
+    af->nparams = lua_gettop(L) - 2;
+  }
   if(af->nparams > 0) {
     af->ffi_params = (ffi_type **)malloc(sizeof(ffi_type *) * af->nparams);
     if(!af->ffi_params) luaL_error(L, "alien: out of memory");
     af->params = (alien_Type *)malloc(af->nparams * sizeof(alien_Type));
     if(!af->params) luaL_error(L, "alien: out of memory");
   }
-  for(i = 0, j = 3; i < af->nparams; i++, j++) {
-    int type = luaL_checkoption(L, j, "int", typenames);
-    af->ffi_params[i] = ffitypes[type];
-    af->params[i] = types[type];
+  if(lua_istable(L, 2)) {
+    for(i = 0, j = 1; i < af->nparams; i++, j++) {
+      lua_rawgeti(L, 2, j);
+      af->ffi_params[i] = ffitypes[luaL_checkoption(L, -1, "int", typenames)];
+      af->params[i] = types[luaL_checkoption(L, -1, "int", typenames)];
+      lua_pop(L, 1);
+    }
+  } else {
+    for(i = 0, j = 3; i < af->nparams; i++, j++) {
+      int type = luaL_checkoption(L, j, "int", typenames);
+      af->ffi_params[i] = ffitypes[type];
+      af->params[i] = types[type];
+    }
   }
   status = ffi_prep_cif(&(af->cif), FFI_DEFAULT_ABI, af->nparams, 
 			af->ffi_ret_type,
@@ -655,10 +712,8 @@ static int alien_function_call(lua_State *L) {
       arg = ALLOCA(sizeof(short)); *((short*)arg) = (short)lua_tointeger(L, j); 
       args[i] = arg; break;
     case AT_LONG:
-#ifndef WINDOWS
       arg = ALLOCA(sizeof(long)); *((long*)arg) = (long)lua_tointeger(L, j); 
       args[i] = arg; break;
-#endif
     case AT_INT:
       arg = ALLOCA(sizeof(int)); *((int*)arg) = (int)lua_tointeger(L, j); 
       args[i] = arg; break;
@@ -722,9 +777,7 @@ static int alien_function_call(lua_State *L) {
   case AT_VOID: ffi_call(cif, af->fn, NULL, args); lua_pushnil(L); break;
   case AT_SHORT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (short)iret); break;
   case AT_LONG: 
-#ifndef WINDOWS
     ffi_call(cif, af->fn, &lret, args); lua_pushnumber(L, lret); break;
-#endif
   case AT_INT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
   case AT_CHAR: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (uchar)iret); break;
   case AT_BYTE: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (char)iret); break;
