@@ -4,11 +4,21 @@ Alien - Pure Lua extensions
 Status
 ------
 
-This is Alien version 0.3.2.
+This is Alien version 0.4.0.
 
 Changelog
 ---------
 
+* 0.4.0
+  * Windows support - stdcall ABI, including for callbacks
+  * alternate syntax for defining types
+  * mutable buffers
+  * alien.to*type* functions take optional length argument
+  * callbacks are callable from Lua
+  * alien.funcptr turns a function pointer into an alien function
+  * improved library finding on Linux/FreeBSD, using ldconfig
+  * alien.table utility function (wrapper for lua_createtable, useful for extensions)
+  * alien.align utility function to get data structure alignment
 * 0.3.2 - fixes callback bug on NX-bit platforms
 * 0.3.1 - initial release with libffi
 * 0.3 - retracted due to license conflict
@@ -27,8 +37,8 @@ but it is still very easy to crash Lua if you make a mistake. Alien
 itself is not as robust as a standard Lua extension, but you can use
 it to write extensions that won't crash if you code them well.
 
-Alien should work in any Unix-based system, and it will work on
-Windows shortly.
+Alien works on Unix-based systems and Windows. It has been tested on Linux x86/x64,
+FreeBSD x86, Windows x86 and OSX x86.
 
 Installing Alien
 ----------------
@@ -63,13 +73,14 @@ the library with `alien.`*`name`*. Otherwise (for example, to load a
 library called *libwrap.so*) you have to use `alien.load("wrap")`.
 
 You can also specify the full name of the library by calling
-`alien.load` with a path, such as
-`alien.load("mylibs/libfoo.so")`. Either way you get back a reference
+`alien.load` with a path or with the appropriate extension, such as
+`alien.load("mylibs/libfoo.so")` or `alien.load("libfoo.so")`. 
+Either way you get back a reference
 to the library that you will use to access its functions.
 
 You can also get a reference to the currently running module using
 `alien.default`, this lets you get references to any function exported
-by the module and its transitive dependencies.
+by the module and its transitive dependencies on ELF and Mach-O systems.
 
 Once you have a reference to a library you can get a reference to an
 exported function with *libref.funcname*. For example:
@@ -119,6 +130,29 @@ after the function normal return value. An example, using *scanf*:
 You have to pass a value even if the function does not use it, as you
 can see above.
 
+Another way to specify types is by passing a table to *func:types*. The array
+part of this table shoudl have one item for each parameter, and you can also pass
+two hash keys, *ret*, the function's return type (defaults to `int` as usual), and
+*abi*, the function's calling convention (useful for Windows, where you can specify "stdcall" as the
+ABI for `__stdcall` functions. The default ABI is always "default", and all systems
+also support "cdecl", the usual C calling convention. On systems that don't have the
+stdcall convention "stdcall" is the same as "default".
+
+This is the previous example using this alternate definition:
+
+    > scanf = alien.default.scanf
+    > scanf:types{ ret = "int", "string", "ref int", "ref double" }
+    > _, x, y = scanf("%i %lf", 0, 0)
+    23 42.5
+    > =x
+    23
+    > =y
+    42.5
+
+If you get raw function pointer (returned from a function, for example, or 
+passed to a callback), you can turn it into an Alien function with `alien.funcptr(fptr)`.
+This returns an Alien function object that you can type and call function normally.
+
 Buffers
 -------
 
@@ -154,6 +188,20 @@ An example of how to use a buffer:
     Foo bar
     >
 
+You can access the i-th character of a buffer with `buf[i]`, and you can
+set its value with `buf[i] = v`. Notice that these are C characters (bytes),
+not Lua 1-character strings, so you need to use `string.char` and `string.byte`
+to convert between Lua characters and C characters. **Access to Alien buffers 
+from Lua is 1-based instead of 0-based**.
+
+You can also get and set other values by using *buf:get(offset, type)*, and
+set it by *buf:set(offset, val, type)*. The offset is in bytes, *not* in elements, so
+if *buf* has three "int" values their offsets are 1, 5 and 9, respectively, assuming
+each "int" is four bytes long.
+
+All get and set operations do no bounds-checking, so be extra careful, or use the
+safer alien.array abstraction that is built on top of buffers.
+
 Pointer Unpacking
 -----------------
 
@@ -164,14 +212,21 @@ dereference a pointer and convert the value to a Lua type:
   that has a *pointer* return value), casts it to *char\**, and
   returns a Lua string. You can supply an optional size argument (if 
   you don't Alien calls *strlen* on the buffer first).
-
-* `alien.tointeger` takes a userdata, casts it to *int\**,
+* `alien.toint` takes a userdata, casts it to *int\**,
   dereferences it and returns it as a number. If you pass it a number
   it assumes the userdata is an array with this number of elements.
-
 * `alien.toshort`, `alien.tolong`, `alien.tofloat`, and
-  `alien.todouble` are like `alien.tointeger`, but works with
+  `alien.todouble` are like `alien.toint`, but works with
   with the respective typecasts.
+
+The numeric alien.to*type* functions take an optional second argument that
+tells how many items to unpack from the userdata. For example, if ptr is
+a pointer to an array of four floats, the following code unpacks this array:
+
+    > fs = alien.tofloat(ptr, 4)
+    > =#fs
+    4
+    >
 
 Use these functions with extra care, they don't make any safety
 checks. For more advanced unmarshaling use the `alien.struct.unpack`
@@ -201,6 +256,10 @@ extensions:
 * `alien.unwrap(*tagname*, obj)` tests if *obj* is tagged with
   *tagname*, throwing an error if it is not, then returns the values
   previously stored in it.
+* `alien.rewrap(*tagname*, obj, ...)` replaces the elements on *obj* with
+  new values. If you pass more values than *obj* had previously the extra
+  values are silently ignored. If you pass less tehn *obj* is filled with
+  *nil*.
 
 For example, suppose *libfoo* has a `create_foo` function that returns
 a `Foo*` object. These objects have to be properly disposed by calling
@@ -256,6 +315,9 @@ example, using *qsort*:
 
 The *qsort* function sorts an array in-place, so we have to use a
 buffer.
+
+Callbacks are callable from Lua just like any other Alien function, although
+you can't change their types.
 
 Magic Numbers
 -------------
@@ -336,7 +398,12 @@ information for conditional execution in your extensions.
 
 You can get the sizes of the types Alien supports using
 `alien.sizeof(*typename*)`, as the *qsort* example in the Callbacks
-section shows.
+section shows. You can also get strucutre aligment information
+with `alien.align(*typename*)`.
+
+Several extensions may need to create Lua tables with preallocated
+array and/or hash parts, for performance reasons (implementing a circular queue, for
+example). Alien exposes the `lua_createtable` function as `alien.table(narray, nhash)`.
 
 Credits
 -------
