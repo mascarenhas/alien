@@ -36,9 +36,13 @@ install: src/alien/core.so src/alien/struct.so
 clean:
 	find . -name "*.so" -o -name "*.o" | xargs rm -f
 
-upload:
+upload-cvs:
 	darcs dist -d alien-current
 	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs alien-current.tar.gz
+
+upload-dist:
+	darcs dist -d alien-$(VERSION)
+	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs alien-$(VERSION).tar.gz
 	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs doc/index.html
 
 tests/libalientest.so: tests/alientest.c
