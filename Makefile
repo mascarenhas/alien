@@ -1,5 +1,5 @@
 
-all: src/alien/core.so src/alien/struct.so tests/libalientest.so
+all: src/alien/core.so src/alien/struct.so tests/libalientest$(LIB_EXT)
 
 src/alien/core.o: src/alien/core.c libffi/include/ffi.h
 	$(CC) -c $(CFLAGS) -Ilibffi/include -o src/alien/core.o src/alien/core.c
@@ -34,7 +34,7 @@ install: src/alien/core.so src/alien/struct.so
 	cp -r doc $(PREFIX)/
 
 clean:
-	find . -name "*.so" -o -name "*.o" | xargs rm -f
+	find . -name "*.so" -o -name "*.o" -o -name "*.dylib" | xargs rm -f
 
 upload-cvs:
 	darcs dist -d alien-current
@@ -45,8 +45,8 @@ upload-dist:
 	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs alien-$(VERSION).tar.gz
 	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs doc/index.html
 
-tests/libalientest.so: tests/alientest.c
-	$(CC) $(LIB_OPTION) $(CFLAGS) -o tests/libalientest.so tests/alientest.c
+tests/libalientest$(LIB_EXT): tests/alientest.c
+	$(CC) $(LIB_OPTION) $(CFLAGS) -o tests/libalientest$(LIB_EXT) tests/alientest.c
 
 test:
 	cd tests && lua -l luarocks.require test_alien.lua

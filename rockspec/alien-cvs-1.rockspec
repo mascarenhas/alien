@@ -31,18 +31,21 @@ build = {
        	build_variables = {
          LIB_OPTION = "-shared",
          CFLAGS = '$(CFLAGS) -I$(LUA_INCDIR) -DLINUX',
+	 LIB_EXT = '.so'
        	},
      },
      freebsd = {
        	build_variables = {
          LIB_OPTION = "-shared",
          CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DBSD",
+	 LIB_EXT = '.so'
        	},
      },
      macosx = {
        	build_variables = {
          LIB_OPTION = "-bundle -undefined dynamic_lookup",
          CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR) -DDARWIN",
+	 LIB_EXT = '.dylib'
        	},
      },
      win32 = {
