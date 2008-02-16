@@ -14,13 +14,14 @@
 
 #ifdef WINDOWS
 #include <windows.h>
-#define alloca _alloca
+#define ALLOCA _alloca
 #else
 #include <sys/mman.h>
 #include <unistd.h>
 # if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
 #  define MAP_ANONYMOUS MAP_ANON
 # endif
+#define ALLOCA alloca
 #endif
 
 #define BLOCKSIZE _pagesize
@@ -50,10 +51,6 @@ typedef enum {
   AT_REFDOUBLE,
   AT_CALLBACK
 } alien_Type;
-
-#ifdef WINDOWS
-#define long int
-#endif
 
 typedef struct _alien_Library {
   void *lib;
@@ -432,8 +429,11 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
     case AT_BYTE: lua_pushnumber(ac->L, *((int*)args[i])); break;
     case AT_CHAR: lua_pushnumber(ac->L, *((int*)args[i])); break;
     case AT_SHORT: lua_pushnumber(ac->L, *((int*)args[i])); break;
+    case AT_LONG: 
+#ifndef WINDOWS
+      lua_pushnumber(ac->L, *((long*)args[i])); break;
+#endif
     case AT_INT: lua_pushnumber(ac->L, *((int*)args[i])); break;
-    case AT_LONG: lua_pushnumber(ac->L, *((long*)args[i])); break;
     case AT_FLOAT: lua_pushnumber(ac->L, *((float*)args[i])); break;
     case AT_DOUBLE: lua_pushnumber(ac->L, *((double*)args[i])); break;
     case AT_STRING: lua_pushstring(ac->L, *((char**)args[i])); break;
@@ -454,8 +454,11 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
   switch(ac->ret_type) {
   case AT_VOID: break;
   case AT_SHORT: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
+  case AT_LONG: 
+#ifndef WINDOWS
+    *((long*)resp) = (long)lua_tointeger(ac->L, -1); break;
+#endif
   case AT_INT: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
-  case AT_LONG: *((long*)resp) = (long)lua_tointeger(ac->L, -1); break;
   case AT_CHAR: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
   case AT_BYTE: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
   case AT_FLOAT: *((float*)resp) = (float)lua_tonumber(ac->L, -1); break;
@@ -641,36 +644,38 @@ static int alien_function_call(lua_State *L) {
     case AT_REFCHAR: nrefc++; break;
     }
   }
-  if(nrefi > 0) refi_args = (int*)alloca(sizeof(int) * nrefi);
-  if(nrefd > 0) refd_args = (double*)alloca(sizeof(double) * nrefd);
-  if(nrefc > 0) refc_args = (int*)alloca(sizeof(int) * nrefc);
-  if(nargs > 0) args = alloca(sizeof(void*) * nargs);
+  if(nrefi > 0) refi_args = (int*)ALLOCA(sizeof(int) * nrefi);
+  if(nrefd > 0) refd_args = (double*)ALLOCA(sizeof(double) * nrefd);
+  if(nrefc > 0) refc_args = (int*)ALLOCA(sizeof(int) * nrefc);
+  if(nargs > 0) args = ALLOCA(sizeof(void*) * nargs);
   for(i = 0, j = 2; i < nparams; i++, j++) {
     void *arg;
     switch(af->params[i]) {
     case AT_SHORT:
-      arg = alloca(sizeof(short)); *((short*)arg) = (short)lua_tointeger(L, j); 
-      args[i] = arg; break;
-    case AT_INT:
-      arg = alloca(sizeof(int)); *((int*)arg) = (int)lua_tointeger(L, j); 
+      arg = ALLOCA(sizeof(short)); *((short*)arg) = (short)lua_tointeger(L, j); 
       args[i] = arg; break;
     case AT_LONG:
-      arg = alloca(sizeof(long)); *((long*)arg) = (long)lua_tointeger(L, j); 
+#ifndef WINDOWS
+      arg = ALLOCA(sizeof(long)); *((long*)arg) = (long)lua_tointeger(L, j); 
+      args[i] = arg; break;
+#endif
+    case AT_INT:
+      arg = ALLOCA(sizeof(int)); *((int*)arg) = (int)lua_tointeger(L, j); 
       args[i] = arg; break;
     case AT_CHAR:
-      arg = alloca(sizeof(uchar)); *((uchar*)arg) = (uchar)lua_tointeger(L, j); 
+      arg = ALLOCA(sizeof(uchar)); *((uchar*)arg) = (uchar)lua_tointeger(L, j); 
       args[i] = arg; break;
     case AT_BYTE:
-      arg = alloca(sizeof(char)); *((char*)arg) = (char)lua_tointeger(L, j); 
+      arg = ALLOCA(sizeof(char)); *((char*)arg) = (char)lua_tointeger(L, j); 
       args[i] = arg; break;
     case AT_FLOAT:
-      arg = alloca(sizeof(float)); *((float*)arg) = (float)lua_tonumber(L, j); 
+      arg = ALLOCA(sizeof(float)); *((float*)arg) = (float)lua_tonumber(L, j); 
       args[i] = arg; break;
     case AT_DOUBLE:
-      arg = alloca(sizeof(double)); *((double*)arg) = (double)lua_tonumber(L, j); 
+      arg = ALLOCA(sizeof(double)); *((double*)arg) = (double)lua_tonumber(L, j); 
       args[i] = arg; break;
     case AT_STRING:
-      arg = alloca(sizeof(char*));
+      arg = ALLOCA(sizeof(char*));
       if(lua_isuserdata(L, j))
 	*((char**)arg) = lua_isnil(L, j) ? NULL : lua_touserdata(L, j);
       else
@@ -678,12 +683,12 @@ static int alien_function_call(lua_State *L) {
       args[i] = arg;
       break;
     case AT_CALLBACK: 
-      arg = alloca(sizeof(void*));
+      arg = ALLOCA(sizeof(void*));
       *((void**)arg) = alien_checkcallback(L, j); 
       args[i] = arg;
       break;
     case AT_PTR:
-      arg = alloca(sizeof(char*));
+      arg = ALLOCA(sizeof(char*));
       *((void**)arg) = lua_isnil(L, j) ? NULL : 
 	     (lua_isstring(L, j) ? (void*)lua_tostring(L, j) : 
 	      lua_touserdata(L, j));
@@ -691,19 +696,19 @@ static int alien_function_call(lua_State *L) {
       break;
     case AT_REFINT:
       *refi_args = (int)lua_tointeger(L, j);
-      arg = alloca(sizeof(int*));
+      arg = ALLOCA(sizeof(int*));
       *((int**)arg) = refi_args;
       args[i] = arg; refi_args++; break;
       break;
     case AT_REFCHAR: 
       *refc_args = (int)lua_tointeger(L, j);
-      arg = alloca(sizeof(int*));
+      arg = ALLOCA(sizeof(int*));
       *((int**)arg) = refc_args;
       args[i] = arg; refc_args++; break;
       break;
     case AT_REFDOUBLE: 
       *refd_args = lua_tonumber(L, j);
-      arg = alloca(sizeof(double*));
+      arg = ALLOCA(sizeof(double*));
       *((double**)arg) = refd_args;
       args[i] = arg; refd_args++; break;
       break;
@@ -716,8 +721,11 @@ static int alien_function_call(lua_State *L) {
   switch(af->ret_type) {
   case AT_VOID: ffi_call(cif, af->fn, NULL, args); lua_pushnil(L); break;
   case AT_SHORT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (short)iret); break;
+  case AT_LONG: 
+#ifndef WINDOWS
+    ffi_call(cif, af->fn, &lret, args); lua_pushnumber(L, lret); break;
+#endif
   case AT_INT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
-  case AT_LONG: ffi_call(cif, af->fn, &lret, args); lua_pushnumber(L, lret); break;
   case AT_CHAR: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (uchar)iret); break;
   case AT_BYTE: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (char)iret); break;
   case AT_FLOAT: ffi_call(cif, af->fn, &fret, args); lua_pushnumber(L, fret); break;
