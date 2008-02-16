@@ -5,16 +5,17 @@ BIN_DIR=c:\usr\local\bin
 CFLAGS=/O2 /DWINDOWS /Ic:\usr\local\include
 LIB_OPTION="c:\usr\local\bin\lua5.1.lib"
 PREFIX=c:\usr\local
+LIBFFI_OBJS=libffi\win32\ffi.obj libffi\win32\prep_cif.obj libffi\win32\types.obj libffi\win32\win32.obj
+
+.c.obj:
+	cl /c /MD /Fo$@ $(CFLAGS) $<
 
 all: src\alien\core.dll src\alien\struct.dll tests\alientest.dll
 
-src\alien\core.obj: src\alien\core.c
-	cl /c $(CFLAGS) /Ilibffi\win32 /Fosrc\alien\core.obj src\alien\core.c
+libffi\win32\ffi.lib: $(LIBFFI_OBJS)
+	lib /out:libffi\win32\ffi.lib $(LIBFFI_OBJS)
 
-src\alien\struct.obj: src\alien\struct.c
-	cl /c $(CFLAGS) /Fosrc\alien\struct.obj src\alien\struct.c
-
-src\alien\core.dll: src\alien\core.obj
+src\alien\core.dll: src\alien\core.obj libffi\win32\ffi.lib
 	link /dll /out:src\alien\core.dll /def:src\alien\core.def src\alien\core.obj $(LIB_OPTION) libffi\win32\ffi.lib
 
 src\alien\struct.dll: src\alien\struct.obj 
@@ -38,6 +39,7 @@ install: src\alien\core.dll src\alien\struct.dll
 clean:
 	del src\alien\*.dll src\alien\*.obj src\alien\*.exp src\alien\*.lib
 	del tests\alientest.dll tests\alientest.obj tests\alientest.exp tests\alientest.lib
+	del libffi\win32\ffi.lib
 
 test:
 	cd tests && lua5.1 test_alien.lua
