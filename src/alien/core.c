@@ -885,17 +885,23 @@ static int alien_unpack(lua_State *L) {
 }
 
 static int alien_repack(lua_State *L) {
-  int size, i;
+  int size, i, top;
   alien_Wrap *ud;
   const char *meta = luaL_checkstring(L, 1);
   ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
   i = 3;
+  top = lua_gettop(L);
   while(ud->tag != AT_VOID) {
-    switch(ud->tag) {
-    case AT_INT: ud->val.i = lua_tointeger(L, i); break;
-    case AT_PTR: lua_isnil(L, i) ? (ud->val.p = NULL) : 
-      (ud->val.p = lua_touserdata(L, i)); break;
-    default: luaL_error(L, "wrong type in wrapped value");
+    if(i > top || lua_isnil(L, i)) {
+      ud->tag = AT_PTR;
+      ud->val.p = NULL;
+    }
+    else if(lua_isuserdata(L, i)) {
+      ud->tag = AT_PTR;
+      ud->val.p = lua_touserdata(L, i);
+    } else {
+      ud->tag = AT_INT;
+      ud->val.i = lua_tointeger(L, i);
     }
     ud++; i++;
   }
@@ -1106,14 +1112,7 @@ static int alien_register_buffer_meta(lua_State *L) {
 
 static int alien_errno(lua_State *L) {
   lua_pushnumber(L, errno);
-#ifdef WINDOWS
-  lua_pushnumber(L, GetLastError());
-#endif
-#ifdef WINDOWS
-  return 2;
-#else
   return 1;
-#endif
 }
 
 static int alien_udata2str(lua_State *L) {
@@ -1250,6 +1249,14 @@ static int alien_isnull(lua_State *L) {
   return 1;
 }
 
+static int alien_table_new(lua_State *L) {
+  int narray, nhash;
+  narray = luaL_optint(L, 1, 0);
+  nhash = luaL_optint(L, 2, 0);
+  lua_createtable(L, narray, nhash);
+  return 1;
+}
+
 static const struct luaL_reg alienlib[] = {
   {"load", alien_get},
   {"align", alien_align},
@@ -1270,6 +1277,7 @@ static const struct luaL_reg alienlib[] = {
   {"buffer", alien_buffer_new},
   {"callback", alien_callback_new},
   {"funcptr", alien_function_new},
+  {"table", alien_table_new},
   {NULL, NULL},
 };
 
