@@ -289,6 +289,10 @@ static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
 
 #endif
 
+#ifndef WINDOWS
+#define FFI_STDCALL FFI_DEFAULT_ABI
+#endif
+
 static const ffi_abi ffi_abis[] = { FFI_DEFAULT_ABI, FFI_SYSV, FFI_STDCALL };
 static const char *const ffi_abi_names[] = { "default", "cdecl", "stdcall", NULL };
 
