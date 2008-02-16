@@ -256,3 +256,92 @@ do
   assert(res[1] == 3)
   assert(res[2] == 7)
 end
+
+do
+  local tag1 = alien.tag("alientest_tag1")
+  assert(type(tag1) == "table")
+  local tag2 = alien.tag("alientest_tag1")
+  assert(tag1 == tag2)
+  local tag3 = alien.tag("alientest_tag3")
+  assert(tag1 ~= tag3)
+  assert(type(tag3) == "table")
+end
+
+dll.my_malloc:types("pointer", "int")
+dll.my_free:types("void", "pointer")
+
+do
+  local tag = alien.tag("alientest_tag")
+  local ptr = dll.my_malloc(4)
+  local obj = alien.wrap("alientest_tag", 1, 2, ptr, 10)
+  assert(getmetatable(obj) == tag)
+  local x, y, o, z = alien.unwrap("alientest_tag", obj)
+  assert(x == 1 and y == 2 and o == ptr and z == 10)
+  alien.rewrap("alientest_tag", obj, 3, 4, nil, 5)
+  local x, y, o, z = alien.unwrap("alientest_tag", obj)
+  assert(x == 3 and y == 4 and o == nil and z == 5)
+  dll.my_free(ptr)
+end
+
+local types = { "char", "short", "int", "long" }
+
+for _, t in ipairs(types) do
+  local buf = alien.buffer(alien.sizeof(t))
+  local ptr = buf:topointer()
+  buf:set(1, 5, t)
+  assert(alien["to" .. t](ptr) == 5)
+end
+
+local types = { "float", "double"}
+
+for _, t in ipairs(types) do
+  local buf = alien.buffer(alien.sizeof(t))
+  local ptr = buf:topointer()
+  buf:set(1, 2.5, t)
+  assert(alien["to" .. t](ptr) == 2.5)
+end
+
+local types = { "char", "short", "int", "long" }
+
+for _, t in ipairs(types) do
+  local buf = alien.buffer(alien.sizeof(t) * 4)
+  local ptr = buf:topointer()
+  for i = 1, alien.sizeof(t) * 4, alien.sizeof(t) do
+    buf:set(i, i * 2, t)
+  end
+  local vals = { alien["to" .. t](ptr, 4) }
+  assert(#vals == 4)
+  for i = 1, 4 do
+    assert(vals[i] == (((i - 1) * alien.sizeof(t)) + 1) * 2)
+  end
+end
+
+local types = { "float", "double"}
+
+for _, t in ipairs(types) do
+  local buf = alien.buffer(alien.sizeof(t) * 4)
+  local ptr = buf:topointer()
+  for i = 1, alien.sizeof(t) * 4, alien.sizeof(t) do
+    buf:set(i, i * 2 + 0.5, t)
+  end
+  local vals = { alien["to" .. t](ptr, 4) }
+  assert(#vals == 4)
+  for i = 1, 4 do
+    assert(vals[i] == (((i - 1) * alien.sizeof(t)) + 1) * 2 + 0.5)
+  end
+end
+
+do
+  local function callback(a, b)
+    return a + b
+  end
+  local cb1 = alien.callback(callback, { "int", "int" })
+  local cb2 = alien.callback(callback, { abi = "stdcall", "int", "int" })
+  assert(cb1(2, 3) == 5)
+  assert(cb2(3, 4) == 7)
+  local f = dll._testfunc_p_p
+  f:types("pointer", "callback")
+  local cb3 = alien.funcptr(f(cb1))
+  cb3:types{ "int", "int" }
+  assert(cb3(2, 3) == 5)
+end

@@ -16,6 +16,10 @@
 
 /* some functions handy for testing */
 
+EXPORT(void *) my_malloc(size_t size) {
+  return malloc(size);
+}
+
 EXPORT(char *)my_strtok(char *token, const char *delim)
 {
 	return strtok(token, delim);

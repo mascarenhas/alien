@@ -899,19 +899,19 @@ static int alien_repack(lua_State *L) {
 }
 
 static int alien_buffer_new(lua_State *L) {
-  char *b; const char *s;
+  const char *s; char *b;
   size_t size;
-  if(lua_isstring(L, 1)) {
+  if(lua_type(L, 1) == LUA_TSTRING) {
     s = lua_tolstring(L, 1, &size);
     size++;
-  }
-  else {
+  } else {
+    s = NULL;
     size = luaL_optint(L, 1, BUFSIZ);
   }
-  b = (char *)lua_newuserdata(L, sizeof(char) * size);
+  b = (char *)lua_newuserdata(L, size);
   if(b) {
     if(s) {
-      memcpy(b, s, sizeof(char) * (size - 1));
+      memcpy(b, s, size - 1);
       b[size - 1] = '\0';
     }
     luaL_getmetatable(L, ALIEN_BUFFER_META);
@@ -941,14 +941,21 @@ static int alien_buffer_len(lua_State *L) {
   return 1;
 }
 
+static int alien_buffer_topointer(lua_State *L) {
+  char *b = alien_checkbuffer(L, 1);
+  lua_pushlightuserdata(L, b);
+  return 1;
+}
+
 static int alien_buffer_put(lua_State *L);
 
 static int alien_buffer_get(lua_State *L) {
   static const void* funcs[] = {&alien_buffer_tostring,
+				&alien_buffer_topointer,
 				&alien_buffer_len,
 				&alien_buffer_get,
 				&alien_buffer_put};
-  static const char *const funcnames[] = { "tostring", "len", "get", "set", NULL };
+  static const char *const funcnames[] = { "tostring", "topointer", "len", "get", "set", NULL };
   static const int types[] = {AT_VOID, AT_INT, AT_DOUBLE, AT_CHAR, AT_STRING, AT_PTR, AT_REFINT, 
 			      AT_REFDOUBLE, AT_REFCHAR, AT_CALLBACK, AT_SHORT, AT_BYTE, AT_LONG,
 			      AT_FLOAT};
@@ -1120,7 +1127,7 @@ static int alien_udata2double(lua_State *L) {
     size = luaL_checkinteger(L, 2);
   ud = (double *)lua_touserdata(L, 1);
   for(i = 0; i < size; i++)
-    lua_pushnumber(L, *ud++);
+    lua_pushnumber(L, ud[i]);
   return size;
 }
 
@@ -1138,7 +1145,7 @@ static int alien_udata2int(lua_State *L) {
     size = luaL_checkinteger(L, 2);
   ud = (int *)lua_touserdata(L, 1);
   for(i = 0; i < size; i++) {
-    lua_pushinteger(L, *ud); ud++;
+    lua_pushnumber(L, ud[i]);
   }
   return size;
 }
@@ -1157,7 +1164,25 @@ static int alien_udata2short(lua_State *L) {
     size = luaL_checkinteger(L, 2);
   ud = (short *)lua_touserdata(L, 1);
   for(i = 0; i < size; i++)
-    lua_pushnumber(L, *ud++);
+    lua_pushnumber(L, ud[i]);
+  return size;
+}
+
+static int alien_udata2char(lua_State *L) {
+  char *ud;
+  int size, i;
+  if(lua_isnil(L, 1)) {
+    lua_pushnil(L);
+    return 1;
+  }
+  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
+  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
+    size = 1;
+  else
+    size = luaL_checkinteger(L, 2);
+  ud = (char *)lua_touserdata(L, 1);
+  for(i = 0; i < size; i++)
+    lua_pushnumber(L, ud[i]);
   return size;
 }
 
@@ -1175,7 +1200,7 @@ static int alien_udata2long(lua_State *L) {
     size = luaL_checkinteger(L, 2);
   ud = (long *)lua_touserdata(L, 1);
   for(i = 0; i < size; i++)
-    lua_pushnumber(L, *ud++);
+    lua_pushnumber(L, ud[i]);
   return size;
 }
 
@@ -1193,7 +1218,7 @@ static int alien_udata2float(lua_State *L) {
     size = luaL_checkinteger(L, 2);
   ud = (float *)lua_touserdata(L, 1);
   for(i = 0; i < size; i++)
-    lua_pushnumber(L, *ud++);
+    lua_pushnumber(L, ud[i]);
   return size;
 }
 
@@ -1217,13 +1242,14 @@ static const struct luaL_reg alienlib[] = {
   {"isnull", alien_isnull},
   {"sizeof", alien_sizeof},
   {"todouble", alien_udata2double},
-  {"tointeger", alien_udata2int},
+  {"toint", alien_udata2int},
   {"tolong", alien_udata2long},
   {"tofloat", alien_udata2float},
   {"toshort", alien_udata2short},
+  {"tochar", alien_udata2char},
   {"buffer", alien_buffer_new},
   {"callback", alien_callback_new},
-  {"function", alien_function_new},
+  {"funcptr", alien_function_new},
   {NULL, NULL},
 };
 
