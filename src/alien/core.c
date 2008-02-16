@@ -356,7 +356,7 @@ static int alien_get(lua_State *L) {
   } else {
     luaL_error(L, "out of memory!");
   }
-  return NULL;
+  return 0;
 }
 
 static int alien_makefunction(lua_State *L, void *lib, void *fn, char *name) {
@@ -401,7 +401,7 @@ static int alien_library_get(lua_State *L) {
   } else {
     luaL_error(L, "out of memory!");
   }
-  return NULL;
+  return 0;
 }
 
 static int alien_function_new(lua_State *L) {
@@ -410,7 +410,7 @@ static int alien_function_new(lua_State *L) {
     void *fn = lua_touserdata(L, 1);
     return alien_makefunction(L, NULL, fn, NULL);
   } else luaL_error(L, "alien: not an userdata");
-  return NULL;
+  return 0;
 }
 
 static int alien_library_tostring(lua_State *L) {
@@ -534,7 +534,7 @@ static int alien_callback_new(lua_State *L) {
     if(ac) free(ac);
     luaL_error(L, "alien: cannot allocate callback");
   }
-  return NULL;
+  return 0;
 }
 
 static int alien_sizeof(lua_State *L) {
@@ -859,7 +859,7 @@ static int alien_buffer_new(lua_State *L) {
   } else {
     luaL_error(L, "cannot allocate buffer");
   }
-  return NULL;
+  return 0;
 }
 
 static int alien_buffer_tostring(lua_State *L) {
