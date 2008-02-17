@@ -345,3 +345,70 @@ do
   cb3:types{ "int", "int" }
   assert(cb3(2, 3) == 5)
 end
+
+do
+  local function sort(a, b)
+    return a - b
+  end
+  local compare = alien.callback(sort, "int", "ref char", "ref char")
+  local qsort = dll.my_qsort
+  qsort:types("void", "pointer", "int", "int", "callback")
+  local str = "spam, spam, and spam"
+  local chars = alien.array("char", #str, alien.buffer(str))
+  qsort(chars.buffer, chars.length, chars.size, compare)
+  assert(tostring(chars.buffer) == "   ,,aaaadmmmnpppsss")
+end
+
+local types = { "char", "int", "double" }
+
+for _, t in ipairs(types) do
+  local function sort(a, b)
+    return a - b
+  end
+  local compare = alien.callback(sort, "int", "ref " .. t, "ref " .. t)
+  local qsort = dll.my_qsort
+  qsort:types("void", "pointer", "int", "int", "callback")
+  local nums = alien.array(t, { 4, 5, 3, 2, 6, 1 })
+  qsort(nums.buffer, nums.length, nums.size, compare)
+  for i = 1, 6 do assert(nums[i] == i) end
+end
+
+do
+  local function sort(a, b)
+     a = alien.buffer(a):get(1, "string")
+     b = alien.buffer(b):get(1, "string")
+     if a == b then return 0 elseif a < b then return -1 else return 1 end
+  end
+  local compare = alien.callback(sort, "int", "pointer", "pointer")
+  local qsort = dll.my_qsort
+  qsort:types("void", "pointer", "int", "int", "callback")
+  local strs = alien.array("string", { "Red", "Yellow", "Blue" })
+  qsort(strs.buffer, strs.length, strs.size, compare)
+  assert(strs[1] == "Blue")
+  assert(strs[2] == "Red")
+  assert(strs[3] == "Yellow")
+end
+
+local types = { "char", "short", "int", "long", "float", "double" }
+
+for _, t in ipairs(types) do
+   local arr = alien.array(t, 4)
+   assert(arr.length == 4)
+   assert(arr.size == alien.sizeof(t))
+   assert(arr.type == t)
+   for i = 1, arr.length do
+      arr[i] = i
+   end
+   for i = 1, arr.length do
+      assert(arr[i] == i)
+   end
+   local tab = {}
+   for i, v in arr:ipairs() do
+      tab[i] = v
+   end
+   assert(#tab == 4)
+   for i = 1, 4 do
+      assert(tab[i] == i)
+   end
+end
+

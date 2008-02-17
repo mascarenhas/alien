@@ -7,6 +7,8 @@ local pairs = pairs
 local setmetatable = setmetatable
 local error = error
 local pcall = pcall
+local type = type
+local rawset = rawset
 
 module "alien"
 
@@ -100,6 +102,18 @@ end
 
 local array_methods = {}
 
+local function array_next(arr, i)
+   if i < arr.length then
+      return i + 1, arr[i + 1]
+   else
+      return nil
+   end
+end
+
+function array_methods:ipairs()
+   return array_next, self, 0
+end
+
 local function array_get(arr, key)
   if type(key) == "number" then
     if key < 0 or key > arr.length then
@@ -123,7 +137,7 @@ local function array_set(arr, key, val)
       arr.pinned[key] = val
     end
   else
-    error("key must be a number")
+    rawset(arr, key, val)
   end
 end
 
@@ -139,7 +153,7 @@ function array(t, length, init)
   local arr = { type = t, length = length, size = size, pinned = {} }
   setmetatable(arr, { __index = array_get, __newindex = array_set })
   if type(init) == "userdata" then
-    arr.buffer = core.buffer(init)
+    arr.buffer = init
   else
     arr.buffer = core.buffer(size * length)
     if type(init) == "table" then
