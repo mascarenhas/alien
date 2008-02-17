@@ -354,7 +354,7 @@ do
   local qsort = dll.my_qsort
   qsort:types("void", "pointer", "int", "int", "callback")
   local str = "spam, spam, and spam"
-  local chars = alien.array("char", alien.buffer(str))
+  local chars = alien.array("char", #str, alien.buffer(str))
   qsort(chars.buffer, chars.length, chars.size, compare)
   assert(tostring(chars.buffer) == "   ,,aaaadmmmnpppsss")
 end

@@ -150,10 +150,6 @@ function array(t, length, init)
     init = length
     length = #length
   end
-  if type(length) == "userdata" then
-    init = length
-    length = length:len()
-  end
   local arr = { type = t, length = length, size = size, pinned = {} }
   setmetatable(arr, { __index = array_get, __newindex = array_set })
   if type(init) == "userdata" then
