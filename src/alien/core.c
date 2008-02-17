@@ -908,6 +908,10 @@ static int alien_buffer_new(lua_State *L) {
   if(lua_type(L, 1) == LUA_TSTRING) {
     s = lua_tolstring(L, 1, &size);
     size++;
+  } else if(lua_type(L, 1) == LUA_TLIGHTUSERDATA) {
+    luaL_getmetatable(L, ALIEN_BUFFER_META);
+    lua_setmetatable(L, -2);
+    return 1;
   } else {
     s = NULL;
     size = luaL_optint(L, 1, BUFSIZ);
@@ -972,6 +976,7 @@ static int alien_buffer_get(lua_State *L) {
     lua_pushcfunction(L, 
 		      (lua_CFunction)funcs[luaL_checkoption(L, 2, "tostring", funcnames)]);
   } else {
+    void *p;
     int offset = luaL_checkinteger(L, 2) - 1;
     int type = types[luaL_checkoption(L, 3, "char", typenames)];
     switch(type) {
@@ -982,9 +987,18 @@ static int alien_buffer_get(lua_State *L) {
     case AT_CHAR: lua_pushnumber(L, b[offset]); break;
     case AT_FLOAT: lua_pushnumber(L, *((float*)(&b[offset]))); break;
     case AT_DOUBLE: lua_pushnumber(L, *((double*)(&b[offset]))); break;
-    case AT_STRING: lua_pushstring(L, *((char**)(&b[offset]))); break;
-    case AT_CALLBACK: alien_makefunction(L, NULL, *((void**)(&b[offset])), NULL); break; 
-    case AT_PTR: lua_pushlightuserdata(L, *((void**)(&b[offset]))); break;
+    case AT_STRING:
+      p = *((void**)&b[offset]);
+      p ? lua_pushstring(L, (char*)p) : lua_pushnil(L); 
+      break;
+    case AT_CALLBACK: 
+      p = *((void**)&b[offset]);
+      p ? alien_makefunction(L, NULL, p, NULL) : lua_pushnil(L);
+      break; 
+    case AT_PTR:
+      p = *((void**)&b[offset]);
+      p ? lua_pushlightuserdata(L, p) : lua_pushnil(L);
+      break; 
     default: 
       luaL_error(L, "alien: unknown type in buffer:get");
     }
@@ -1011,10 +1025,12 @@ static int alien_buffer_put(lua_State *L) {
   case AT_CHAR: b[offset] = (char)lua_tointeger(L, 3); break;
   case AT_FLOAT: *((float*)(&b[offset])) = (float)lua_tonumber(L, 3); break;
   case AT_DOUBLE: *((double*)(&b[offset])) = (double)lua_tonumber(L, 3); break;
-  case AT_STRING: *((char**)(&b[offset])) = (char*)lua_tostring(L, 3); break;
+  case AT_STRING: *((char**)(&b[offset])) = 
+      (lua_isnil(L, 3) ? NULL : (char*)lua_tostring(L, 3)); break;
   case AT_CALLBACK: *((void**)(&b[offset])) = alien_checkcallback(L, 3); break;
-  case AT_PTR: *((void**)(&b[offset])) = (lua_isuserdata(L, 3)? lua_touserdata(L, 3) :
-				       (void*)lua_tostring(L, 3)); break;
+  case AT_PTR: *((void**)(&b[offset])) = 
+      (lua_isnil(L, 3) ? NULL : (lua_isuserdata(L, 3) ? lua_touserdata(L, 3) :
+				 (void*)lua_tostring(L, 3))); break;
   default: 
     luaL_error(L, "alien: unknown type in buffer:put");
   }

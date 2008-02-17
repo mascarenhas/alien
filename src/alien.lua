@@ -98,3 +98,55 @@ function load(libname)
   return loaded[libname]
 end
 
+local array_methods = {}
+
+local function array_get(arr, key)
+  if type(key) == "number" then
+    if key < 0 or key > arr.length then
+      error("array access out of bounds")
+    end
+    local offset = (key - 1) * arr.size + 1
+    return arr.buffer:get(offset, arr.type)
+  else
+    return array_methods[key]
+  end
+end
+
+local function array_set(arr, key, val)
+  if type(key) == "number" then
+    if key < 0 or key > arr.length then
+      error("array access out of bounds")
+    end
+    local offset = (key - 1) * arr.size + 1
+    arr.buffer:set(offset, val, arr.type)
+    if type(val) == "string" or type(val) == "userdata" then
+      arr.pinned[key] = val
+    end
+  else
+    error("key must be a number")
+  end
+end
+
+function array(t, length, init)
+  local ok, size = pcall(core.sizeof, t)
+  if not ok then
+    error("type " .. t .. " does not exist")
+  end
+  if type(length) == "table" then
+    init = length
+    length = #length
+  end
+  local arr = { type = t, length = length, size = size, pinned = {} }
+  setmetatable(arr, { __index = array_get, __newindex = array_set })
+  if type(init) == "userdata" then
+    arr.buffer = core.buffer(init)
+  else
+    arr.buffer = core.buffer(size * length)
+    if type(init) == "table" then
+      for i = 1, length do
+	arr[i] = init[i]
+      end
+    end
+  end
+  return arr
+end
