@@ -432,13 +432,13 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
   nparams = ac->nparams;
   for(i = 0; i < nparams; i++) {
     switch(ac->params[i]) {
-    case AT_BYTE: lua_pushnumber(ac->L, *((int*)args[i])); break;
-    case AT_CHAR: lua_pushnumber(ac->L, *((int*)args[i])); break;
-    case AT_SHORT: lua_pushnumber(ac->L, *((int*)args[i])); break;
+    case AT_BYTE: lua_pushnumber(ac->L, (signed char)*((int*)args[i])); break;
+    case AT_CHAR: lua_pushnumber(ac->L, (uchar)*((int*)args[i])); break;
+    case AT_SHORT: lua_pushnumber(ac->L, (short)*((int*)args[i])); break;
     case AT_LONG: 
-      lua_pushnumber(ac->L, *((long*)args[i])); break;
+      lua_pushnumber(ac->L, (long)*((long*)args[i])); break;
     case AT_INT: lua_pushnumber(ac->L, *((int*)args[i])); break;
-    case AT_FLOAT: lua_pushnumber(ac->L, *((float*)args[i])); break;
+    case AT_FLOAT: lua_pushnumber(ac->L, (float)*((float*)args[i])); break;
     case AT_DOUBLE: lua_pushnumber(ac->L, *((double*)args[i])); break;
     case AT_STRING: lua_pushstring(ac->L, *((char**)args[i])); break;
     case AT_REFINT: 
@@ -457,12 +457,12 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
   lua_call(ac->L, nparams, 1);
   switch(ac->ret_type) {
   case AT_VOID: break;
-  case AT_SHORT: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
+  case AT_SHORT: *((int*)resp) = (short)lua_tointeger(ac->L, -1); break;
   case AT_LONG: 
     *((long*)resp) = (long)lua_tointeger(ac->L, -1); break;
   case AT_INT: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
-  case AT_CHAR: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
-  case AT_BYTE: *((int*)resp) = (int)lua_tointeger(ac->L, -1); break;
+  case AT_CHAR: *((int*)resp) = (uchar)lua_tointeger(ac->L, -1); break;
+  case AT_BYTE: *((int*)resp) = (signed char)lua_tointeger(ac->L, -1); break;
   case AT_FLOAT: *((float*)resp) = (float)lua_tonumber(ac->L, -1); break;
   case AT_DOUBLE: *((double*)resp) = (double)lua_tonumber(ac->L, -1); break;
   case AT_STRING:
@@ -725,7 +725,7 @@ static int alien_function_call(lua_State *L) {
       arg = ALLOCA(sizeof(uchar)); *((uchar*)arg) = (uchar)lua_tointeger(L, j); 
       args[i] = arg; break;
     case AT_BYTE:
-      arg = ALLOCA(sizeof(char)); *((char*)arg) = (char)lua_tointeger(L, j); 
+      arg = ALLOCA(sizeof(char)); *((char*)arg) = (signed char)lua_tointeger(L, j); 
       args[i] = arg; break;
     case AT_FLOAT:
       arg = ALLOCA(sizeof(float)); *((float*)arg) = (float)lua_tonumber(L, j); 
@@ -784,7 +784,7 @@ static int alien_function_call(lua_State *L) {
     ffi_call(cif, af->fn, &lret, args); lua_pushnumber(L, lret); break;
   case AT_INT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
   case AT_CHAR: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (uchar)iret); break;
-  case AT_BYTE: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (char)iret); break;
+  case AT_BYTE: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (signed char)iret); break;
   case AT_FLOAT: ffi_call(cif, af->fn, &fret, args); lua_pushnumber(L, fret); break;
   case AT_DOUBLE: ffi_call(cif, af->fn, &dret, args); lua_pushnumber(L, dret); break;
   case AT_STRING: ffi_call(cif, af->fn, &pret, args); 
@@ -989,7 +989,7 @@ static int alien_buffer_get(lua_State *L) {
     case AT_SHORT: lua_pushnumber(L, *((short*)(&b[offset]))); break;
     case AT_INT: lua_pushnumber(L, *((int*)(&b[offset]))); break;
     case AT_LONG: lua_pushnumber(L, *((long*)(&b[offset]))); break;
-    case AT_BYTE:
+    case AT_BYTE: lua_pushnumber(L, (signed char)b[offset]); break;
     case AT_CHAR: lua_pushnumber(L, b[offset]); break;
     case AT_FLOAT: lua_pushnumber(L, *((float*)(&b[offset]))); break;
     case AT_DOUBLE: lua_pushnumber(L, *((double*)(&b[offset]))); break;
@@ -1027,7 +1027,7 @@ static int alien_buffer_put(lua_State *L) {
   case AT_SHORT: *((short*)(&b[offset])) = (short)lua_tointeger(L, 3); break;
   case AT_INT: *((int*)(&b[offset])) = (int)lua_tointeger(L, 3); break;
   case AT_LONG: *((long*)(&b[offset])) = (long)lua_tointeger(L, 3); break;
-  case AT_BYTE:
+  case AT_BYTE: b[offset] = (signed char)lua_tointeger(L, 3); break;
   case AT_CHAR: b[offset] = (char)lua_tointeger(L, 3); break;
   case AT_FLOAT: *((float*)(&b[offset])) = (float)lua_tonumber(L, 3); break;
   case AT_DOUBLE: *((double*)(&b[offset])) = (double)lua_tonumber(L, 3); break;
