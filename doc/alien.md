@@ -20,6 +20,7 @@ Changelog
   * alien.table utility function (wrapper for lua_createtable, useful for extensions)
   * alien.align utility function to get data structure alignment
   * arrays built on mutable buffers, with bounds checking
+  * fixed a build bug on Linux ARM
 * 0.3.2 - fixes callback bug on NX-bit platforms
 * 0.3.1 - initial release with libffi
 * 0.3 - retracted due to license conflict
