@@ -1,6 +1,6 @@
 package = "Alien"
 
-version = "0.4-1"
+version = "0.4.0-1"
 
 description = {
   summary = "Lua->C FFI",
