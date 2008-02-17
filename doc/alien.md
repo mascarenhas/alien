@@ -19,7 +19,7 @@ Changelog
   * improved library finding on Linux/FreeBSD, using ldconfig
   * alien.table utility function (wrapper for lua_createtable, useful for extensions)
   * alien.align utility function to get data structure alignment
-  * arrays built on mutable buffers
+  * arrays built on mutable buffers, with bounds checking
 * 0.3.2 - fixes callback bug on NX-bit platforms
 * 0.3.1 - initial release with libffi
 * 0.3 - retracted due to license conflict
@@ -219,7 +219,7 @@ in an array pins it so it won't be collected while it is in the array.
 
 For convenience `alien.array` also accepts two other forms: `alien.array(type, tab)` creates
 an array with the same length as *tab* and initializes it with its values; 
-`alien.array(type, buf)` creates an array with *buf* as the underlying buffer. You can
+`alien.array(type, length, buf)` creates an array with *buf* as the underlying buffer. You can
 also iterate over the array's contents with `arr:ipairs()`.
 
 The following example shows an use of arrays:
