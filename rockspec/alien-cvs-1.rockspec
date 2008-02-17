@@ -51,7 +51,7 @@ build = {
      win32 = {
        	build_variables = {
          LIB_OPTION = "$(LUA_LIBDIR)\\lua5.1.lib",
-         CFLAGS = "$(CFLAGS) /I$(LUA_INCDIR) /Ilibffi\win32 /D_MSC_VER /DX86_WIN32 /DWINDOWS",
+         CFLAGS = "$(CFLAGS) /I$(LUA_INCDIR) /Ilibffi\\win32 /DWINDOWS",
        	}
      }
   }

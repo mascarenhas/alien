@@ -32,7 +32,7 @@ tests\alientest.dll:
 	link /dll /out:tests\alientest.dll tests\alientest.obj $(LIB_OPTION)
 	IF EXIST tests\alientest.dll.manifest mt -manifest tests\alientest.dll.manifest -outputresource:tests\alientest.dll;2
 
-install: src\alien\core.dll src\alien\struct.dll
+install:
 	IF NOT EXIST "$(LUA_LIBDIR)\alien" mkdir "$(LUA_LIBDIR)\alien"
 	copy src\alien\core.dll "$(LUA_LIBDIR)\alien"
 	IF NOT EXIST "$(LUA_LIBDIR)\alien" mkdir "$(LUA_LIBDIR)\alien"
