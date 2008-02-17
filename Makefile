@@ -16,7 +16,7 @@ libffi/.libs/libffi.a: libffi/Makefile
 	cd libffi && make CC=gcc
 
 src/alien/core.so: src/alien/core.o libffi/.libs/libffi.a
-	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o src/alien/core.so src/alien/core.o -Llibffi/.libs -lffi
+	export MACOSX_DEPLOYMENT_TARGET=10.3; $(CC) $(LIB_OPTION) -o src/alien/core.so src/alien/core.o -lgcc -Llibffi/.libs -lffi
 
 src/alien/struct.so: src/alien/struct.o 
 	export MACOSX_DEPLOYMENT_TARGET=10.3; $(LD) $(LIB_OPTION) -o src/alien/struct.so src/alien/struct.o
