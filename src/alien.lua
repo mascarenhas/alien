@@ -116,7 +116,7 @@ end
 
 local function array_get(arr, key)
   if type(key) == "number" then
-    if key < 0 or key > arr.length then
+    if key < 1 or key > arr.length then
       error("array access out of bounds")
     end
     local offset = (key - 1) * arr.size + 1
@@ -128,7 +128,7 @@ end
 
 local function array_set(arr, key, val)
   if type(key) == "number" then
-    if key < 0 or key > arr.length then
+    if key < 1 or key > arr.length then
       error("array access out of bounds")
     end
     local offset = (key - 1) * arr.size + 1
@@ -149,6 +149,10 @@ function array(t, length, init)
   if type(length) == "table" then
     init = length
     length = #length
+  end
+  if type(length) == "userdata" then
+    init = length
+    length = length:len()
   end
   local arr = { type = t, length = length, size = size, pinned = {} }
   setmetatable(arr, { __index = array_get, __newindex = array_set })

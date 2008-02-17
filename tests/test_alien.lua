@@ -354,7 +354,7 @@ do
   local qsort = dll.my_qsort
   qsort:types("void", "pointer", "int", "int", "callback")
   local str = "spam, spam, and spam"
-  local chars = alien.array("char", #str, alien.buffer(str))
+  local chars = alien.array("char", alien.buffer(str))
   qsort(chars.buffer, chars.length, chars.size, compare)
   assert(tostring(chars.buffer) == "   ,,aaaadmmmnpppsss")
 end
@@ -410,5 +410,7 @@ for _, t in ipairs(types) do
    for i = 1, 4 do
       assert(tab[i] == i)
    end
+   assert(not pcall(function () return arr[0] end))
+   assert(not pcall(function () return arr[5] end))
 end
 
