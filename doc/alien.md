@@ -10,15 +10,16 @@ Changelog
 ---------
 
 * 0.4.0
-  * Windows support - stdcall ABI, including for callbacks
-  * alternate syntax for defining types
-  * mutable buffers
+  * Windows support - stdcall ABI, including stdcall callbacks
+  * alternative syntax for defining types
+  * mutable buffers, wrapping lightuserdata in a buffer
   * alien.to*type* functions take optional length argument
   * callbacks are callable from Lua
   * alien.funcptr turns a function pointer into an alien function
   * improved library finding on Linux/FreeBSD, using ldconfig
   * alien.table utility function (wrapper for lua_createtable, useful for extensions)
   * alien.align utility function to get data structure alignment
+  * arrays built on mutable buffers
 * 0.3.2 - fixes callback bug on NX-bit platforms
 * 0.3.1 - initial release with libffi
 * 0.3 - retracted due to license conflict
@@ -162,12 +163,13 @@ allocation (the Lua C API is a good example of such an API). But there
 are libraries that do not export such a well-behaved API, and require
 you to allocate memory that is mutated by the library. This prevents
 you from passing Lua strings to them, as Lua strings have to be
-immutable, so Alien provides a *buffer* interface. The function
+immutable, so Alien provides a *buffer* abstraction. The function
 `alien.buffer` allocates a new buffer. If you call it with no
 arguments it will allocate a buffer with the standard buffer size for
 your platform. If call it with a number it will allocate a buffer with
 this number of bytes. If you pass it a string it will allocate a
-buffer that is a copy of the string.
+buffer that is a copy of the string. If you pass a light userdata
+it will use this userdata as the buffer (be careful with that).
 
 After making a buffer you can pass it in place of any argument of
 *string* or *pointer* type. To get back the contents of the buffer you
@@ -201,6 +203,40 @@ each "int" is four bytes long.
 
 All get and set operations do no bounds-checking, so be extra careful, or use the
 safer alien.array abstraction that is built on top of buffers.
+
+Arrays
+------
+
+Arrays are buffers with an extra layer of safety and sugar on top. You create an array
+with `alien.array(type, length)`, where *type* is the Alien type of the array's elements,
+and length is how many elements the array has. After creating an array *arr* you can get the
+type of its elements with *arr.type*, how many elements it has with *arr.length*, and the
+size (in bytes) of each element with *arr.size*. The underlying buffer is *arr.buffer*.
+
+You can access the i-th element with *arr[i]*, and set it with *arr[i] = val*. Type 
+conversions are the same as with buffers, or function calls. Storing a string or userdata
+in an array pins it so it won't be collected while it is in the array.
+
+For convenience `alien.array` also accepts two other forms: `alien.array(type, tab)` creates
+an array with the same length as *tab* and initializes it with its values; 
+`alien.array(type, buf)` creates an array with *buf* as the underlying buffer. You can
+also iterate over the array's contents with `arr:ipairs()`.
+
+The following example shows an use of arrays:
+
+    local function sort(a, b)
+      return a - b
+    end
+    local compare = alien.callback(sort, "int", "ref int", "ref int")
+    
+    local qsort = alien.default.qsort
+    qsort:types("void", "pointer", "int", "int", "callback")
+    
+    local nums = alien.array(t, { 4, 5, 3, 2, 6, 1 })
+    qsort(nums.buffer, nums.length, nums.size, compare)
+    for i, v in nums:ipairs() do print(v) end
+
+This prints numbers one to six on the console.
 
 Pointer Unpacking
 -----------------
@@ -307,8 +343,10 @@ example, using *qsort*:
       return a - b
     end
     local cmp_cb = alien.callback(sort, "int", "ref char", "ref char")
+    
     local qsort = alien.default.qsort
     qsort:types("void", "pointer", "int", "int", "callback")
+    
     local chars = alien.buffer("spam, spam, and spam")
     qsort(chars, chars:len(), alien.sizeof("char"), cmp_cb)
     assert(chars:tostring() == "   ,,aaaadmmmnpppsss")
