@@ -181,12 +181,12 @@ end
 
 do
   local f = dll._testfunc_i_bhilfd
-  f:types("int", "byte", "short", "int", "int", "float", "double")
+  f:types("int", "byte", "short", "int", "long", "float", "double")
   local result = f(1, 2, 3, 4, 5, 6)
   assert(result == 21)
   local result = f(-1, -2, -3, -4, -5, -6)
   assert(result == -21)
-  f:types("short", "byte", "short", "int", "int", "float", "double")
+  f:types("short", "byte", "short", "int", "long", "float", "double")
   local result = f(1, 2, 3, 4, 5, 6)
   assert(result == 21)
   local result = f(1, 2, 3, 0x10004, 5.0, 6.0)
