@@ -689,7 +689,7 @@ static int alien_function_call(lua_State *L) {
   int iret; double dret; void *pret; long lret; float fret;
   int *refi_args, nrefi, nrefd, nrefc;
   double *refd_args;
-  int *refc_args;
+  char *refc_args;
   void **args;
   ffi_cif *cif;
   alien_Function *af = alien_checkfunction(L, 1);
@@ -711,7 +711,7 @@ static int alien_function_call(lua_State *L) {
   }
   if(nrefi > 0) refi_args = (int*)ALLOCA(sizeof(int) * nrefi);
   if(nrefd > 0) refd_args = (double*)ALLOCA(sizeof(double) * nrefd);
-  if(nrefc > 0) refc_args = (int*)ALLOCA(sizeof(int) * nrefc);
+  if(nrefc > 0) refc_args = (char*)ALLOCA(sizeof(char) * nrefc);
   if(nargs > 0) args = ALLOCA(sizeof(void*) * nargs);
   for(i = 0, j = 2; i < nparams; i++, j++) {
     void *arg;
@@ -763,10 +763,10 @@ static int alien_function_call(lua_State *L) {
       *((int**)arg) = refi_args;
       args[i] = arg; refi_args++; break;
       break;
-    case AT_REFCHAR: 
-      *refc_args = (int)lua_tointeger(L, j);
-      arg = ALLOCA(sizeof(int*));
-      *((int**)arg) = refc_args;
+    case AT_REFCHAR:
+      *refc_args = (char)lua_tointeger(L, j);
+      arg = ALLOCA(sizeof(char*));
+      *((char**)arg) = refc_args;
       args[i] = arg; refc_args++; break;
       break;
     case AT_REFDOUBLE: 
