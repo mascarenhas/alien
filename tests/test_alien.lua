@@ -162,9 +162,9 @@ end
 
 do
   local strtok = dll.my_strtok
-  strtok:types("pointer", "string", "ref char")
+  strtok:types("pointer", "string", "string")
   local buf = alien.buffer("a\nb\nc")
-  local lb = string.byte("\n")
+  local lb = "\n"
   assert(alien.tostring((strtok(buf, lb))) == "a")
   assert(alien.tostring((strtok(nil, lb))) == "b")
   assert(alien.tostring((strtok(nil, lb))) == "c")
