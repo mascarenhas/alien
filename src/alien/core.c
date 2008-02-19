@@ -668,7 +668,7 @@ static int alien_function_types(lua_State *L) {
       af->params[i] = types[type];
     }
   }
-  status = ffi_prep_cif(&(af->cif), FFI_DEFAULT_ABI, af->nparams, 
+  status = ffi_prep_cif(&(af->cif), abi, af->nparams, 
 			af->ffi_ret_type,
 			af->ffi_params);
   if(status != FFI_OK)
