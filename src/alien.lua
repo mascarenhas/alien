@@ -45,7 +45,7 @@ function find_library.darwin(libname)
   return nil
 end
 
-function load_library_helper(libname, libext)
+local function load_library_helper(libname, libext)
   if libname:match("/") or libname:match("%" .. libext) then
     return core.load(libname)
   else
