@@ -4,11 +4,14 @@ Alien - Pure Lua extensions
 Status
 ------
 
-This is Alien version 0.4.0.
+This is Alien version 0.4.1.
 
 Changelog
 ---------
 
+* 0.4.1
+  * fixes bug where Alien was always using cdecl abi for Windows (except in callbacks)
+  * fixes build on PPC OSX.
 * 0.4.0
   * Windows support - stdcall ABI, including stdcall callbacks
   * alternative syntax for defining types
@@ -40,7 +43,7 @@ itself is not as robust as a standard Lua extension, but you can use
 it to write extensions that won't crash if you code them well.
 
 Alien works on Unix-based systems and Windows. It has been tested on Linux x86, 
-Linux x64, Linux ARM, FreeBSD x86, Windows x86, and OSX x86. The Windows
+Linux x64, Linux ARM, FreeBSD x86, Windows x86, OSX x86, and OSX PPC. The Windows
 binary uses MSVCR80.DLL for compatibility with LuaBinaries.
 
 Installing Alien
