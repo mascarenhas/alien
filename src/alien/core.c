@@ -378,6 +378,7 @@ static int alien_makefunction(lua_State *L, void *lib, void *fn, char *name) {
     af->nparams = 0;
     af->ret_type = AT_VOID;
     af->params = NULL;
+    af->ffi_params = NULL;
   } else luaL_error(L, "out of memory!");
   return 1;
 }
@@ -541,6 +542,9 @@ static int alien_callback_new(lua_State *L) {
       if(!ac->params) luaL_error(L, "alien: out of memory");
       ac->ffi_params = (ffi_type **)malloc(ac->nparams * sizeof(ffi_type*));
       if(!ac->ffi_params) luaL_error(L, "alien: out of memory");
+    } else {
+      ac->params = NULL;
+      ac->ffi_params = NULL;
     }
     if(lua_istable(L, 2)) {
       for(i = 0, j = 1; i < ac->nparams; i++, j++) {
