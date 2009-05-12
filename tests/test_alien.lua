@@ -475,3 +475,17 @@ do
   assert(rect1.right == 6)
   assert(rect1.bottom == 8)
 end
+
+do
+  local rect = alien.defstruct{
+    { "left", "short" },
+    { "top", "long" },
+    { "right", "short" },
+    { "bottom", "long" }
+  }
+  local rect1 = rect:new()
+  rect1.left, rect1.top, rect1.right, rect1.bottom = 1, 2, 3, 4
+  local getrect = dll.GetRectangle4
+  getrect:types("int", rect:byval())
+  assert(getrect(alien.byval(rect1())) == 10)
+end

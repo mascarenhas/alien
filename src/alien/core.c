@@ -903,6 +903,10 @@ static int alien_buffer_new(lua_State *L) {
       memcpy(b, s, size - 1);
       b[size - 1] = '\0';
     }
+    lua_newtable(L);
+    lua_pushnumber(L, size);
+    lua_setfield(L, -2, "size");
+    lua_setfenv(L, -2);
     luaL_getmetatable(L, ALIEN_BUFFER_META);
     lua_setmetatable(L, -2);
     return 1;
@@ -954,8 +958,12 @@ static int alien_buffer_get(lua_State *L) {
      "short", "byte", "long", "float", NULL};
   char *b = alien_checkbuffer(L, 1);
   if(lua_type(L, 2) == LUA_TSTRING) {
-    lua_pushcfunction(L, 
-		      (lua_CFunction)funcs[luaL_checkoption(L, 2, "tostring", funcnames)]);
+    lua_getfenv(L, 1);
+    if(!lua_isnil(L, -1))
+      lua_getfield(L, -1, lua_tostring(L, 2));
+    if(lua_isnil(L, -1))
+      lua_pushcfunction(L, 
+			(lua_CFunction)funcs[luaL_checkoption(L, 2, "tostring", funcnames)]);
   } else {
     void *p;
     int offset = luaL_checkinteger(L, 2) - 1;

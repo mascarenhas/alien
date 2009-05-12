@@ -9,6 +9,7 @@ local error = error
 local pcall = pcall
 local type = type
 local rawset = rawset
+local unpack = unpack
 local math = math
 
 module "alien"
@@ -192,6 +193,21 @@ local function struct_new(s_proto, ptr)
 			    __call = function () return buf end })
 end
 
+local function struct_byval(s_proto)
+  local types = {}
+  local size = s_proto.size
+  for i = 0, size - 1, 4 do
+    if size - i == 1 then
+      types[#types + 1] = "char"
+    elseif size - i == 2 then
+      types[#types + 1] = "short"
+    else
+      types[#types + 1] = "int"
+    end
+  end
+  return unpack(types)
+end
+
 function defstruct(t)
   local off = 0
   local names, offsets, types = {}, {}, {}
@@ -203,5 +219,26 @@ function defstruct(t)
     types[name] = type
     off = off + core.sizeof(type)
   end
-  return { names = names, offsets = offsets, types = types, size = off, new = struct_new }
+  return { names = names, offsets = offsets, types = types, size = off, new = struct_new,
+	    byval = struct_byval }
+end
+
+function byval(buf)
+  if buf.size then
+    local size = buf.size
+    local types = { "char", "short"}
+    local vals = {}
+    for i = 1, size, 4 do
+      if size - i == 0 then
+	vals[#vals + 1] = buf:get(i, "char")
+      elseif size - i == 1 then
+	vals[#vals + 1] = buf:get(i, "short")
+      else
+	vals[#vals + 1] = buf:get(i, "int")
+      end
+    end
+    return unpack(vals)
+  else
+    error("this type of buffer can't be passed by value")
+  end
 end

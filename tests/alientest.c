@@ -352,6 +352,11 @@ EXPORT(int) GetRectangle3(RECT2 *prect)
 	return 1;
 }
 
+EXPORT(int) GetRectangle4(RECT2 prect)
+{
+        return prect.left + prect.top + prect.right + prect.bottom;
+}
+
 EXPORT(void) TwoOutArgs(int a, int *pi, int b, int *pj)
 {
 	*pi += a;
