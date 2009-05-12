@@ -424,3 +424,54 @@ for _, t in ipairs(types) do
    assert(not pcall(function () return arr[5] end))
 end
 
+do
+  local rect = alien.defstruct{
+    { "left", "long" },
+    { "top", "long" },
+    { "right", "long" },
+    { "bottom", "long" }
+  }
+  local rect1 = rect:new()
+  local getrect = dll.GetRectangle1
+  getrect:types("int", "int", "pointer")
+  assert(getrect(1, rect1()))
+  assert(rect1.left == 1)
+  assert(rect1.top == 2)
+  assert(rect1.right == 3)
+  assert(rect1.bottom == 4)
+end
+
+do
+  local rect = alien.defstruct{
+    { "left", "short" },
+    { "top", "long" },
+    { "right", "short" },
+    { "bottom", "long" }
+  }
+  local rect1 = rect:new()
+  local getrect = dll.GetRectangle2
+  getrect:types("int", "int", "pointer")
+  assert(getrect(1, rect1()))
+  assert(rect1.left == 1)
+  assert(rect1.top == 2)
+  assert(rect1.right == 3)
+  assert(rect1.bottom == 4)
+end
+
+do
+  local rect = alien.defstruct{
+    { "left", "short" },
+    { "top", "long" },
+    { "right", "short" },
+    { "bottom", "long" }
+  }
+  local rect1 = rect:new()
+  rect1.left, rect1.top, rect1.right, rect1.bottom = 1, 2, 3, 4
+  local getrect = dll.GetRectangle3
+  getrect:types("int", "pointer")
+  assert(getrect(rect1()))
+  assert(rect1.left == 2)
+  assert(rect1.top == 4)
+  assert(rect1.right == 6)
+  assert(rect1.bottom == 8)
+end

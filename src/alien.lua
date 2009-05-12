@@ -3,12 +3,13 @@
 local core = require "alien.core"
 local io = require "io"
 
-local pairs = pairs
+local pairs, ipairs = pairs, ipairs
 local setmetatable = setmetatable
 local error = error
 local pcall = pcall
 local type = type
 local rawset = rawset
+local math = math
 
 module "alien"
 
@@ -169,4 +170,38 @@ function array(t, length, init)
     end
   end
   return arr
+end
+
+local function struct_new(s_proto, ptr)
+  local buf = core.buffer(ptr or s_proto.size)
+  local function struct_get(_, key)
+    if s_proto.offsets[key] then
+      return buf:get(s_proto.offsets[key] + 1, s_proto.types[key])
+    else
+      error("field " .. key .. " does not exist")
+    end
+  end
+  local function struct_set(_, key, val)
+    if s_proto.offsets[key] then
+      buf:set(s_proto.offsets[key] + 1, val, s_proto.types[key])
+    else
+      error("field " .. key .. " does not exist")
+    end
+  end
+  return setmetatable({}, { __index = struct_get, __newindex = struct_set,
+			    __call = function () return buf end })
+end
+
+function defstruct(t)
+  local off = 0
+  local names, offsets, types = {}, {}, {}
+  for _, field in ipairs(t) do
+    local name, type = field[1], field[2]
+    names[#names + 1] = name
+    off = math.ceil(off / core.align(type)) * core.align(type)
+    offsets[name] = off
+    types[name] = type
+    off = off + core.sizeof(type)
+  end
+  return { names = names, offsets = offsets, types = types, size = off, new = struct_new }
 end
