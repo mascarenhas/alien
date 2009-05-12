@@ -100,6 +100,12 @@ function load(libname)
   return loaded[libname]
 end
 
+function callback(f, ...)
+  local cb = core.callback(f)
+  cb:types(...)
+  return cb
+end
+
 local array_methods = {}
 
 local function array_next(arr, i)

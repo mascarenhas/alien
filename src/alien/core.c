@@ -300,40 +300,61 @@ static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
 static const ffi_abi ffi_abis[] = { FFI_DEFAULT_ABI, FFI_SYSV, FFI_STDCALL };
 static const char *const ffi_abi_names[] = { "default", "cdecl", "stdcall", NULL };
 
+static void *alien_checkudata(lua_State *L, int ud, const char *tname) {
+  void *p = lua_touserdata(L, ud);
+  if(p == NULL) return NULL;
+  if(!lua_getmetatable(L, ud)) return NULL;
+  lua_getfield(L, LUA_REGISTRYINDEX, tname);
+  if(!lua_rawequal(L, -1, -2)) {
+    lua_pop(L, 2);
+    return NULL;
+  } else {
+    lua_pop(L, 2);
+    return p;
+  }
+}
+
 static alien_Library *alien_checklibrary(lua_State *L, int index) {
-  void *ud = luaL_checkudata(L, index, ALIEN_LIBRARY_META);
+  void *ud = alien_checkudata(L, index, ALIEN_LIBRARY_META);
   luaL_argcheck(L, ud != NULL, index, "alien library expected");
   return (alien_Library *)ud;
 }
 
 static alien_Function *alien_checkfunction(lua_State *L, int index) {
-  luaL_getmetatable(L, ALIEN_FUNCTION_META);
-  lua_getmetatable(L, index);
-  if(lua_rawequal(L, -1, -2)) {
-    lua_pop(L, 2);
-    return (alien_Function *)lua_touserdata(L, index);
+  void *ud = alien_checkudata(L, index, ALIEN_FUNCTION_META);
+  luaL_argcheck(L, ud != NULL, index, "alien function expected");
+  return (alien_Function *)ud;
+}
+
+static alien_Function *alien_tofunction(lua_State *L, int index) {
+  void *ud = alien_checkudata(L, index, ALIEN_FUNCTION_META);
+  if(ud) return (alien_Function *)ud;
+  ud = alien_checkudata(L, index, ALIEN_CALLBACK_META);
+  if(ud) {
+    ffi_closure *ud2 = *((ffi_closure**)ud);
+    return (alien_Function *)ud2->user_data;
   }
-  lua_pop(L, 2);
-  luaL_getmetatable(L, ALIEN_CALLBACK_META);
-  lua_getmetatable(L, index);
-  if(lua_rawequal(L, -1, -2)) {
-    ffi_closure *ud = *((ffi_closure**)lua_touserdata(L, index));
-    lua_pop(L, 2);
-    return (alien_Function *)ud->user_data;
-  }
-  lua_pop(L, 2);
-  luaL_argcheck(L, 0, index, "alien function expected");
+  luaL_argcheck(L, 0, index, "alien function or callback expected");
+  return NULL;
+}
+
+static ffi_closure *alien_tocallback(lua_State *L, int index) {
+  void *ud = alien_checkudata(L, index, ALIEN_CALLBACK_META);
+  if(ud) return *((ffi_closure **)ud);
+  ud = alien_checkudata(L, index, ALIEN_FUNCTION_META);
+  if(ud) return ((alien_Function *)ud)->fn;
+  luaL_argcheck(L, 0, index, "alien function or callback expected");
   return NULL;
 }
 
 static ffi_closure *alien_checkcallback(lua_State *L, int index) {
-  void *ud = luaL_checkudata(L, index, ALIEN_CALLBACK_META);
+  void *ud = alien_checkudata(L, index, ALIEN_CALLBACK_META);
   luaL_argcheck(L, ud != NULL, index, "alien callback expected");
   return *((ffi_closure **)ud);
 }
 
 static char *alien_checkbuffer(lua_State *L, int index) {
-  void *ud = luaL_checkudata(L, index, ALIEN_BUFFER_META);
+  void *ud = alien_checkudata(L, index, ALIEN_BUFFER_META);
   luaL_argcheck(L, ud != NULL, index, "alien buffer expected");
   return (char *)ud;
 }
@@ -489,34 +510,10 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
 static int alien_callback_new(lua_State *L) {
   int fn_ref;
   alien_Callback *ac;
-  alien_Type at;
   ffi_closure **ud;
-  int i, nparams;
   ffi_status status;
   ffi_abi abi;
-  static ffi_type *const ffitypes[] = {&ffi_type_void, &ffi_type_sint, &ffi_type_double, 
-				 &ffi_type_uchar, &ffi_type_pointer, &ffi_type_pointer,
-				 &ffi_type_pointer, &ffi_type_pointer, &ffi_type_pointer,
-				 &ffi_type_pointer, &ffi_type_sshort, &ffi_type_schar,
-#ifndef WINDOWS
-				 &ffi_type_slong, 
-#else
-				 &ffi_type_sint,
-#endif
-				 &ffi_type_float};
-  static int const types[] = {AT_VOID, AT_INT, AT_DOUBLE, AT_CHAR, AT_STRING, AT_PTR, AT_REFINT, 
-			      AT_REFDOUBLE, AT_REFCHAR, AT_CALLBACK, AT_SHORT, AT_BYTE, AT_LONG,
-			      AT_FLOAT};
-  static const char *const typenames[] = 
-    {"void", "int", "double", "char", "string", "pointer",
-     "ref int", "ref double", "ref char", "callback", 
-     "short", "byte", "long", "float", NULL};
   luaL_checktype(L, 1, LUA_TFUNCTION);
-  if(lua_istable(L, 2)) {
-    nparams = lua_objlen(L, 2);
-  } else {
-    nparams = lua_gettop(L) - 2;
-  }
   ac = (alien_Callback *)malloc(sizeof(alien_Callback));
   ud = (ffi_closure **)lua_newuserdata(L, sizeof(ffi_closure**));
   if(ac != NULL && ud != NULL) {
@@ -524,41 +521,12 @@ static int alien_callback_new(lua_State *L) {
     *ud = malloc_closure();
     if(*ud == NULL) { free(ac); luaL_error(L, "alien: cannot allocate callback"); }
     ac->L = L;
-    if(lua_istable(L, 2)) {
-      lua_getfield(L, 2, "ret");
-      ac->ret_type = types[luaL_checkoption(L, -1, "int", typenames)];
-      ac->ffi_ret_type = ffitypes[luaL_checkoption(L, -1, "int", typenames)];
-      lua_getfield(L, 2, "abi");
-      abi = ffi_abis[luaL_checkoption(L, -1, "default", ffi_abi_names)];
-      lua_pop(L, 2);
-    } else {
-      ac->ret_type = types[luaL_checkoption(L, 2, "int", typenames)];
-      ac->ffi_ret_type = ffitypes[luaL_checkoption(L, 2, "int", typenames)];
-      abi = FFI_DEFAULT_ABI;
-    }
-    ac->nparams = nparams;
-    if(ac->nparams > 0) {
-      ac->params = (alien_Type *)malloc(ac->nparams * sizeof(alien_Type));
-      if(!ac->params) luaL_error(L, "alien: out of memory");
-      ac->ffi_params = (ffi_type **)malloc(ac->nparams * sizeof(ffi_type*));
-      if(!ac->ffi_params) luaL_error(L, "alien: out of memory");
-    } else {
-      ac->params = NULL;
-      ac->ffi_params = NULL;
-    }
-    if(lua_istable(L, 2)) {
-      for(i = 0, j = 1; i < ac->nparams; i++, j++) {
-	lua_rawgeti(L, 2, j);
-	ac->ffi_params[i] = ffitypes[luaL_checkoption(L, -1, "int", typenames)];
-	ac->params[i] = types[luaL_checkoption(L, -1, "int", typenames)];
-	lua_pop(L, 1);
-      }
-    } else {
-      for(i = 0, j = 3; i < ac->nparams; i++, j++) {
-	ac->ffi_params[i] = ffitypes[luaL_checkoption(L, j, "int", typenames)];
-	ac->params[i] = types[luaL_checkoption(L, j, "int", typenames)];
-      }
-    }
+    ac->ret_type = AT_VOID;
+    ac->ffi_ret_type = &ffi_type_void;
+    abi = FFI_DEFAULT_ABI;
+    ac->nparams = 0;
+    ac->params = NULL;
+    ac->ffi_params = NULL;
     lua_pushvalue(L, 1);
     ac->fn_ref = lua_ref(L, 1);
     luaL_getmetatable(L, ALIEN_CALLBACK_META);
@@ -627,7 +595,7 @@ static int alien_function_types(lua_State *L) {
      "short", "byte", "long", "float", NULL};
   ffi_status status;
   ffi_abi abi;
-  alien_Function *af = alien_checkfunction(L, 1);
+  alien_Function *af = alien_tofunction(L, 1);
   int i, j, ret_type;
   if(lua_istable(L, 2)) {
     lua_getfield(L, 2, "ret");
@@ -682,7 +650,7 @@ static int alien_function_types(lua_State *L) {
 
 static int alien_function_tostring(lua_State *L) {
   alien_Function*af;
-  af = alien_checkfunction(L, 1);
+  af = alien_tofunction(L, 1);
   lua_pushfstring(L, "alien function %s, library %s", af->name ? af->name : "anonymous",
 		   ((af->lib && af->lib->name) ? af->lib->name : "default"));
   return 1;
@@ -696,7 +664,7 @@ static int alien_function_call(lua_State *L) {
   char *refc_args;
   void **args;
   ffi_cif *cif;
-  alien_Function *af = alien_checkfunction(L, 1);
+  alien_Function *af = alien_tofunction(L, 1);
   cif = &(af->cif);
   nparams = af->nparams;
   nargs = lua_gettop(L) - 1;
@@ -751,7 +719,7 @@ static int alien_function_call(lua_State *L) {
       break;
     case AT_CALLBACK: 
       arg = ALLOCA(sizeof(void*));
-      *((void**)arg) = alien_checkcallback(L, j); 
+      *((void**)arg) = alien_tocallback(L, j); 
       args[i] = arg;
       break;
     case AT_PTR:
@@ -879,7 +847,6 @@ static int alien_unpack(lua_State *L) {
   alien_Wrap *ud;
   const char *meta = luaL_checkstring(L, 1);
   ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
-  luaL_argcheck(L, ud != NULL, 2, "userdata has wrong metatable");
   while(ud->tag != AT_VOID) {
     switch(ud->tag) {
     case AT_INT: lua_pushnumber(L, ud->val.i); break;
@@ -1041,7 +1008,7 @@ static int alien_buffer_put(lua_State *L) {
   case AT_DOUBLE: *((double*)(&b[offset])) = (double)lua_tonumber(L, 3); break;
   case AT_STRING: *((char**)(&b[offset])) = 
       (lua_isnil(L, 3) ? NULL : (char*)lua_tostring(L, 3)); break;
-  case AT_CALLBACK: *((void**)(&b[offset])) = alien_checkcallback(L, 3); break;
+  case AT_CALLBACK: *((void**)(&b[offset])) = alien_tocallback(L, 3); break;
   case AT_PTR: *((void**)(&b[offset])) = 
       (lua_isnil(L, 3) ? NULL : (lua_isuserdata(L, 3) ? lua_touserdata(L, 3) :
 				 (void*)lua_tostring(L, 3))); break;
@@ -1069,6 +1036,12 @@ static int alien_register_library_meta(lua_State *L) {
 
 static int alien_register_callback_meta(lua_State *L) {
   luaL_newmetatable(L, ALIEN_CALLBACK_META);
+  lua_pushliteral(L, "__index");
+  lua_newtable(L);
+  lua_pushliteral(L, "types");
+  lua_pushcfunction(L, alien_function_types);
+  lua_settable(L, -3);
+  lua_settable(L, -3);
   lua_pushliteral(L, "__call");
   lua_pushcfunction(L, alien_function_call);
   lua_settable(L, -3);

@@ -240,6 +240,16 @@ do
 end
 
 do
+  local compare = dll.my_compare
+  compare:types("int", "ref char", "ref char")
+  local qsort = dll.my_qsort
+  qsort:types("void", "pointer", "int", "int", "callback")
+  local chars = alien.buffer("spam, spam, and spam")
+  qsort(chars, chars:len(), alien.sizeof("char"), compare)
+  assert(chars:tostring() == "   ,,aaaadmmmnpppsss")
+end
+
+do
   local funcs = alien.buffer(2 * alien.sizeof("callback"))
   local res = {}
   local function callback(a, b)

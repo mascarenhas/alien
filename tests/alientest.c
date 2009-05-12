@@ -41,6 +41,11 @@ EXPORT(void) my_qsort(void *base, size_t num, size_t width, int(*compare)(const 
 	qsort(base, num, width, compare);
 }
 
+EXPORT(int) my_compare(char *a, char *b)
+{
+        return *a - *b;
+}
+
 EXPORT(int *) _testfunc_ai8(int a[8])
 {
 	return a;
