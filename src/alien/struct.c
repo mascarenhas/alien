@@ -13,6 +13,8 @@
 ** s - zero-terminated string
 ** f - float
 ** d - doulbe
+** p - pointer: unpacks to a light_userdata, packs a light_userdata or userdata.
+		not affected by endiannes setting.
 */
 
 
@@ -83,6 +85,7 @@ static int optsize (char opt, const char **fmt) {
     case 'i': return getnum(fmt, sizeof(int));
     case 'c': return getnum(fmt, 1);
     case 's': return 0;
+    case 'p': return sizeof(void*);
     default: return 1;  /* invalid code */
   }
 }
@@ -173,6 +176,29 @@ static int b_size (lua_State *L) {
   return 1;
 }
 
+static int b_offset (lua_State *L) {
+  int native;
+  const char *fmt = luaL_checkstring(L, 1);
+  int offset = luaL_optint(L, 2, 1);
+  int optn = 1;
+  int align;
+  int totalsize = 0;
+  getendianess(&fmt, &native);
+  align = getalign(&fmt);
+  while (*fmt && optn < offset) {
+    int opt = *fmt++;
+    int size = optsize(opt, &fmt);
+    int toalign = gettoalign(L, align, opt, size);
+    if (size == 0)
+      luaL_error(L, "options `c0' - `s' have undefined sizes");
+    totalsize += toalign - 1;
+    totalsize -= totalsize&(toalign-1);
+    totalsize += size;
+    optn += 1;
+  }
+  lua_pushnumber(L, totalsize + 1);
+  return 1;
+}
 
 static int b_pack (lua_State *L) {
   luaL_Buffer b;
@@ -228,6 +254,12 @@ static int b_pack (lua_State *L) {
         }
         break;
       }
+      case 'p': {
+	luaL_argcheck(L, lua_isuserdata(L, arg), arg, "userdata or light userdata required");
+        void* p = lua_touserdata(L, arg);
+        luaL_addlstring(&b, (char*)&p, size);
+        break;
+      }
       default: invalidformat(L, opt);
     }
     totalsize += size;
@@ -272,7 +304,7 @@ static int b_unpack (lua_State *L) {
   if(lua_isuserdata(L, 2)) {
     data = (const char*)lua_touserdata(L, 2);
     ld = (size_t)luaL_checkinteger(L, 3);
-    pos = 0;
+    pos = luaL_optint(L, 4, 1) - 1;
   } else {
     data = luaL_checklstring(L, 2, &ld);
     pos = luaL_optint(L, 3, 1) - 1;
@@ -331,6 +363,12 @@ static int b_unpack (lua_State *L) {
         lua_pushlstring(L, data+pos, size - 1);
         break;
       }
+      case 'p': {
+	void* p;
+	memcpy(&p, data+pos, size);
+	lua_pushlightuserdata(L, p);
+	break;
+      }
       default: invalidformat(L, opt);
     }
     pos += size;
@@ -339,12 +377,11 @@ static int b_unpack (lua_State *L) {
   return lua_gettop(L) - 2;
 }
 
-
-
 static const struct luaL_reg thislib[] = {
   {"pack", b_pack},
   {"unpack", b_unpack},
   {"size", b_size},
+  {"offset", b_offset},
   {NULL, NULL}
 };
 

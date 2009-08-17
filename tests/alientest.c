@@ -64,6 +64,11 @@ EXPORT(int) _testfunc_i_bhilfd(signed char b, short h, int i, long l, float f, d
 	return (int)(b + h + i + l + f + d);
 }
 
+EXPORT(unsigned long) _testfunc_L_HIL(unsigned short h, unsigned int i, unsigned long l)
+{
+  return (unsigned long)(h + i + l);
+}
+
 EXPORT(float) _testfunc_f_bhilfd(signed char b, short h, int i, long l, float f, double d)
 {
   /*	printf("_testfunc_f_bhilfd got %d %d %d %ld %f %f\n",

@@ -489,3 +489,70 @@ do
   getrect:types("int", rect:byval())
   assert(getrect(alien.byval(rect1())) == 10)
 end
+
+do
+   local struct = alien.struct
+
+   local buf = alien.buffer('123456')
+   assert(alien.buffer(buf:topointer(3)):tostring(3,2)=='456')
+   
+   --buf:set(1,'123abc')
+   --assert(alien.buffer(buf:topointer(3)):tostring(3,2)=='abc')
+
+   local S = '>ipbph'
+   local ba = alien.buffer('a\0')
+   local bb = alien.buffer('b\0')
+   local s = struct.pack(S,1,ba,2,bb,3)
+   local buf = alien.buffer(s)
+   local one,pba,two,pbb,three = struct.unpack(S,buf,struct.size(S))
+   assert(one==1) assert(two==2) assert(three==3)
+   assert(alien.buffer(pba):tostring()=='a')
+   assert(alien.tostring(pbb)=='b')
+   
+   local pbb,three = struct.unpack('>ph',buf,struct.size(S),struct.offset(S,4))
+   assert(alien.buffer(pbb):tostring()=='b')
+   assert(three==3)
+
+   --buf:set(struct.offset(S,4),struct.pack('p',ba))
+   --assert(alien.buffer(struct.unpack('p',buf,struct.size(S),struct.offset(S,4))):tostring()=='a')
+
+   assert(struct.size('p')==4)
+   assert(struct.offset(S,1)==1)
+   assert(struct.offset(S,4)==10)
+   assert(struct.offset(S,6)==struct.size(S)+1)
+end
+
+local maxushort = 2^(8*alien.sizeof("ushort"))-1
+local maxuint = 2^(8*alien.sizeof("uint"))-1
+local maxulong = 2^(8*alien.sizeof("ulong"))-1
+
+do
+   assert(alien.sizeof('ushort')==alien.sizeof('short'))
+   assert(alien.sizeof('uint')==alien.sizeof('int'))
+   assert(alien.sizeof('ulong')==alien.sizeof('long'))
+   local buf = alien.buffer(alien.sizeof('ulong'))
+   buf:set(1,maxushort,'ushort')
+   assert(buf:get(1,'short')==-1)
+   assert(buf:get(1,'ushort')==maxushort)
+   assert(alien.toushort(buf:topointer())==maxushort)
+   buf:set(1,maxuint,'uint')
+   assert(buf:get(1,'int')==-1)
+   assert(buf:get(1,'uint')==maxuint)
+   assert(alien.touint(buf:topointer())==maxuint)
+   buf:set(1,maxulong,'ulong')
+   assert(buf:get(1,'long')==-1)
+   assert(buf:get(1,'ulong')==maxulong)
+   assert(alien.toulong(buf:topointer())==maxulong)
+end
+
+do
+  assert(alien.sizeof('ushort')==2)
+  assert(alien.sizeof('uint')==4)
+  assert(alien.sizeof('ulong')==4)
+  local f = dll._testfunc_L_HIL
+  f:types("ulong", "ushort", "uint", "ulong")
+  assert(f(maxushort,0,0)==maxushort)
+  assert(f(0,maxuint,0)==maxuint)
+  assert(f(0,0,maxulong)==maxulong)
+end
+
