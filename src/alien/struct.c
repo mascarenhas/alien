@@ -82,7 +82,7 @@ static int optsize (char opt, const char **fmt) {
     case 'f':  return sizeof(float);
     case 'd':  return sizeof(double);
     case 'x': return 1;
-    case 'i': return getnum(fmt, sizeof(int));
+    case 'i': case 'I': return getnum(fmt, sizeof(int));
     case 'c': return getnum(fmt, 1);
     case 's': return 0;
     case 'p': return sizeof(void*);

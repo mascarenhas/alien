@@ -1360,6 +1360,41 @@ static int alien_table_new(lua_State *L) {
   return 1;
 }
 
+static int alien_memcpy(lua_State *L) {
+  void* dst;
+  void* src;
+  size_t size;
+  dst = lua_touserdata(L, 1);
+  if(!dst)
+    luaL_typerror(L, 1, "userdata, or light userdata");
+  if (!(lua_isuserdata(L, 2) || lua_isstring(L, 2)))
+    luaL_typerror(L, 2, "string, userdata, or light userdata");
+  if (lua_isuserdata(L, 2)) {
+    src = lua_touserdata(L, 2);
+    size = luaL_checkint(L, 3);
+  } else {
+    src = (void*)lua_tolstring(L, 2, &size);
+    size = luaL_optint(L, 3, size);
+  }
+  if (size > 0)
+    memcpy(dst, src, size);
+  return 0;
+}
+
+static int alien_memset(lua_State *L) {
+  void* dst;
+  int c;
+  size_t n;
+  dst = lua_touserdata(L, 1);
+  if(!dst)
+    luaL_typerror(L, 1, "userdata, or light userdata");
+  c = luaL_checkinteger(L, 2);
+  n = luaL_checkinteger(L, 3);
+  memset(dst, c, n);
+  return 0;
+}
+
+
 static const struct luaL_reg alienlib[] = {
   {"load", alien_get},
   {"align", alien_align},
@@ -1384,6 +1419,8 @@ static const struct luaL_reg alienlib[] = {
   {"callback", alien_callback_new},
   {"funcptr", alien_function_new},
   {"table", alien_table_new},
+  {"memcpy", alien_memcpy },
+  {"memset", alien_memcpy },
   {NULL, NULL},
 };
 
