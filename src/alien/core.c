@@ -2,6 +2,10 @@
 /* Author: Fabio Mascarenhas */
 /* License: MIT/X11 */
 
+#ifdef WINDOWS
+#define _CRT_SECURE_NO_DEPRECATE 1
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -357,6 +361,11 @@ static ffi_closure *alien_checkcallback(lua_State *L, int index) {
   return *((ffi_closure **)ud);
 }
 
+static int alien_iscallback(lua_State *L, int index) {
+  void *ud = alien_checkudata(L, index, ALIEN_CALLBACK_META);
+  return ud != NULL;
+}
+
 static char *alien_checkbuffer(lua_State *L, int index) {
   void *ud = alien_checkudata(L, index, ALIEN_BUFFER_META);
   luaL_argcheck(L, ud != NULL, index, "alien buffer expected");
@@ -669,6 +678,11 @@ static int alien_function_types(lua_State *L) {
 			af->ffi_params);
   if(status != FFI_OK)
     luaL_error(L, "alien: error in libffi preparation");
+  if(alien_iscallback(L, 1)) {
+    alien_Callback *ac = (alien_Callback*)af;
+    status = ffi_prep_closure(ac->fn, &(ac->cif), &alien_callback_call, ac);
+    if(status != FFI_OK) luaL_error(L, "alien: cannot create callback");
+  }
   return 0;
 }
 

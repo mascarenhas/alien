@@ -11,6 +11,7 @@ local type = type
 local rawset = rawset
 local unpack = unpack
 local math = math
+local print = print
 
 module "alien"
 
@@ -104,7 +105,7 @@ end
 
 function callback(f, ...)
   local cb = core.callback(f)
-  cb:types(...)
+  cb.types(cb, ...)
   return cb
 end
 

@@ -255,8 +255,9 @@ static int b_pack (lua_State *L) {
         break;
       }
       case 'p': {
+	void *p;
 	luaL_argcheck(L, lua_isuserdata(L, arg), arg, "userdata or light userdata required");
-        void* p = lua_touserdata(L, arg);
+        p = lua_touserdata(L, arg);
         luaL_addlstring(&b, (char*)&p, size);
         break;
       }
