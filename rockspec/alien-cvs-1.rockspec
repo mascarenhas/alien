@@ -15,7 +15,7 @@ description = {
 dependencies = { }
 
 source = {
-   url = "http://alien.luaforge.net/alien-current.tar.gz"
+   url = "git://github.com/mascarenhas/alien.git"
 }
 
 build = {
