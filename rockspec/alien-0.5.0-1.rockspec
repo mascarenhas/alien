@@ -30,7 +30,7 @@ build = {
      linux = {
        	build_variables = {
          LIB_OPTION = "-shared",
-         CFLAGS = '$(CFLAGS) -I$(LUA_INCDIR) -DLINUX',
+         CFLAGS = '$(CFLAGS) -I$(LUA_INCDIR) -DLINUX -fno-stack-protector',
 	 LIB_EXT = '.so'
        	},
      },
