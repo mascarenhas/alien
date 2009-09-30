@@ -41,7 +41,7 @@ upload-cvs:
 	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs alien-current.tar.gz
 
 upload-dist:
-	git archive --output alien-$(VERSION).tar.gz master
+	git archive --format=tar --prefix=alien-$(VERSION)/ $(VERSION) | gzip > alien-$(VERSION).tar.gz
 	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs alien-$(VERSION).tar.gz
 	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs doc/index.html
 
