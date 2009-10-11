@@ -208,6 +208,7 @@ static int b_pack (lua_State *L) {
   int align = getalign(&fmt);
   int arg = 2;
   int totalsize = 0;
+  void *p;
   lua_pushnil(L);  /* mark to separate arguments from string buffer */
   luaL_buffinit(L, &b);
   for (; *fmt; arg++) {
@@ -255,8 +256,7 @@ static int b_pack (lua_State *L) {
         break;
       }
       case 'p': {
-	void *p;
-	luaL_argcheck(L, lua_isuserdata(L, arg), arg, "userdata or light userdata required");
+		luaL_argcheck(L, lua_isuserdata(L, arg) || lua_isnil(L, arg), arg, "userdata, light userdata, or nil required");
         p = lua_touserdata(L, arg);
         luaL_addlstring(&b, (char*)&p, size);
         break;
