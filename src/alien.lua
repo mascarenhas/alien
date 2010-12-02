@@ -21,7 +21,7 @@ local load_library, find_library = {}, {}
 
 local function find_library_helper(libname, opt)
   local expr = '/[^() ]*lib' .. libname .. '\.so[^() ]*'
-  local cmd = '/sbin/ldconfig ' .. opt .. 
+  local cmd = '/sbin/ldconfig ' .. opt ..
     ' 2>/dev/null | egrep -o "' .. expr .. '"'
   local pipe = io.popen(cmd)
   if pipe then
@@ -56,12 +56,12 @@ local function load_library_helper(libname, libext)
     if not ok then
       ok, lib = pcall(core.load, "./lib" .. libname .. libext)
       if not ok then
-	local name = find_library[core.platform](libname)
-	if name then
-	  lib = core.load(name)
-	else
-	  error("library " .. libname .. " not found")
-	end
+        local name = find_library[core.platform](libname)
+        if name then
+          lib = core.load(name)
+        else
+          error("library " .. libname .. " not found")
+        end
       end
     end
     return lib
@@ -79,19 +79,19 @@ function load_library.darwin(libname)
 end
 
 setmetatable(load_library, { __index = function (t, plat)
-					 return core.load
-				       end } )
+                                         return core.load
+                                       end } )
 
 function load_library.windows(libname)
   return core.load(libname)
 end
 
 setmetatable(loaded, { __index = function (t, libname)
-				   local lib = 
-				     load_library[core.platform](libname)
-				   t[libname] = lib
-				   return lib
-				 end })
+                                   local lib =
+                                     load_library[core.platform](libname)
+                                   t[libname] = lib
+                                   return lib
+                                 end, __mode = "kv" })
 
 setmetatable(_M, { __index = loaded })
 
@@ -167,7 +167,7 @@ function array(t, length, init)
     arr.buffer = core.buffer(size * length)
     if type(init) == "table" then
       for i = 1, length do
-	arr[i] = init[i]
+        arr[i] = init[i]
       end
     end
   end
@@ -191,7 +191,7 @@ local function struct_new(s_proto, ptr)
     end
   end
   return setmetatable({}, { __index = struct_get, __newindex = struct_set,
-			    __call = function () return buf end })
+                            __call = function () return buf end })
 end
 
 local function struct_byval(s_proto)
@@ -221,7 +221,7 @@ function defstruct(t)
     off = off + core.sizeof(type)
   end
   return { names = names, offsets = offsets, types = types, size = off, new = struct_new,
-	    byval = struct_byval }
+            byval = struct_byval }
 end
 
 function byval(buf)
@@ -231,11 +231,11 @@ function byval(buf)
     local vals = {}
     for i = 1, size, 4 do
       if size - i == 0 then
-	vals[#vals + 1] = buf:get(i, "char")
+        vals[#vals + 1] = buf:get(i, "char")
       elseif size - i == 1 then
-	vals[#vals + 1] = buf:get(i, "short")
+        vals[#vals + 1] = buf:get(i, "short")
       else
-	vals[#vals + 1] = buf:get(i, "int")
+        vals[#vals + 1] = buf:get(i, "int")
       end
     end
     return unpack(vals)

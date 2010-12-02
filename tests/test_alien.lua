@@ -179,7 +179,7 @@ do
   io.write(".")
   local strchr = dll.my_strchr
   strchr:types("pointer", "string", "char")
-  assert(alien.tostring(strchr("abcdefghi", string.byte("b"))) == "bcdefghi") 
+  assert(alien.tostring(strchr("abcdefghi", string.byte("b"))) == "bcdefghi")
   assert(strchr("abcdefghi", string.byte("x")) == nil)
 end
 
@@ -538,7 +538,7 @@ do
 
    local buf = alien.buffer('123456')
    assert(alien.buffer(buf:topointer(3)):tostring(3,2)=='456')
-   
+
    --buf:set(1,'123abc')
    --assert(alien.buffer(buf:topointer(3)):tostring(3,2)=='abc')
 
@@ -551,7 +551,7 @@ do
    assert(one==1) assert(two==2) assert(three==3)
    assert(alien.buffer(pba):tostring()=='a')
    assert(alien.tostring(pbb)=='b')
-   
+
    local pbb,three = struct.unpack('>ph',buf,struct.size(S),struct.offset(S,4))
    assert(alien.buffer(pbb):tostring()=='b')
    assert(three==3)
@@ -601,6 +601,24 @@ do
   assert(f(maxushort,0,0)==maxushort)
   assert(f(0,maxuint,0)==maxuint)
   if alien.sizeof("long") < 8 then assert(f(0,0,maxulong)==maxulong) end
+end
+
+do
+  io.write(".")
+  local f = dll._testfunc_L_HIL
+  dll = nil
+  alien.loaded.alientest = nil
+  collectgarbage("collect")
+  collectgarbage("collect")
+  assert(not rawget(alien.loaded, "alientest"))
+  assert(alien.sizeof('ushort')==alien.sizeof('short'))
+  assert(alien.sizeof('uint')==alien.sizeof('int'))
+  assert(alien.sizeof('ulong')==alien.sizeof('long'))
+  f:types("ulong", "ushort", "uint", "ulong")
+  assert(f(maxushort,0,0)==maxushort)
+  assert(f(0,maxuint,0)==maxuint)
+  if alien.sizeof("long") < 8 then assert(f(0,0,maxulong)==maxulong) end
+  dll = alien.alientest
 end
 
 print()
