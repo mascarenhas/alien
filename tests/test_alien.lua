@@ -316,7 +316,9 @@ dll.my_free:types("void", "pointer")
 
 do
   io.write(".")
+  local gc = false
   local tag = alien.tag("alientest_tag")
+  tag.__gc = function () gc = true end
   local ptr = dll.my_malloc(4)
   local obj = alien.wrap("alientest_tag", 1, 2, ptr, 10)
   assert(getmetatable(obj) == tag)
@@ -325,6 +327,9 @@ do
   alien.rewrap("alientest_tag", obj, 3, 4, nil, 5)
   local x, y, o, z = alien.unwrap("alientest_tag", obj)
   assert(x == 3 and y == 4 and o == nil and z == 5)
+  obj = nil
+  collectgarbage("collect")
+  assert(gc)
   dll.my_free(ptr)
 end
 
