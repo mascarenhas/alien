@@ -709,7 +709,7 @@ static int alien_function_tostring(lua_State *L) {
 
 static int alien_function_call(lua_State *L) {
   int i, j, nargs, nparams;
-  int iret; double dret; void *pret; long lret; unsigned long ulret; float fret;
+  int iret; double dret; void *pret; long lret; unsigned long ulret; float fret; char *sret;
   int *refi_args, nrefi, nrefui, nrefd, nrefc;
   double *refd_args;
   char *refc_args;
@@ -822,6 +822,7 @@ static int alien_function_call(lua_State *L) {
     }
   }
   pret = NULL;
+  sret = NULL;
   switch(af->ret_type) {
   case AT_VOID: ffi_call(cif, af->fn, NULL, args); lua_pushnil(L); break;
   case AT_SHORT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (short)iret); break;
@@ -836,8 +837,8 @@ static int alien_function_call(lua_State *L) {
   case AT_BYTE: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (signed char)iret); break;
   case AT_FLOAT: ffi_call(cif, af->fn, &fret, args); lua_pushnumber(L, fret); break;
   case AT_DOUBLE: ffi_call(cif, af->fn, &dret, args); lua_pushnumber(L, dret); break;
-  case AT_STRING: ffi_call(cif, af->fn, &pret, args);
-    (pret ? lua_pushstring(L, (const char *)pret) : lua_pushnil(L)); break;
+  case AT_STRING: ffi_call(cif, af->fn, &sret, args);
+    (sret ? lua_pushstring(L, sret) : lua_pushnil(L)); break;
   case AT_PTR: ffi_call(cif, af->fn, &pret, args);
     (pret ? lua_pushlightuserdata(L, pret) : lua_pushnil(L)); break;
   default:
@@ -1045,7 +1046,7 @@ static int alien_buffer_get(lua_State *L) {
       lua_pushcfunction(L,
                         (lua_CFunction)funcs[luaL_checkoption(L, 2, "tostring", funcnames)]);
   } else {
-    void *p;
+    void *p; char *s;
     int offset = luaL_checkinteger(L, 2) - 1;
     int type = types[luaL_checkoption(L, 3, "char", typenames)];
     switch(type) {
@@ -1060,8 +1061,8 @@ static int alien_buffer_get(lua_State *L) {
     case AT_FLOAT: lua_pushnumber(L, *((float*)(&b[offset]))); break;
     case AT_DOUBLE: lua_pushnumber(L, *((double*)(&b[offset]))); break;
     case AT_STRING:
-      p = *((void**)&b[offset]);
-      p ? lua_pushstring(L, (char*)p) : lua_pushnil(L);
+      s = *((char**)&b[offset]);
+      s ? lua_pushstring(L, s) : lua_pushnil(L);
       break;
     case AT_CALLBACK:
       p = *((void**)&b[offset]);
