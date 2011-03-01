@@ -301,6 +301,10 @@ static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
 #define FFI_STDCALL FFI_DEFAULT_ABI
 #endif
 
+#ifdef _WIN64
+#define FFI_STDCALL FFI_DEFAULT_ABI
+#endif
+
 #ifdef DARWIN
 #define FFI_SYSV FFI_DEFAULT_ABI
 #endif
@@ -1417,8 +1421,7 @@ static int alien_memset(lua_State *L) {
   return 0;
 }
 
-
-static const struct luaL_reg alienlib[] = {
+static const luaL_Reg alienlib[] = {
   {"load", alien_get},
   {"align", alien_align},
   {"tag", alien_register},

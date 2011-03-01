@@ -2,7 +2,7 @@
 LUA_LIBDIR=c:\usr\local\lib\lua
 LUA_DIR=c:\usr\local\share\lua\5.1
 BIN_DIR=c:\usr\local\bin
-CFLAGS=/O2 /DWINDOWS /Ic:\usr\local\include /Ilibffi\win32
+CFLAGS=/O2 /DWINDOWS /D_WIN64 /Ic:\usr\local\include /Ilibffi\win32
 LIB_OPTION="c:\usr\local\bin\lua5.1.lib"
 PREFIX=c:\usr\local
 LIBFFI_OBJS=libffi\win32\ffi.obj libffi\win32\prep_cif.obj libffi\win32\types.obj libffi\win32\win64.obj
