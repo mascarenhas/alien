@@ -16,6 +16,21 @@
 #include "lauxlib.h"
 #include "ffi.h"
 
+#if LUA_VERSION_NUM == 502
+#define lua_setfenv lua_setuservalue
+#define lua_getfenv lua_getuservalue
+#define lua_objlen lua_rawlen
+
+static int luaL_typerror (lua_State *L, int narg, const char *tname) {
+  const char *msg = lua_pushfstring(L, "%s expected, got %s",
+                                    tname, luaL_typename(L, narg));
+  return luaL_argerror(L, narg, msg);
+}
+
+#undef luaL_register
+#define luaL_register(L, n, f) luaL_setfuncs(L, f, 0)
+#endif
+
 #ifdef WINDOWS
 #include <windows.h>
 #define ALLOCA _alloca
@@ -480,7 +495,7 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
   int nparams, i;
   void *ptr;
   ac = (alien_Callback *)data;
-  lua_getref(ac->L, ac->fn_ref);
+  lua_rawgeti(ac->L, LUA_REGISTRYINDEX, ac->fn_ref);
   nparams = ac->nparams;
   for(i = 0; i < nparams; i++) {
     switch(ac->params[i]) {
@@ -564,7 +579,7 @@ static int alien_callback_new(lua_State *L) {
     ac->params = NULL;
     ac->ffi_params = NULL;
     lua_pushvalue(L, 1);
-    ac->fn_ref = lua_ref(L, 1);
+    ac->fn_ref = luaL_ref(L, LUA_REGISTRYINDEX);
     luaL_getmetatable(L, ALIEN_CALLBACK_META);
     lua_setmetatable(L, -2);
     status = ffi_prep_cif(&(ac->cif), abi, ac->nparams,
@@ -877,7 +892,7 @@ static int alien_function_gc(lua_State *L) {
 static int alien_callback_gc(lua_State *L) {
   ffi_closure *ud = alien_checkcallback(L, 1);
   alien_Callback *ac = (alien_Callback *)ud->user_data;
-  lua_unref(ac->L, ac->fn_ref);
+  luaL_unref(ac->L, LUA_REGISTRYINDEX, ac->fn_ref);
   if(ac->params) free(ac->params);
   if(ac->ffi_params) free(ac->ffi_params);
   free_closure(ud);

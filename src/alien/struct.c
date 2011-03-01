@@ -8,6 +8,11 @@
 #include "lua.h"
 #include "lauxlib.h"
 
+#if LUA_VERSION_NUM == 502
+#undef luaL_register
+#define luaL_register(L, n, f) luaL_setfuncs(L, f, 0)
+#define luaL_putchar(B,c)	luaL_addchar(B,c)
+#endif
 
 /*
 ** {======================================================
@@ -267,7 +272,7 @@ static int b_size (lua_State *L) {
       case '>': h.endian = BIG; break;
       case '<': h.endian = LITTLE; break;
       case '!': {
-        int a = getnum(fmt, MAXALIGN);
+        int a = getnum(&fmt, MAXALIGN);
         if (!isp2(a))
           luaL_error(L, "alignment %d is not a power of 2", a);
         h.align = a;
@@ -300,7 +305,7 @@ static int b_offset (lua_State *L) {
       case '>': h.endian = BIG; break;
       case '<': h.endian = LITTLE; break;
       case '!': {
-        int a = getnum(fmt, MAXALIGN);
+        int a = getnum(&fmt, MAXALIGN);
         if (!isp2(a))
           luaL_error(L, "alignment %d is not a power of 2", a);
         h.align = a;
@@ -403,7 +408,7 @@ static int b_unpack (lua_State *L) {
 
 
 
-static const struct luaL_reg thislib[] = {
+static const luaL_Reg thislib[] = {
   {"pack", b_pack},
   {"unpack", b_unpack},
   {"size", b_size},
