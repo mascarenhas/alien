@@ -428,8 +428,7 @@ end
 do
   io.write(".")
   local function sort(a, b)
-     a = alien.buffer(a):get(1, "string")
-     b = alien.buffer(b):get(1, "string")
+     a, b = alien.buffer(a):get(1, "string"), alien.buffer(b):get(1, "string")
      if a == b then return 0 elseif a < b then return -1 else return 1 end
   end
   local compare = alien.callback(sort, "int", "pointer", "pointer")

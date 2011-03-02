@@ -13,9 +13,9 @@ local unpack = unpack
 local math = math
 local print = print
 
-module "alien"
+local _M = alien
 
-loaded = {}
+_M.loaded = {}
 
 local load_library, find_library = {}, {}
 
@@ -86,24 +86,24 @@ function load_library.windows(libname)
   return core.load(libname)
 end
 
-setmetatable(loaded, { __index = function (t, libname)
+setmetatable(_M.loaded, { __index = function (t, libname)
                                    local lib =
                                      load_library[core.platform](libname)
                                    t[libname] = lib
                                    return lib
                                  end, __mode = "kv" })
 
-setmetatable(_M, { __index = loaded })
+setmetatable(_M, { __index = _M.loaded })
 
 for name, f in pairs(core) do
   _M[name] = f
 end
 
-function load(libname)
-  return loaded[libname]
+function _M.load(libname)
+  return _M.loaded[libname]
 end
 
-function callback(f, ...)
+function _M.callback(f, ...)
   local cb = core.callback(f)
   cb.types(cb, ...)
   return cb
@@ -142,7 +142,7 @@ local function array_set(arr, key, val)
     end
     local offset = (key - 1) * arr.size + 1
     arr.buffer:set(offset, val, arr.type)
-    if type(val) == "string" or type(val) == "userdata" then
+    if arr.type == "pointer" then
       arr.pinned[key] = val
     end
   else
@@ -150,7 +150,7 @@ local function array_set(arr, key, val)
   end
 end
 
-function array(t, length, init)
+function _M.array(t, length, init)
   local ok, size = pcall(core.sizeof, t)
   if not ok then
     error("type " .. t .. " does not exist")
@@ -167,6 +167,11 @@ function array(t, length, init)
     arr.buffer = core.buffer(size * length)
     if type(init) == "table" then
       for i = 1, length do
+        if type(init[i]) == "string" then
+	      local offset = (i - 1) * size + 1
+	      arr.pinned[i] = alien.buffer(#init[i] + 1)
+          arr.buffer:set(offset, arr.pinned[i], "pointer")
+        end
         arr[i] = init[i]
       end
     end
@@ -209,7 +214,7 @@ local function struct_byval(s_proto)
   return unpack(types)
 end
 
-function defstruct(t)
+function _M.defstruct(t)
   local off = 0
   local names, offsets, types = {}, {}, {}
   for _, field in ipairs(t) do
@@ -224,7 +229,7 @@ function defstruct(t)
             byval = struct_byval }
 end
 
-function byval(buf)
+function _M.byval(buf)
   if buf.size then
     local size = buf.size
     local types = { "char", "short"}
