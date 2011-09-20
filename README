@@ -16,9 +16,9 @@ code without having to write, compile and link a C binding from the
 library to Lua. In other words, it lets you write extensions that call
 out to native code using just Lua.
 
-Alien works on Unix-based systems and Windows. It has been tested on Linux x86,
-Linux x64, Linux ARM, FreeBSD x86, Windows x86, OSX x86, and OSX PPC. The Windo$
-binary uses MSVCR80.DLL for compatibility with LuaBinaries.
+Alien works on Unix-based systems and Windows. It has been tested on Linux
+x86, Linux x64, Linux ARM, FreeBSD x86, Windows x86, OSX x86, and OSX PPC. 
+The Windows binary uses MSVCR80.DLL for compatibility with LuaBinaries.
 
 Installing Alien
 ----------------
@@ -32,8 +32,8 @@ Credits
 
 Alien is designed and implemented by Fabio Mascarenhas. It uses the
 great [libffi](http://sources.redhat.com/libffi)
-library by Anthony Green (and others) to do the heavy lifting of calling to and$
-name is stolen from Common Lisp FFIs.
+library by Anthony Green (and others) to do the heavy lifting of calling
+to and from C. The name is stolen from Common Lisp FFIs.
 
 License
 -------
