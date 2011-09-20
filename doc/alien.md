@@ -11,6 +11,7 @@ Changelog
 
 * 0.5.1
   * bugfix release
+  * support for Lua 5.2
   * per-library function cache, instead of global (can load
     two functions with the same name from different libraries)
   * unloading of libraries if they are not being used
