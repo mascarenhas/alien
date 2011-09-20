@@ -1,4 +1,4 @@
-<h1>Alien &ndash; Pure Lua extensions</h1>
+<h1>Alien - Pure Lua extensions</h1>
 
 <h2>Status</h2>
 
@@ -11,6 +11,7 @@
 
 <ul>
 <li>bugfix release</li>
+<li>support for Lua 5.2</li>
 <li>per-library function cache, instead of global (can load
 two functions with the same name from different libraries)</li>
 <li>unloading of libraries if they are not being used</li>
@@ -43,7 +44,7 @@ two functions with the same name from different libraries)</li>
 <li>0.4.0
 
 <ul>
-<li>Windows support &ndash; stdcall ABI, including stdcall callbacks</li>
+<li>Windows support - stdcall ABI, including stdcall callbacks</li>
 <li>alternative syntax for defining types</li>
 <li>mutable buffers, wrapping lightuserdata in a buffer</li>
 <li>alien.to<em>type</em> functions take optional length argument</li>
@@ -56,9 +57,9 @@ two functions with the same name from different libraries)</li>
 <li>fixed a build bug on Linux ARM</li>
 </ul>
 </li>
-<li>0.3.2 &ndash; fixes callback bug on NX-bit platforms</li>
-<li>0.3.1 &ndash; initial release with libffi</li>
-<li>0.3 &ndash; retracted due to license conflict</li>
+<li>0.3.2 - fixes callback bug on NX-bit platforms</li>
+<li>0.3.1 - initial release with libffi</li>
+<li>0.3 - retracted due to license conflict</li>
 </ul>
 
 
@@ -128,7 +129,7 @@ alien function puts, library defaults
 </code></pre>
 
 <p>To use a function you first have to tell Alien the function prototype,
-using <em>func:types(ret<em>type, arg</em>types&hellip;)</em>, where the types are one of
+using <em>func:types(ret_type, arg_types&hellip;)</em>, where the types are one of
 the following strings: &ldquo;void&rdquo;, &ldquo;int&rdquo;, &ldquo;uint&rdquo;, &ldquo;double&rdquo;, &ldquo;char&rdquo;, &ldquo;string&rdquo;,
 &ldquo;pointer&rdquo;, &ldquo;ref int&rdquo;, &ldquo;ref uint&rdquo;, &ldquo;ref double&rdquo;, &ldquo;ref char&rdquo;, &ldquo;callback&rdquo;, &ldquo;short&rdquo;, &ldquo;ushort&rdquo;,
 &ldquo;byte&rdquo;, &ldquo;long&rdquo;, &ldquo;ulong&rdquo;, and &ldquo;float&rdquo;. Most correspond directly to C types;
