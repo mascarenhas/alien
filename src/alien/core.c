@@ -216,7 +216,7 @@ void *malloc_closure(void)
         return item;
 }
 
-#if defined(LINUX)
+#if defined(linux)
 #define PLATFORM "linux"
 #define USE_DLOPEN
 #elif defined(BSD)
