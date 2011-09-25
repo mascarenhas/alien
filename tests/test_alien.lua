@@ -625,4 +625,4 @@ do
   dll = alien.alientest
 end
 
-print()
+print("\ntests completed OK!")
