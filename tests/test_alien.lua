@@ -74,6 +74,20 @@ end
 
 do
   io.write(".")
+  local spam = alien.defstruct{
+    { "name", "string" },
+    { "value", "string" },
+  }
+  local f = dll.getSPAMREF
+  f:types("int", "ref pointer")
+  local _, pointer = f(nil)
+  local spam1 = spam:new(pointer)
+  assert(spam1.name == "name1")
+  assert(spam1.value == "value1")
+end
+
+do
+  io.write(".")
   local integrate = dll.integrate
   integrate:types("double", "double", "double", "callback", "long")
   local function func(x)
