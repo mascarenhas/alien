@@ -197,6 +197,13 @@ EXPORT(int) getSPAMANDEGGS(EGG **eggs)
 	return 1;
 }
 
+EXPORT(int) getSPAMREF(void **ptr)
+{
+	*ptr = (void *) &my_spams[0];
+	return 1;
+}
+
+
 typedef struct tagpoint {
 	int x;
 	int y;
