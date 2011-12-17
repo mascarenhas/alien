@@ -28,7 +28,7 @@ src\alien\core.dll: src\alien\core.obj libffi\win32\ffi.lib
 	link /dll /out:src\alien\core.dll /def:src\alien\core.def src\alien\core.obj $(LIB_OPTION) libffi\win32\ffi.lib
 	IF EXIST src\alien\core.dll.manifest mt -manifest src\alien\core.dll.manifest -outputresource:src\alien\core.dll;2
 
-src\alien\struct.dll: src\alien\struct.obj 
+src\alien\struct.dll: src\alien\struct.obj
 	link /dll /out:src\alien\struct.dll /def:src\alien\struct.def $(LIB_OPTION) src\alien\struct.obj
 	IF EXIST src\alien\struct.dll.manifest mt -manifest src\alien\struct.dll.manifest -outputresource:src\alien\struct.dll;2
 

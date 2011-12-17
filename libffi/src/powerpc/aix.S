@@ -201,7 +201,7 @@ L(float_return_value):
 	b	L(done_return_value)
 
 #else /* ! __64BIT__ */
-	
+
 	.long .ffi_call_AIX, TOC[tc0], 0
 	.csect .text[PR]
 .ffi_call_AIX:

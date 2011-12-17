@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    sysv.S - Copyright (c) 1996, 1998, 2001-2003, 2005, 2008  Red Hat, Inc.
-   
-   X86 Foreign Function Interface 
+
+   X86 Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -26,7 +26,7 @@
 
 #ifndef __x86_64__
 
-#define LIBFFI_ASM	
+#define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
 
@@ -56,12 +56,12 @@ ffi_call_SYSV:
 	call  *8(%ebp)
 
 	/* Return stack to previous state and call the function  */
-	addl  $8,%esp	
+	addl  $8,%esp
 
 	call  *28(%ebp)
 
 	/* Load %ecx with the return type code  */
-	movl  20(%ebp),%ecx	
+	movl  20(%ebp),%ecx
 
 	/* Protect %esi.  We're going to pop it in the epilogue.  */
 	pushl %esi
@@ -70,7 +70,7 @@ ffi_call_SYSV:
 	cmpl  $0,24(%ebp)
 	jne  0f
 
-	/* Even if there is no space for the return value, we are 
+	/* Even if there is no space for the return value, we are
 	   obliged to handle floating-point values.  */
 	cmpl  $FFI_TYPE_FLOAT,%ecx
 	jne   noretval
@@ -122,32 +122,32 @@ retuint16:
 
 retfloat:
 	/* Load %ecx with the pointer to storage for the return value  */
-	movl  24(%ebp),%ecx	
+	movl  24(%ebp),%ecx
 	fstps (%ecx)
 	jmp   epilogue
 
 retdouble:
 	/* Load %ecx with the pointer to storage for the return value  */
-	movl  24(%ebp),%ecx	
+	movl  24(%ebp),%ecx
 	fstpl (%ecx)
 	jmp   epilogue
 
 retlongdouble:
 	/* Load %ecx with the pointer to storage for the return value  */
-	movl  24(%ebp),%ecx	
+	movl  24(%ebp),%ecx
 	fstpt (%ecx)
 	jmp   epilogue
-	
-retint64:	
+
+retint64:
 	/* Load %ecx with the pointer to storage for the return value  */
-	movl  24(%ebp),%ecx	
+	movl  24(%ebp),%ecx
 	movl  %eax,0(%ecx)
 	movl  %edx,4(%ecx)
 	jmp   epilogue
-	
+
 retint:
 	/* Load %ecx with the pointer to storage for the return value  */
-	movl  24(%ebp),%ecx	
+	movl  24(%ebp),%ecx
 	movl  %eax,0(%ecx)
 
 retstruct:
@@ -202,7 +202,7 @@ ffi_closure_SYSV:
 	jge	0f
 	cmpl	$FFI_TYPE_UINT8, %eax
 	jge	.Lcls_retint
-	
+
 0:	cmpl	$FFI_TYPE_FLOAT, %eax
 	je	.Lcls_retfloat
 	cmpl	$FFI_TYPE_DOUBLE, %eax

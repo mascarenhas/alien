@@ -1,9 +1,9 @@
 /* -----------------------------------------------------------------------
    sysv.S - Copyright (c) 2000 Software AG
             Copyright (c) 2008 Red Hat, Inc.
- 
+
    S390 Foreign Function Interface
- 
+
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
    ``Software''), to deal in the Software without restriction, including
@@ -11,10 +11,10 @@
    distribute, sublicense, and/or sell copies of the Software, and to
    permit persons to whom the Software is furnished to do so, subject to
    the following conditions:
- 
+
    The above copyright notice and this permission notice shall be included
    in all copies or substantial portions of the Software.
- 
+
    THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -30,7 +30,7 @@
 #include <ffi.h>
 
 #ifndef __s390x__
- 
+
 .text
 
 	# r2:	cif->bytes
@@ -38,8 +38,8 @@
 	# r4:	ffi_prep_args
 	# r5:	ret_type
 	# r6:	ecif.rvalue
-	# ov:	fn 
- 
+	# ov:	fn
+
 	# This assumes we are using gas.
 	.globl	ffi_call_SYSV
 	.type	ffi_call_SYSV,%function
@@ -81,7 +81,7 @@ ffi_call_SYSV:
 	ste	%f0,0(%r8)			# Return float
 	lm	%r6,%r15,48+24(%r11)
 	br	%r4
- 
+
 .LretDouble:
 	l	%r4,48+56(%r11)
 	std	%f0,0(%r8)			# Return double
@@ -93,13 +93,13 @@ ffi_call_SYSV:
 	st	%r2,0(%r8)			# Return int
 	lm	%r6,%r15,48+24(%r11)
 	br	%r4
- 
+
 .LretInt64:
 	l	%r4,48+56(%r11)
 	stm	%r2,%r3,0(%r8)			# Return long long
 	lm	%r6,%r15,48+24(%r11)
 	br	%r4
- 
+
 .Ltable:
 	.byte	.LretNone-.Lbase		# FFI390_RET_VOID
 	.byte	.LretNone-.Lbase		# FFI390_RET_STRUCT
@@ -108,7 +108,7 @@ ffi_call_SYSV:
 	.byte	.LretInt32-.Lbase		# FFI390_RET_INT32
 	.byte	.LretInt64-.Lbase		# FFI390_RET_INT64
 
-.LFE1: 
+.LFE1:
 .ffi_call_SYSV_end:
 	.size	 ffi_call_SYSV,.ffi_call_SYSV_end-ffi_call_SYSV
 
@@ -146,7 +146,7 @@ ffi_closure_SYSV:
 .Lchelper:
 	.long	ffi_closure_helper_SYSV-.Lcbase
 
-.LFE2: 
+.LFE2:
 
 .ffi_closure_SYSV_end:
 	.size	 ffi_closure_SYSV,.ffi_closure_SYSV_end-ffi_closure_SYSV
@@ -233,16 +233,16 @@ ffi_closure_SYSV:
 .LEFDE2:
 
 #else
- 
+
 .text
- 
+
 	# r2:	cif->bytes
 	# r3:	&ecif
 	# r4:	ffi_prep_args
 	# r5:	ret_type
 	# r6:	ecif.rvalue
-	# ov:	fn 
- 
+	# ov:	fn
+
 	# This assumes we are using gas.
 	.globl	ffi_call_SYSV
 	.type	ffi_call_SYSV,%function
@@ -285,7 +285,7 @@ ffi_call_SYSV:
 	ste	%f0,0(%r8)			# Return float
 	lmg	%r6,%r15,80+48(%r11)
 	br	%r4
- 
+
 .LretDouble:
 	lg	%r4,80+112(%r11)
 	std	%f0,0(%r8)			# Return double
@@ -297,13 +297,13 @@ ffi_call_SYSV:
 	st	%r2,0(%r8)			# Return int
 	lmg	%r6,%r15,80+48(%r11)
 	br	%r4
- 
+
 .LretInt64:
 	lg	%r4,80+112(%r11)
 	stg	%r2,0(%r8)			# Return long
 	lmg	%r6,%r15,80+48(%r11)
 	br	%r4
- 
+
 .Ltable:
 	.byte	.LretNone-.Lbase		# FFI390_RET_VOID
 	.byte	.LretNone-.Lbase		# FFI390_RET_STRUCT
@@ -312,7 +312,7 @@ ffi_call_SYSV:
 	.byte	.LretInt32-.Lbase		# FFI390_RET_INT32
 	.byte	.LretInt64-.Lbase		# FFI390_RET_INT64
 
-.LFE1: 
+.LFE1:
 .ffi_call_SYSV_end:
 	.size	 ffi_call_SYSV,.ffi_call_SYSV_end-ffi_call_SYSV
 
@@ -344,7 +344,7 @@ ffi_closure_SYSV:
 	lg	%r2,160+16(%r15)
 	la	%r15,160(%r15)
 	br	%r14
-.LFE2: 
+.LFE2:
 
 .ffi_closure_SYSV_end:
 	.size	 ffi_closure_SYSV,.ffi_closure_SYSV_end-ffi_closure_SYSV

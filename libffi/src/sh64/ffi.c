@@ -1,8 +1,8 @@
 /* -----------------------------------------------------------------------
    ffi.c - Copyright (c) 2003, 2004, 2006, 2007 Kaz Kojima
            Copyright (c) 2008 Anthony Green
-   
-   SuperH SHmedia Foreign Function Interface 
+
+   SuperH SHmedia Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -89,19 +89,19 @@ void ffi_prep_args(char *stack, extended_cif *ecif)
 	    case FFI_TYPE_SINT8:
 	      *(SINT64 *) argp = (SINT64) *(SINT8 *)(*p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_UINT8:
 	      *(UINT64 *) argp = (UINT64) *(UINT8 *)(*p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_SINT16:
 	      *(SINT64 *) argp = (SINT64) *(SINT16 *)(*p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_UINT16:
 	      *(UINT64 *) argp = (UINT64) *(UINT16 *)(*p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_STRUCT:
 	      memcpy (argp, *p_argv, z);
 	      break;
@@ -197,7 +197,7 @@ ffi_status ffi_prep_cif_machdep(ffi_cif *cif)
 	  else
 	    cif->flags2 += FFI_TYPE_INT << (2 * j++);
 	  break;
-	      
+
 	default:
 	  size = (cif->arg_types)[i]->size;
 	  if (size < sizeof (UINT64))
@@ -240,17 +240,17 @@ ffi_status ffi_prep_cif_machdep(ffi_cif *cif)
 
 /*@-declundef@*/
 /*@-exportheader@*/
-extern void ffi_call_SYSV(void (*)(char *, extended_cif *), 
-			  /*@out@*/ extended_cif *, 
+extern void ffi_call_SYSV(void (*)(char *, extended_cif *),
+			  /*@out@*/ extended_cif *,
 			  unsigned, unsigned, long long,
-			  /*@out@*/ unsigned *, 
+			  /*@out@*/ unsigned *,
 			  void (*fn)(void));
 /*@=declundef@*/
 /*@=exportheader@*/
 
-void ffi_call(/*@dependent@*/ ffi_cif *cif, 
-	      void (*fn)(void), 
-	      /*@out@*/ void *rvalue, 
+void ffi_call(/*@dependent@*/ ffi_cif *cif,
+	      void (*fn)(void),
+	      /*@out@*/ void *rvalue,
 	      /*@dependent@*/ void **avalue)
 {
   extended_cif ecif;
@@ -258,14 +258,14 @@ void ffi_call(/*@dependent@*/ ffi_cif *cif,
 
   ecif.cif = cif;
   ecif.avalue = avalue;
-  
+
   /* If the return value is a struct and we don't have a return	*/
   /* value address then we need to make one		        */
 
   if (cif->rtype->type == FFI_TYPE_STRUCT
       && return_type (cif->rtype) != FFI_TYPE_STRUCT)
     ecif.rvalue = &trvalue;
-  else if ((rvalue == NULL) && 
+  else if ((rvalue == NULL) &&
       (cif->rtype->type == FFI_TYPE_STRUCT))
     {
       ecif.rvalue = alloca(cif->rtype->size);
@@ -273,7 +273,7 @@ void ffi_call(/*@dependent@*/ ffi_cif *cif,
   else
     ecif.rvalue = rvalue;
 
-  switch (cif->abi) 
+  switch (cif->abi)
     {
     case FFI_SYSV:
       ffi_call_SYSV(ffi_prep_args, &ecif, cif->bytes, cif->flags, cif->flags2,
@@ -337,16 +337,16 @@ ffi_prep_closure_loc (ffi_closure *closure,
   return FFI_OK;
 }
 
-/* Basically the trampoline invokes ffi_closure_SYSV, and on 
+/* Basically the trampoline invokes ffi_closure_SYSV, and on
  * entry, r3 holds the address of the closure.
  * After storing the registers that could possibly contain
  * parameters to be passed into the stack frame and setting
- * up space for a return value, ffi_closure_SYSV invokes the 
+ * up space for a return value, ffi_closure_SYSV invokes the
  * following helper function to do most of the work.
  */
 
 int
-ffi_closure_helper_SYSV (ffi_closure *closure, UINT64 *rvalue, 
+ffi_closure_helper_SYSV (ffi_closure *closure, UINT64 *rvalue,
 			 UINT64 *pgr, UINT64 *pfr, UINT64 *pst)
 {
   void **avalue;

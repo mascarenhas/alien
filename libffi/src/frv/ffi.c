@@ -2,8 +2,8 @@
    ffi.c - Copyright (C) 2004  Anthony Green
    Copyright (C) 2007  Free Software Foundation, Inc.
 	   Copyright (C) 2008  Red Hat, Inc.
-   
-   FR-V Foreign Function Interface 
+
+   FR-V Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -50,19 +50,19 @@ void *ffi_prep_args(char *stack, extended_cif *ecif)
        i--, p_arg++)
     {
       size_t z;
-      
+
       z = (*p_arg)->size;
 
       if ((*p_arg)->type == FFI_TYPE_STRUCT)
 	{
 	  z = sizeof(void*);
 	  *(void **) argp = *p_argv;
-	} 
+	}
       /*      if ((*p_arg)->type == FFI_TYPE_FLOAT)
 	{
 	  if (count > 24)
 	    {
-	      // This is going on the stack.  Turn it into a double.  
+	      // This is going on the stack.  Turn it into a double.
 	      *(double *) argp = (double) *(float*)(* p_argv);
 	      z = sizeof(double);
 	    }
@@ -77,19 +77,19 @@ void *ffi_prep_args(char *stack, extended_cif *ecif)
 	    case FFI_TYPE_SINT8:
 	      *(signed int *) argp = (signed int)*(SINT8 *)(* p_argv);
 	      break;
-	      
+
 	    case FFI_TYPE_UINT8:
 	      *(unsigned int *) argp = (unsigned int)*(UINT8 *)(* p_argv);
 	      break;
-	      
+
 	    case FFI_TYPE_SINT16:
 	      *(signed int *) argp = (signed int)*(SINT16 *)(* p_argv);
 	      break;
-		  
+
 	    case FFI_TYPE_UINT16:
 	      *(unsigned int *) argp = (unsigned int)*(UINT16 *)(* p_argv);
 	      break;
-		  
+
 	    default:
 	      FFI_ASSERT(0);
 	    }
@@ -123,38 +123,38 @@ ffi_status ffi_prep_cif_machdep(ffi_cif *cif)
   return FFI_OK;
 }
 
-extern void ffi_call_EABI(void *(*)(char *, extended_cif *), 
-			  extended_cif *, 
-			  unsigned, unsigned, 
-			  unsigned *, 
+extern void ffi_call_EABI(void *(*)(char *, extended_cif *),
+			  extended_cif *,
+			  unsigned, unsigned,
+			  unsigned *,
 			  void (*fn)(void));
 
-void ffi_call(ffi_cif *cif, 
-	      void (*fn)(void), 
-	      void *rvalue, 
+void ffi_call(ffi_cif *cif,
+	      void (*fn)(void),
+	      void *rvalue,
 	      void **avalue)
 {
   extended_cif ecif;
 
   ecif.cif = cif;
   ecif.avalue = avalue;
-  
+
   /* If the return value is a struct and we don't have a return	*/
   /* value address then we need to make one		        */
 
-  if ((rvalue == NULL) && 
+  if ((rvalue == NULL) &&
       (cif->rtype->type == FFI_TYPE_STRUCT))
     {
       ecif.rvalue = alloca(cif->rtype->size);
     }
   else
     ecif.rvalue = rvalue;
-    
-  
-  switch (cif->abi) 
+
+
+  switch (cif->abi)
     {
     case FFI_EABI:
-      ffi_call_EABI(ffi_prep_args, &ecif, cif->bytes, 
+      ffi_call_EABI(ffi_prep_args, &ecif, cif->bytes,
 		    cif->flags, ecif.rvalue, fn);
       break;
     default:
@@ -239,7 +239,7 @@ void ffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
 
       /* Functions return 4-byte or smaller results in gr8.  8-byte
 	 values also use gr9.  We fill the both, even for small return
-	 values, just to avoid a branch.  */ 
+	 values, just to avoid a branch.  */
       asm ("ldi  @(%0, #0), gr8" : : "r" (&rvalue));
       asm ("ldi  @(%0, #0), gr9" : : "r" (&((int *) &rvalue)[1]));
     }

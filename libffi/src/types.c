@@ -1,6 +1,6 @@
 /* -----------------------------------------------------------------------
    types.c - Copyright (c) 1996, 1998  Red Hat, Inc.
-   
+
    Predefined ffi_types needed by libffi.
 
    Permission is hereby granted, free of charge, to any person obtaining
@@ -64,7 +64,7 @@ FFI_TYPEDEF(float, float, FFI_TYPE_FLOAT);
 FFI_TYPEDEF(double, double, FFI_TYPE_DOUBLE);
 
 #ifdef __alpha__
-/* Even if we're not configured to default to 128-bit long double, 
+/* Even if we're not configured to default to 128-bit long double,
    maintain binary compatibility, as -mlong-double-128 can be used
    at any time.  */
 /* Validate the hard-coded number below.  */

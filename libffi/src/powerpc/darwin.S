@@ -62,7 +62,7 @@ LCFI0:
 	/* Save registers we use.  */
 	mflr	r9
 
-	stw	r28,-16(r8)	
+	stw	r28,-16(r8)
 	stw	r29,-12(r8)
 	stw	r30,-8(r8)
 	stw	r31,-4(r8)

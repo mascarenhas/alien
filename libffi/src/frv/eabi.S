@@ -1,6 +1,6 @@
 /* -----------------------------------------------------------------------
    eabi.S - Copyright (c) 2004  Anthony Green
-   
+
    FR-V Assembly glue.
 
    Permission is hereby granted, free of charge, to any person obtaining
@@ -23,7 +23,7 @@
    OTHER DEALINGS IN THE SOFTWARE.
    ----------------------------------------------------------------------- */
 
-#define LIBFFI_ASM	
+#define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
 
@@ -40,8 +40,8 @@
 	# gr11:   fig->flags
 	# gr12:   ecif.rvalue
 	# gr13:   fn
-	
-ffi_call_EABI:	
+
+ffi_call_EABI:
 	addi	sp, #-80, sp
 	sti	fp, @(sp, #24)
 	addi	sp, #24, fp
@@ -49,7 +49,7 @@ ffi_call_EABI:
 
 	/* Make room for the new arguments.  */
 	/* subi	sp, fp, gr10 */
-	
+
 	/* Store return address and incoming args on stack.  */
 	sti	gr5, @(fp, #8)
 	sti	gr8, @(fp, #-4)
@@ -60,7 +60,7 @@ ffi_call_EABI:
 	sti	gr13, @(fp, #-24)
 
 	sub     sp, gr10, sp
-	
+
 	/* Call ffi_prep_args.  */
 	ldi	@(fp, #-4), gr4
 	addi	sp, #0, gr8
@@ -70,11 +70,11 @@ ffi_call_EABI:
 	calll	@(gr14, gr0)
 #else
 	calll	@(gr4, gr0)
-#endif	
+#endif
 
 	/* ffi_prep_args returns the new stack pointer.  */
 	mov	gr8, gr4
-		
+
 	ldi	@(sp, #0), gr8
 	ldi	@(sp, #4), gr9
 	ldi	@(sp, #8), gr10
@@ -90,7 +90,7 @@ ffi_call_EABI:
 
 	/* Use the ffi_prep_args return value for the new sp.  */
 	mov	gr4, sp
-	
+
 	/* Call the target function.  */
 	ldi	@(fp, -24), gr4
 #ifdef __FRV_FDPIC__
@@ -98,7 +98,7 @@ ffi_call_EABI:
 	calll	@(gr14, gr0)
 #else
 	calll	@(gr4, gr0)
-#endif	
+#endif
 
 	/* Store the result. */
 	ldi	@(fp, #-16), gr10  /* fig->flags */
@@ -117,7 +117,7 @@ ffi_call_EABI:
 	beq	icc0, 0, .L3
 	/*   No, save a 4 byte return value.  */
 	sti	gr8, @(gr4, #0)
-.L3:	
+.L3:
 
 	/* Restore the stack, and return.  */
 	ldi	@(fp, 8), gr5
@@ -125,4 +125,4 @@ ffi_call_EABI:
 	addi	sp,#80,sp
 	jmpl	@(gr5,gr0)
 	.size ffi_call_EABI, .-ffi_call_EABI
-	
+

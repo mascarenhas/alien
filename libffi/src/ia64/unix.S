@@ -1,8 +1,8 @@
 /* -----------------------------------------------------------------------
    unix.S - Copyright (c) 1998, 2008 Red Hat, Inc.
             Copyright (c) 2000 Hewlett Packard Company
-   
-   IA64/unix Foreign Function Interface 
+
+   IA64/unix Foreign Function Interface
 
    Primary author: Hans Boehm, HP Labs
 
@@ -29,7 +29,7 @@
    DEALINGS IN THE SOFTWARE.
    ----------------------------------------------------------------------- */
 
-#define LIBFFI_ASM	
+#define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
 #include "ia64_flags.h"

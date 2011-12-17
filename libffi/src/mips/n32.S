@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    n32.S - Copyright (c) 1996, 1998, 2005  Red Hat, Inc.
-   
-   MIPS Foreign Function Interface 
+
+   MIPS Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -24,11 +24,11 @@
    DEALINGS IN THE SOFTWARE.
    ----------------------------------------------------------------------- */
 
-#define LIBFFI_ASM	
+#define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
 
-/* Only build this code if we are compiling for n32 */	
+/* Only build this code if we are compiling for n32 */
 
 #if defined(FFI_MIPS_N32)
 
@@ -47,7 +47,7 @@
 	.align	2
 	.globl	ffi_call_N32
 	.ent	ffi_call_N32
-ffi_call_N32:	
+ffi_call_N32:
 .LFB3:
 	.frame	$fp, SIZEOF_FRAME, ra
 	.mask	0xc0000000,-FFI_SIZEOF_ARG
@@ -69,12 +69,12 @@ ffi_call_N32:
 
 	# Allocate at least 4 words in the argstack
 	move	v0, bytes
-	bge	bytes, 4 * FFI_SIZEOF_ARG, bigger	
+	bge	bytes, 4 * FFI_SIZEOF_ARG, bigger
 	LI	v0, 4 * FFI_SIZEOF_ARG
 	b	sixteen
 
-	bigger:	
-	ADDU	t4, v0, 2 * FFI_SIZEOF_ARG -1	# make sure it is aligned 
+	bigger:
+	ADDU	t4, v0, 2 * FFI_SIZEOF_ARG -1	# make sure it is aligned
 	and	v0, t4, -2 * FFI_SIZEOF_ARG		# to a proper boundry.
 
 sixteen:
@@ -86,10 +86,10 @@ sixteen:
 
 	# Call ffi_prep_args
 	jal	t9
-	
+
 	# Copy the stack pointer to t9
 	move	t9, $sp
-	
+
 	# Fix the stack if there are more than 8 64bit slots worth
 	# of arguments.
 
@@ -101,8 +101,8 @@ sixteen:
 	bltz	t8, loadregs
 
 	ADDU	t9, t9, t8
-	
-loadregs:	
+
+loadregs:
 
 	REG_L	t6, 3*FFI_SIZEOF_ARG($fp)  # load the flags word into t6.
 
@@ -110,14 +110,14 @@ loadregs:
 	bnez	t4, arg1_floatp
 	REG_L	a0, 0*FFI_SIZEOF_ARG(t9)
 	b	arg1_next
-arg1_floatp:	
+arg1_floatp:
 	bne	t4, FFI_TYPE_FLOAT, arg1_doublep
 	l.s	$f12, 0*FFI_SIZEOF_ARG(t9)
 	b	arg1_next
-arg1_doublep:	
+arg1_doublep:
 	l.d	$f12, 0*FFI_SIZEOF_ARG(t9)
-arg1_next:	
-	
+arg1_next:
+
 	SRL	t4, t6, 1*FFI_FLAG_BITS
 	and	t4, ((1<<FFI_FLAG_BITS)-1)
 	bnez	t4, arg2_floatp
@@ -125,12 +125,12 @@ arg1_next:
 	b	arg2_next
 arg2_floatp:
 	bne	t4, FFI_TYPE_FLOAT, arg2_doublep
-	l.s	$f13, 1*FFI_SIZEOF_ARG(t9)	
+	l.s	$f13, 1*FFI_SIZEOF_ARG(t9)
 	b	arg2_next
-arg2_doublep:	
-	l.d	$f13, 1*FFI_SIZEOF_ARG(t9)	
-arg2_next:	
-	
+arg2_doublep:
+	l.d	$f13, 1*FFI_SIZEOF_ARG(t9)
+arg2_next:
+
 	SRL	t4, t6, 2*FFI_FLAG_BITS
 	and	t4, ((1<<FFI_FLAG_BITS)-1)
 	bnez	t4, arg3_floatp
@@ -138,12 +138,12 @@ arg2_next:
 	b	arg3_next
 arg3_floatp:
 	bne	t4, FFI_TYPE_FLOAT, arg3_doublep
-	l.s	$f14, 2*FFI_SIZEOF_ARG(t9)	
+	l.s	$f14, 2*FFI_SIZEOF_ARG(t9)
 	b	arg3_next
-arg3_doublep:	
-	l.d	$f14, 2*FFI_SIZEOF_ARG(t9)	
-arg3_next:	
-	
+arg3_doublep:
+	l.d	$f14, 2*FFI_SIZEOF_ARG(t9)
+arg3_next:
+
 	SRL	t4, t6, 3*FFI_FLAG_BITS
 	and	t4, ((1<<FFI_FLAG_BITS)-1)
 	bnez	t4, arg4_floatp
@@ -151,12 +151,12 @@ arg3_next:
 	b	arg4_next
 arg4_floatp:
 	bne	t4, FFI_TYPE_FLOAT, arg4_doublep
-	l.s	$f15, 3*FFI_SIZEOF_ARG(t9)	
+	l.s	$f15, 3*FFI_SIZEOF_ARG(t9)
 	b	arg4_next
-arg4_doublep:	
-	l.d	$f15, 3*FFI_SIZEOF_ARG(t9)	
-arg4_next:	
-	
+arg4_doublep:
+	l.d	$f15, 3*FFI_SIZEOF_ARG(t9)
+arg4_next:
+
 	SRL	t4, t6, 4*FFI_FLAG_BITS
 	and	t4, ((1<<FFI_FLAG_BITS)-1)
 	bnez	t4, arg5_floatp
@@ -164,12 +164,12 @@ arg4_next:
 	b	arg5_next
 arg5_floatp:
 	bne	t4, FFI_TYPE_FLOAT, arg5_doublep
-	l.s	$f16, 4*FFI_SIZEOF_ARG(t9)	
+	l.s	$f16, 4*FFI_SIZEOF_ARG(t9)
 	b	arg5_next
-arg5_doublep:	
-	l.d	$f16, 4*FFI_SIZEOF_ARG(t9)	
-arg5_next:	
-	
+arg5_doublep:
+	l.d	$f16, 4*FFI_SIZEOF_ARG(t9)
+arg5_next:
+
 	SRL	t4, t6, 5*FFI_FLAG_BITS
 	and	t4, ((1<<FFI_FLAG_BITS)-1)
 	bnez	t4, arg6_floatp
@@ -177,12 +177,12 @@ arg5_next:
 	b	arg6_next
 arg6_floatp:
 	bne	t4, FFI_TYPE_FLOAT, arg6_doublep
-	l.s	$f17, 5*FFI_SIZEOF_ARG(t9)	
+	l.s	$f17, 5*FFI_SIZEOF_ARG(t9)
 	b	arg6_next
-arg6_doublep:	
-	l.d	$f17, 5*FFI_SIZEOF_ARG(t9)	
-arg6_next:	
-	
+arg6_doublep:
+	l.d	$f17, 5*FFI_SIZEOF_ARG(t9)
+arg6_next:
+
 	SRL	t4, t6, 6*FFI_FLAG_BITS
 	and	t4, ((1<<FFI_FLAG_BITS)-1)
 	bnez	t4, arg7_floatp
@@ -190,12 +190,12 @@ arg6_next:
 	b	arg7_next
 arg7_floatp:
 	bne	t4, FFI_TYPE_FLOAT, arg7_doublep
-	l.s	$f18, 6*FFI_SIZEOF_ARG(t9)	
+	l.s	$f18, 6*FFI_SIZEOF_ARG(t9)
 	b	arg7_next
-arg7_doublep:	
-	l.d	$f18, 6*FFI_SIZEOF_ARG(t9)	
-arg7_next:	
-	
+arg7_doublep:
+	l.d	$f18, 6*FFI_SIZEOF_ARG(t9)
+arg7_next:
+
 	SRL	t4, t6, 7*FFI_FLAG_BITS
 	and	t4, ((1<<FFI_FLAG_BITS)-1)
 	bnez	t4, arg8_floatp
@@ -203,13 +203,13 @@ arg7_next:
 	b	arg8_next
 arg8_floatp:
 	bne	t4, FFI_TYPE_FLOAT, arg8_doublep
- 	l.s	$f19, 7*FFI_SIZEOF_ARG(t9)	
+ 	l.s	$f19, 7*FFI_SIZEOF_ARG(t9)
 	b	arg8_next
-arg8_doublep:	
- 	l.d	$f19, 7*FFI_SIZEOF_ARG(t9)	
-arg8_next:	
+arg8_doublep:
+ 	l.d	$f19, 7*FFI_SIZEOF_ARG(t9)
+arg8_next:
 
-callit:		
+callit:
 	# Load the function pointer
 	REG_L	t9, 5*FFI_SIZEOF_ARG($fp)
 
@@ -220,7 +220,7 @@ callit:
 	# Shift the return type flag over
 	SRL	t6, 8*FFI_FLAG_BITS
 
-	beq	t6, FFI_TYPE_SINT32, retint	
+	beq	t6, FFI_TYPE_SINT32, retint
 	bne     t6, FFI_TYPE_INT, retfloat
 retint:
 	jal	t9
@@ -235,52 +235,52 @@ retfloat:
 	s.s	$f0, 0(t4)
 	b	epilogue
 
-retdouble:	
+retdouble:
 	bne	t6, FFI_TYPE_DOUBLE, retstruct_d
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	s.d	$f0, 0(t4)
 	b	epilogue
 
-retstruct_d:	
+retstruct_d:
 	bne	t6, FFI_TYPE_STRUCT_D, retstruct_f
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	s.d	$f0, 0(t4)
 	b	epilogue
-	
-retstruct_f:	
+
+retstruct_f:
 	bne	t6, FFI_TYPE_STRUCT_F, retstruct_d_d
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	s.s	$f0, 0(t4)
 	b	epilogue
-	
-retstruct_d_d:	
+
+retstruct_d_d:
 	bne	t6, FFI_TYPE_STRUCT_DD, retstruct_f_f
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	s.d	$f0, 0(t4)
 	s.d	$f2, 8(t4)
 	b	epilogue
-	
-retstruct_f_f:	
+
+retstruct_f_f:
 	bne	t6, FFI_TYPE_STRUCT_FF, retstruct_d_f
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	s.s	$f0, 0(t4)
 	s.s	$f2, 4(t4)
 	b	epilogue
-	
-retstruct_d_f:	
+
+retstruct_d_f:
 	bne	t6, FFI_TYPE_STRUCT_DF, retstruct_f_d
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	s.d	$f0, 0(t4)
 	s.s	$f2, 8(t4)
 	b	epilogue
-	
-retstruct_f_d:	
+
+retstruct_f_d:
 	bne	t6, FFI_TYPE_STRUCT_FD, retstruct_d_soft
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
@@ -294,68 +294,68 @@ retstruct_d_soft:
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	sd	v0, 0(t4)
 	b	epilogue
-	
-retstruct_f_soft:	
+
+retstruct_f_soft:
 	bne	t6, FFI_TYPE_STRUCT_F_SOFT, retstruct_d_d_soft
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	sw	v0, 0(t4)
 	b	epilogue
-	
-retstruct_d_d_soft:	
+
+retstruct_d_d_soft:
 	bne	t6, FFI_TYPE_STRUCT_DD_SOFT, retstruct_f_f_soft
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	sd	v0, 0(t4)
 	sd	v1, 8(t4)
 	b	epilogue
-	
-retstruct_f_f_soft:	
+
+retstruct_f_f_soft:
 	bne	t6, FFI_TYPE_STRUCT_FF_SOFT, retstruct_d_f_soft
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	sw	v0, 0(t4)
 	sw	v1, 4(t4)
 	b	epilogue
-	
-retstruct_d_f_soft:	
+
+retstruct_d_f_soft:
 	bne	t6, FFI_TYPE_STRUCT_DF_SOFT, retstruct_f_d_soft
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	sd	v0, 0(t4)
 	sw	v1, 8(t4)
 	b	epilogue
-	
-retstruct_f_d_soft:	
+
+retstruct_f_d_soft:
 	bne	t6, FFI_TYPE_STRUCT_FD_SOFT, retstruct_small
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	sw	v0, 0(t4)
 	sd	v1, 8(t4)
 	b	epilogue
-	
-retstruct_small:	
+
+retstruct_small:
 	bne	t6, FFI_TYPE_STRUCT_SMALL, retstruct_small2
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	REG_S	v0, 0(t4)
 	b	epilogue
-	
-retstruct_small2:	
+
+retstruct_small2:
 	bne	t6, FFI_TYPE_STRUCT_SMALL2, retstruct
 	jal	t9
 	REG_L	t4, 4*FFI_SIZEOF_ARG($fp)
 	REG_S	v0, 0(t4)
 	REG_S	v1, 8(t4)
 	b	epilogue
-	
-retstruct:	
-noretval:	
+
+retstruct:
+noretval:
 	jal	t9
-	
+
 	# Epilogue
-epilogue:	
-	move	$sp, $fp	
+epilogue:
+	move	$sp, $fp
 	REG_L	$fp, SIZEOF_FRAME - 2*FFI_SIZEOF_ARG($sp) # Restore frame pointer
 	REG_L	ra, SIZEOF_FRAME - 1*FFI_SIZEOF_ARG($sp)  # Restore return address
 	ADDU	$sp, SIZEOF_FRAME		      # Fix stack pointer
@@ -368,7 +368,7 @@ epilogue:
    ($12). Stores any arguments passed in registers onto the stack,
    then calls ffi_closure_mips_inner_N32, which then decodes
    them.
-	
+
 	Stack layout:
 
 	20 - Start of parameters, original sp
@@ -395,7 +395,7 @@ epilogue:
 	 */
 
 #define SIZEOF_FRAME2	(20 * FFI_SIZEOF_ARG)
-	
+
 #define A7_OFF2		(19 * FFI_SIZEOF_ARG)
 #define A6_OFF2		(18 * FFI_SIZEOF_ARG)
 #define A5_OFF2		(17 * FFI_SIZEOF_ARG)
@@ -403,7 +403,7 @@ epilogue:
 #define A3_OFF2		(15 * FFI_SIZEOF_ARG)
 #define A2_OFF2		(14 * FFI_SIZEOF_ARG)
 #define A1_OFF2		(13 * FFI_SIZEOF_ARG)
-#define A0_OFF2		(12 * FFI_SIZEOF_ARG)	
+#define A0_OFF2		(12 * FFI_SIZEOF_ARG)
 
 #define F19_OFF2	(11 * FFI_SIZEOF_ARG)
 #define F18_OFF2	(10 * FFI_SIZEOF_ARG)
@@ -477,56 +477,56 @@ cls_retfloat:
 	l.s	$f0, V0_OFF2($sp)
 	b	cls_epilogue
 
-cls_retdouble:	
+cls_retdouble:
 	bne	v0, FFI_TYPE_DOUBLE, cls_retstruct_d
 	l.d	$f0, V0_OFF2($sp)
 	b	cls_epilogue
 
-cls_retstruct_d:	
+cls_retstruct_d:
 	bne	v0, FFI_TYPE_STRUCT_D, cls_retstruct_f
 	l.d	$f0, V0_OFF2($sp)
 	b	cls_epilogue
-	
-cls_retstruct_f:	
+
+cls_retstruct_f:
 	bne	v0, FFI_TYPE_STRUCT_F, cls_retstruct_d_d
 	l.s	$f0, V0_OFF2($sp)
 	b	cls_epilogue
-	
-cls_retstruct_d_d:	
+
+cls_retstruct_d_d:
 	bne	v0, FFI_TYPE_STRUCT_DD, cls_retstruct_f_f
 	l.d	$f0, V0_OFF2($sp)
 	l.d	$f2, V1_OFF2($sp)
 	b	cls_epilogue
-	
-cls_retstruct_f_f:	
+
+cls_retstruct_f_f:
 	bne	v0, FFI_TYPE_STRUCT_FF, cls_retstruct_d_f
 	l.s	$f0, V0_OFF2($sp)
 	l.s	$f2, V1_OFF2($sp)
 	b	cls_epilogue
-	
-cls_retstruct_d_f:	
+
+cls_retstruct_d_f:
 	bne	v0, FFI_TYPE_STRUCT_DF, cls_retstruct_f_d
 	l.d	$f0, V0_OFF2($sp)
 	l.s	$f2, V1_OFF2($sp)
 	b	cls_epilogue
-	
-cls_retstruct_f_d:	
+
+cls_retstruct_f_d:
 	bne	v0, FFI_TYPE_STRUCT_FD, cls_retstruct_small2
 	l.s	$f0, V0_OFF2($sp)
 	l.d	$f2, V1_OFF2($sp)
 	b	cls_epilogue
-	
-cls_retstruct_small2:	
+
+cls_retstruct_small2:
 	REG_L	v0, V0_OFF2($sp)
 	REG_L	v1, V1_OFF2($sp)
-	
+
 	# Epilogue
-cls_epilogue:	
+cls_epilogue:
 	REG_L	ra,  RA_OFF2($sp)	 # Restore return address
 	.cpreturn
 	ADDU	$sp, SIZEOF_FRAME2
 	j	ra
-.LFE2:	
+.LFE2:
 	.end	ffi_closure_N32
 
 #ifdef linux
@@ -559,9 +559,9 @@ cls_epilogue:
         .byte   0x4			# DW_CFA_advance_loc4
         .4byte  .LCFI1-.LCFI0		# to .LCFI1
         .byte   0x9e			# DW_CFA_offset of $fp
-        .uleb128 2*FFI_SIZEOF_ARG/4	# 
+        .uleb128 2*FFI_SIZEOF_ARG/4	#
         .byte   0x9f			# DW_CFA_offset of ra
-        .uleb128 1*FFI_SIZEOF_ARG/4	# 
+        .uleb128 1*FFI_SIZEOF_ARG/4	#
         .byte   0x4			# DW_CFA_advance_loc4
         .4byte  .LCFI3-.LCFI1		# to .LCFI3
         .byte   0xd			# DW_CFA_def_cfa_register
@@ -586,6 +586,6 @@ cls_epilogue:
 	.uleb128 (SIZEOF_FRAME2 - RA_OFF2)/4
 	.align	EH_FRAME_ALIGN
 .LEFDE3:
-#endif /* linux */	
-	
+#endif /* linux */
+
 #endif

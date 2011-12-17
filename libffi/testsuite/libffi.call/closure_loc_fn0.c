@@ -82,7 +82,7 @@ int main (void)
 
   CHECK(ffi_prep_closure_loc(pcl, &cif, closure_loc_test_fn0,
 			 (void *) 3 /* userdata */, codeloc) == FFI_OK);
-  
+
   CHECK(memcmp(pcl, codeloc, sizeof(*pcl)) == 0);
 
   res = (*((closure_loc_test_type0)codeloc))

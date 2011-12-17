@@ -234,7 +234,7 @@ typedef struct {
 static void _xxx_init(void *(*Xalloc)(int), void (*Xfree)(void *))
 {
 	void *ptr;
-	
+
 	printf("_xxx_init got %p %p\n", Xalloc, Xfree);
 	printf("calling\n");
 	ptr = Xalloc(32);
@@ -252,7 +252,7 @@ EXPORT(xxx_library) *library_get(void)
 }
 
 /********/
- 
+
 #ifndef _WIN32
 
 typedef struct {

@@ -1,8 +1,8 @@
 #define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
-	
-/* Constants for ffi_call_win64 */	
+
+/* Constants for ffi_call_win64 */
 #define STACK 0
 #define PREP_ARGS_FN 32
 #define ECIF 40
@@ -31,11 +31,11 @@ _TEXT	SEGMENT
 ;;;
 ;;; It must move the parameters passed in registers to their stack location,
 ;;; call ffi_closure_win64_inner for the actual work, then return the result.
-;;; 
+;;;
 ffi_closure_win64 PROC FRAME
 	;; copy register arguments onto stack
 	test	r11, 1
-	jne	first_is_float	
+	jne	first_is_float
 	mov	QWORD PTR [rsp+8], rcx
 	jmp	second
 first_is_float:
@@ -43,7 +43,7 @@ first_is_float:
 
 second:
 	test	r11, 2
-	jne	second_is_float	
+	jne	second_is_float
 	mov	QWORD PTR [rsp+16], rdx
 	jmp	third
 second_is_float:
@@ -51,7 +51,7 @@ second_is_float:
 
 third:
 	test	r11, 4
-	jne	third_is_float	
+	jne	third_is_float
 	mov	QWORD PTR [rsp+24], r8
 	jmp	fourth
 third_is_float:
@@ -59,7 +59,7 @@ third_is_float:
 
 fourth:
 	test	r11, 8
-	jne	fourth_is_float	
+	jne	fourth_is_float
 	mov	QWORD PTR [rsp+32], r9
 	jmp	done
 fourth_is_float:
@@ -222,7 +222,7 @@ ret_sint64$:
  	mov	rcx, QWORD PTR RVALUE[rbp]
  	mov	QWORD PTR [rcx], rax
  	jmp	SHORT ret_void$
-	
+
 ret_void$:
 	xor	rax, rax
 
@@ -232,7 +232,7 @@ ret_void$:
 ffi_call_win64 ENDP
 _TEXT	ENDS
 END
-#else        
+#else
 .text
 
 .extern _ffi_closure_win64_inner
@@ -244,13 +244,13 @@ END
 #
 # It must move the parameters passed in registers to their stack location,
 # call ffi_closure_win64_inner for the actual work, then return the result.
-# 
+#
 	.balign 16
-        .globl _ffi_closure_win64	
-_ffi_closure_win64:     
+        .globl _ffi_closure_win64
+_ffi_closure_win64:
 	# copy register arguments onto stack
 	test	$1,%r11
-	jne	.Lfirst_is_float	
+	jne	.Lfirst_is_float
 	mov	%rcx, 8(%rsp)
 	jmp	.Lsecond
 .Lfirst_is_float:
@@ -258,7 +258,7 @@ _ffi_closure_win64:
 
 .Lsecond:
 	test	$2, %r11
-	jne	.Lsecond_is_float	
+	jne	.Lsecond_is_float
 	mov	%rdx, 16(%rsp)
 	jmp	.Lthird
 .Lsecond_is_float:
@@ -266,7 +266,7 @@ _ffi_closure_win64:
 
 .Lthird:
 	test	$4, %r11
-	jne	.Lthird_is_float	
+	jne	.Lthird_is_float
 	mov	%r8,24(%rsp)
 	jmp	.Lfourth
 .Lthird_is_float:
@@ -274,7 +274,7 @@ _ffi_closure_win64:
 
 .Lfourth:
 	test	$8, %r11
-	jne	.Lfourth_is_float	
+	jne	.Lfourth_is_float
 	mov	%r9, 32(%rsp)
 	jmp	.Ldone
 .Lfourth_is_float:
@@ -297,7 +297,7 @@ _ffi_closure_win64:
 
 	.balign 16
         .globl	_ffi_call_win64
-_ffi_call_win64:        
+_ffi_call_win64:
         # copy registers onto stack
 	mov	%r9,32(%rsp)
 	mov	%r8,24(%rsp)
@@ -358,15 +358,15 @@ Lch_done:
 .Lret_struct2b:
 	cmpl	$FFI_TYPE_SMALL_STRUCT_2B, CIF_FLAGS(%rbp)
 	jne .Lret_struct1b
-	
+
 	mov	RVALUE(%rbp), %rcx
 	mov	%ax, (%rcx)
 	jmp .Lret_void
-	
+
 .Lret_struct1b:
 	cmpl	$FFI_TYPE_SMALL_STRUCT_1B, CIF_FLAGS(%rbp)
 	jne .Lret_uint8
-	
+
 	mov	RVALUE(%rbp), %rcx
 	mov	%al, (%rcx)
 	jmp .Lret_void
@@ -374,7 +374,7 @@ Lch_done:
 .Lret_uint8:
 	cmpl	$FFI_TYPE_UINT8, CIF_FLAGS(%rbp)
 	jne .Lret_sint8
-	
+
         mov     RVALUE(%rbp), %rcx
         movzbq  %al, %rax
 	movq    %rax, (%rcx)
@@ -383,7 +383,7 @@ Lch_done:
 .Lret_sint8:
 	cmpl	$FFI_TYPE_SINT8, CIF_FLAGS(%rbp)
 	jne .Lret_uint16
-	
+
         mov     RVALUE(%rbp), %rcx
         movsbq  %al, %rax
 	movq    %rax, (%rcx)
@@ -392,7 +392,7 @@ Lch_done:
 .Lret_uint16:
 	cmpl	$FFI_TYPE_UINT16, CIF_FLAGS(%rbp)
 	jne .Lret_sint16
-	
+
         mov     RVALUE(%rbp), %rcx
         movzwq  %ax, %rax
 	movq    %rax, (%rcx)
@@ -401,7 +401,7 @@ Lch_done:
 .Lret_sint16:
 	cmpl	$FFI_TYPE_SINT16, CIF_FLAGS(%rbp)
 	jne .Lret_uint32
-	
+
         mov     RVALUE(%rbp), %rcx
         movswq  %ax, %rax
 	movq    %rax, (%rcx)
@@ -410,7 +410,7 @@ Lch_done:
 .Lret_uint32:
 	cmpl	$FFI_TYPE_UINT32, CIF_FLAGS(%rbp)
 	jne .Lret_sint32
-	
+
         mov     RVALUE(%rbp), %rcx
         movl    %eax, %eax
 	movq    %rax, (%rcx)
@@ -448,7 +448,7 @@ Lch_done:
  	mov	RVALUE(%rbp), %rcx
  	mov	%rax, (%rcx)
  	jmp	.Lret_void
-	
+
 .Lret_void:
 	xor	%rax, %rax
 

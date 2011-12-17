@@ -190,26 +190,26 @@ int main()
   void *values[1];
   char *s;
   int rc;
-  
-  /* Initialize the argument info vectors */    
+
+  /* Initialize the argument info vectors */
   args[0] = &ffi_type_pointer;
   values[0] = &s;
-  
+
   /* Initialize the cif */
-  if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 1, 
+  if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 1,
 		       &ffi_type_uint, args) == FFI_OK)
     @{
       s = "Hello World!";
       ffi_call(&cif, puts, &rc, values);
       /* rc now holds the result of the call to puts */
-      
-      /* values holds a pointer to the function's arg, so to 
-         call puts() again all we need to do is change the 
+
+      /* values holds a pointer to the function's arg, so to
+         call puts() again all we need to do is change the
          value of s */
       s = "This is cool!";
       ffi_call(&cif, puts, &rc, values);
     @}
-  
+
   return 0;
 @}
 @end example
@@ -390,7 +390,7 @@ Here is the corresponding code to describe this struct to
 
       tm_type.size = tm_type.alignment = 0;
       tm_type.elements = &tm_type_elements;
-    
+
       for (i = 0; i < 9; i++)
           tm_type_elements[i] = &ffi_type_sint;
 

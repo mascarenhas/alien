@@ -59,9 +59,9 @@ Tue May 13 13:39:20 1997  Anthony Green  <green@hoser.cygnus.com>
 	* configure.in: Removed AC_PROG_RANLIB.
 
 	* Makefile.in, aclocal.m4, config.guess, config.sub, configure,
-	ltmain.sh, */Makefile.in: libtoolized again and	rebuilt with 
+	ltmain.sh, */Makefile.in: libtoolized again and	rebuilt with
 	automake and autoconf.
-	
+
 Sat May 10 18:44:50 1997  Tom Tromey  <tromey@cygnus.com>
 
 	* configure, aclocal.m4: Rebuilt.
@@ -77,9 +77,9 @@ Thu May  8 14:34:05 1997  Anthony Green  <green@hoser.cygnus.com>
 	* README: Boosted rev to 1.14. Added notes.
 
 	* acconfig.h: Moved PACKAGE and VERSION for new automake.
-	
+
 	* configure.in: Changes for libtool.
-	
+
 	* Makefile.am (check): make test now make check. Uses libtool now.
 
 	* Makefile.in, configure.in, aclocal.h, fficonfig.h.in: Rebuilt.
@@ -136,7 +136,7 @@ Tue Oct 15 13:11:28 1996  Anthony Green  <green@hoser.cygnus.com>
 
 	* README: Added n32 bug fix notes.
 
-	* Makefile.am: Added "make lint" production. 
+	* Makefile.am: Added "make lint" production.
 	* Makefile.in: Rebuilt.
 
 Mon Oct 14 10:54:46 1996  Anthony Green  <green@rtl.cygnus.com>
@@ -160,7 +160,7 @@ Thu Oct 10 10:31:03 1996  Anthony Green  <green@rtl.cygnus.com>
 	* configure.in, README: Boosted rev to 1.03.
 	* configure: Rebuilt.
 
-	* README: Added struct notes. 
+	* README: Added struct notes.
 
 	* Makefile.am (EXTRA_DIST): Added LICENSE to distribution.
 	* Makefile.in: Rebuilt.
@@ -189,7 +189,7 @@ Mon Oct  7 15:50:22 1996  Anthony Green  <green@rtl.cygnus.com>
 
 	* configure.in: Added nasty bit to support SGI tools.
 	* configure: Rebuilt.
-	
+
 	* README: Added SGI notes. Added note about automake bug.
 
 Mon Oct  7 11:00:28 1996  Anthony Green  <green@hoser.cygnus.com>
@@ -212,12 +212,12 @@ Thu Oct  3 13:47:34 1996  Anthony Green  <green@hoser.cygnus.com>
 	Added EXTRADIST code for "make dist".
 	* configure: Rebuilt.
 
-	* */Makefile.in: Rebuilt with patched automake. 
+	* */Makefile.in: Rebuilt with patched automake.
 
 Tue Oct  1 17:12:25 1996  Anthony Green  <green@rtl.cygnus.com>
 
 	* Makefile.am, aclocal.m4, config.guess, config.sub,
-	configure.in, fficonfig.h.in, install-sh, mkinstalldirs, 
+	configure.in, fficonfig.h.in, install-sh, mkinstalldirs,
 	stamp-h.in: Created
 	* Makefile.in, configure: Generated
 
@@ -283,7 +283,7 @@ Fri Oct 11 16:49:35 1996  Anthony Green  <green@rtl.cygnus.com>
 
 Thu Oct 10 14:53:37 1996  Anthony Green  <green@rtl.cygnus.com>
 
-	* ffi_mips.h: Added FFI_TYPE_STRUCT_* definitions for 
+	* ffi_mips.h: Added FFI_TYPE_STRUCT_* definitions for
 	special structure return types.
 
 Wed Oct  9 13:55:57 1996  Anthony Green  <green@rtl.cygnus.com>
@@ -314,7 +314,7 @@ Fri Oct  4 09:51:37 1996  Anthony Green  <green@hoser.cygnus.com>
 
 	* ffi.h.in: Added FFI_ABI member to ffi_cif and changed
 	function prototypes accordingly.
-	Added #define @TARGET@. Now programs including ffi.h don't 
+	Added #define @TARGET@. Now programs including ffi.h don't
 	have to specify this themselves.
 
 Thu Oct  3 15:36:44 1996  Anthony Green  <green@hoser.cygnus.com>
@@ -396,7 +396,7 @@ Sun Feb 22 00:52:18 1998  Geoff Keating  <geoffk@ozemail.com.au>
 
 	* mips/ffi.c: Fixed comment typo.
 
-	* x86/ffi.c (ffi_prep_cif_machdep), x86/sysv.S (retfloat): 
+	* x86/ffi.c (ffi_prep_cif_machdep), x86/sysv.S (retfloat):
 	Fixed x86 long double return handling.
 
 	* types.c: Fixed x86 long double alignment info.
@@ -466,14 +466,14 @@ Tue Oct 29 13:07:19 1996  Anthony Green  <green@rtl.cygnus.com>
 	(main): Emit warning for structure test 3 failure on Sun.
 
 	* Makefile.am (VPATH): Fixed VPATH def'n so automake won't
-	strip it out. 
-	Moved distdir hack from libffi to automake. 
+	strip it out.
+	Moved distdir hack from libffi to automake.
 	(ffitest): Added missing -c for $(COMPILE) (change in automake).
 	* Makefile.in: Rebuilt.
-	
+
 Tue Oct 15 13:08:20 1996  Anthony Green  <green@hoser.cygnus.com>
 
-	* Makefile.am: Added "make lint" production. 
+	* Makefile.am: Added "make lint" production.
 	* Makefile.in: Rebuilt.
 
 	* prep_cif.c (STACK_ARG_SIZE): Improved STACK_ARG_SIZE macro.
@@ -522,7 +522,7 @@ Tue Oct  8 09:19:22 1996  Anthony Green  <green@rtl.cygnus.com>
 	* Makefile.am: Added test production.
 	* Makefile: Rebuilt.
 
-	* ffitest.c (main): Created. 
+	* ffitest.c (main): Created.
 
 	* types.c: Created. Stripped common code out of */ffi.c.
 
@@ -646,7 +646,7 @@ Tue Oct 29 14:37:45 1996  Anthony Green  <green@rtl.cygnus.com>
 
 Tue Oct 15 13:17:25 1996  Anthony Green  <green@hoser.cygnus.com>
 
-	* n32.S: Fixed bad stack munging. 
+	* n32.S: Fixed bad stack munging.
 
 	* ffi.c: Moved prototypes for ffi_call_?32() to here from
 	ffi_mips.h because extended_cif is not defined in ffi_mips.h.
@@ -657,7 +657,7 @@ Mon Oct 14 12:42:02 1996  Anthony Green  <green@rtl.cygnus.com>
 
 Thu Oct 10 11:22:16 1996  Anthony Green  <green@rtl.cygnus.com>
 
-	* n32.S, ffi.c: Lots of changes to support passing and 
+	* n32.S, ffi.c: Lots of changes to support passing and
 	returning structures with the n32 calling convention.
 
 	* n32.S: Fixed fn pointer bug.
@@ -712,7 +712,7 @@ Wed Oct  2 12:53:42 1996  Anthony Green  <green@hoser.cygnus.com>
 Tue Oct  1 17:11:02 1996  Anthony Green  <green@rtl.cygnus.com>
 
 	* ffi.c, o32.S, object.mak: Created
-	
+
 --- libffi/src/sparc ------------------------------------------------------
 
 Tue Feb 24 16:33:18 1998  Anthony Green  <green@hoser.cygnus.com>
@@ -725,16 +725,16 @@ Thu May  8 16:53:58 1997  Anthony Green  <green@hoser.cygnus.com>
 
 Thu May  1 16:07:56 1997  Anthony Green  <green@hoser.cygnus.com>
 
-	* v8.S: Fixed minor portability problem reported by 
+	* v8.S: Fixed minor portability problem reported by
 	Russ McManus <mcmanr@eq.gs.com>.
 
 Tue Nov 26 14:12:43 1996  Anthony Green  <green@csk3.cygnus.com>
 
-	* v8.S: Used STACKFRAME define elsewhere. 
+	* v8.S: Used STACKFRAME define elsewhere.
 
 	* ffi.c (ffi_prep_args): Zero out space when USING_PURIFY
 	is set.
-	(ffi_prep_cif_machdep): Allocate the correct stack frame 
+	(ffi_prep_cif_machdep): Allocate the correct stack frame
 	space for functions with < 6 args.
 
 Tue Oct 29 15:08:55 1996  Anthony Green  <green@rtl.cygnus.com>
@@ -750,7 +750,7 @@ Mon Oct 14 13:31:24 1996  Anthony Green  <green@rtl.cygnus.com>
 	is no longer valid after gordoni hacked v8.S.
 
         * v8.S (ffi_call_V8): Rewrote with gordoni. Much simpler.
-	
+
 	* v8.S, ffi.c: ffi_call() had changed to accept more than
 	two args, so v8.S had to change (because it hijacks incoming
 	arg registers).
@@ -760,5 +760,5 @@ Mon Oct 14 13:31:24 1996  Anthony Green  <green@rtl.cygnus.com>
 Thu Oct 10 17:48:16 1996  Anthony Green  <green@rtl.cygnus.com>
 
 	* ffi.c, v8.S, objects.mak: Created.
-	
+
 

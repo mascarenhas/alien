@@ -45,7 +45,7 @@
 #  define HAVE_MNTENT 1
 # endif
 # if defined(X86_WIN32) || defined(X86_WIN64)
-/* Windows systems may have Data Execution Protection (DEP) enabled, 
+/* Windows systems may have Data Execution Protection (DEP) enabled,
    which requires the use of VirtualMalloc/VirtualFree to alloc/free
    executable memory. */
 #  define FFI_MMAP_EXEC_WRIT 1
@@ -486,16 +486,16 @@ static void *
 dlmmap (void *start, size_t length, int prot,
 	int flags, int fd, off_t offset)
 {
-  
+
   assert (start == NULL && length % malloc_getpagesize == 0
 	  && prot == (PROT_READ | PROT_WRITE)
 	  && flags == (MAP_PRIVATE | MAP_ANONYMOUS)
 	  && fd == -1 && offset == 0);
-  
+
 #if FFI_CLOSURE_TEST
   printf ("mapping in %zi\n", length);
 #endif
-  
+
   return mmap (start, length, prot | PROT_EXEC, flags, fd, offset);
 }
 

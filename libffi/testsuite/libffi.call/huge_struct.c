@@ -120,13 +120,13 @@ test_large_fn(
 {
 	BigStruct	retVal	= {
 		ui8_1 + 1, si8_1 + 1, ui16_1 + 1, si16_1 + 1, ui32_1 + 1, si32_1 + 1,
-			ui64_1 + 1, si64_1 + 1, f_1 + 1, d_1 + 1, ld_1 + 1, (char*)((intptr_t)p_1 + 1), 
+			ui64_1 + 1, si64_1 + 1, f_1 + 1, d_1 + 1, ld_1 + 1, (char*)((intptr_t)p_1 + 1),
 		ui8_2 + 2, si8_2 + 2, ui16_2 + 2, si16_2 + 2, ui32_2 + 2, si32_2 + 2,
-			ui64_2 + 2, si64_2 + 2, f_2 + 2, d_2 + 2, ld_2 + 2, (char*)((intptr_t)p_2 + 2), 
+			ui64_2 + 2, si64_2 + 2, f_2 + 2, d_2 + 2, ld_2 + 2, (char*)((intptr_t)p_2 + 2),
 		ui8_3 + 3, si8_3 + 3, ui16_3 + 3, si16_3 + 3, ui32_3 + 3, si32_3 + 3,
-			ui64_3 + 3, si64_3 + 3, f_3 + 3, d_3 + 3, ld_3 + 3, (char*)((intptr_t)p_3 + 3), 
+			ui64_3 + 3, si64_3 + 3, f_3 + 3, d_3 + 3, ld_3 + 3, (char*)((intptr_t)p_3 + 3),
 		ui8_4 + 4, si8_4 + 4, ui16_4 + 4, si16_4 + 4, ui32_4 + 4, si32_4 + 4,
-			ui64_4 + 4, si64_4 + 4, f_4 + 4, d_4 + 4, ld_4 + 4, (char*)((intptr_t)p_4 + 4), 
+			ui64_4 + 4, si64_4 + 4, f_4 + 4, d_4 + 4, ld_4 + 4, (char*)((intptr_t)p_4 + 4),
 		ui8_5 + 5, si8_5 + 5};
 
 	printf("%hhu %hhd %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "

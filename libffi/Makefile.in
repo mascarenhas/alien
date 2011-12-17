@@ -458,7 +458,7 @@ AM_MAKEFLAGS = \
 	"RANLIB=$(RANLIB)" \
 	"DESTDIR=$(DESTDIR)"
 
-MAKEOVERRIDES = 
+MAKEOVERRIDES =
 ACLOCAL_AMFLAGS = $(ACLOCAL_AMFLAGS) -I m4
 lib_LTLIBRARIES = libffi.la
 noinst_LTLIBRARIES = libffi_convenience.la
@@ -531,7 +531,7 @@ fficonfig.h: stamp-h1
 stamp-h1: $(srcdir)/fficonfig.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status fficonfig.h
-$(srcdir)/fficonfig.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
+$(srcdir)/fficonfig.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
 	rm -f stamp-h1
 	touch $@
@@ -786,9 +786,9 @@ src/pa/linux.lo: src/pa/$(am__dirstamp) \
 src/pa/ffi.lo: src/pa/$(am__dirstamp) src/pa/$(DEPDIR)/$(am__dirstamp)
 src/pa/hpux32.lo: src/pa/$(am__dirstamp) \
 	src/pa/$(DEPDIR)/$(am__dirstamp)
-libffi.la: $(libffi_la_OBJECTS) $(libffi_la_DEPENDENCIES) 
+libffi.la: $(libffi_la_OBJECTS) $(libffi_la_DEPENDENCIES)
 	$(libffi_la_LINK) -rpath $(libdir) $(libffi_la_OBJECTS) $(libffi_la_LIBADD) $(LIBS)
-libffi_convenience.la: $(libffi_convenience_la_OBJECTS) $(libffi_convenience_la_DEPENDENCIES) 
+libffi_convenience.la: $(libffi_convenience_la_OBJECTS) $(libffi_convenience_la_DEPENDENCIES)
 	$(LINK)  $(libffi_convenience_la_OBJECTS) $(libffi_convenience_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:

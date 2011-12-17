@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    sysv.S - Copyright (c) 2002, 2003, 2004, 2006, 2008 Kaz Kojima
-   
-   SuperH Foreign Function Interface 
+
+   SuperH Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -24,7 +24,7 @@
    DEALINGS IN THE SOFTWARE.
    ----------------------------------------------------------------------- */
 
-#define LIBFFI_ASM	
+#define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
 #ifdef HAVE_MACHINE_ASM_H
@@ -508,7 +508,7 @@ ENTRY(ffi_closure_SYSV)
 .LCFIB:
 	sts.l	pr,@-r15
 
-	/* Stack layout:	
+	/* Stack layout:
 	   xx bytes (on stack parameters)
 	   16 bytes (register parameters)
 	    4 bytes (saved frame pointer)
@@ -644,16 +644,16 @@ L_case_f:
 	bra	L_case_v
 	 fmov.s	@r2,fr0
 #endif
-	
+
 L_case_ll:
 	mov.l	@r2+,r0
 	bra	L_case_v
 	 mov.l	@r2,r1
-	
+
 L_case_i:
 	bra	L_case_v
 	 mov.l	@r2,r0
-	
+
 L_case_q:
 #ifdef __LITTLE_ENDIAN__
 #else

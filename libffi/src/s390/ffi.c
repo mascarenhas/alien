@@ -1,9 +1,9 @@
 /* -----------------------------------------------------------------------
    ffi.c - Copyright (c) 2000, 2007 Software AG
            Copyright (c) 2008 Red Hat, Inc
- 
+
    S390 Foreign Function Interface
- 
+
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
    ``Software''), to deal in the Software without restriction, including
@@ -11,10 +11,10 @@
    distribute, sublicense, and/or sell copies of the Software, and to
    permit persons to whom the Software is furnished to do so, subject to
    the following conditions:
- 
+
    The above copyright notice and this permission notice shall be included
    in all copies or substantial portions of the Software.
- 
+
    THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND, EXPRESS
    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -27,24 +27,24 @@
 /*                          Includes                                  */
 /*                          --------                                  */
 /*====================================================================*/
- 
+
 #include <ffi.h>
 #include <ffi_common.h>
- 
+
 #include <stdlib.h>
 #include <stdio.h>
- 
+
 /*====================== End of Includes =============================*/
- 
+
 /*====================================================================*/
 /*                           Defines                                  */
 /*                           -------                                  */
 /*====================================================================*/
 
-/* Maximum number of GPRs available for argument passing.  */ 
+/* Maximum number of GPRs available for argument passing.  */
 #define MAX_GPRARGS 5
 
-/* Maximum number of FPRs available for argument passing.  */ 
+/* Maximum number of FPRs available for argument passing.  */
 #ifdef __s390x__
 #define MAX_FPRARGS 4
 #else
@@ -63,27 +63,27 @@
 #define FFI390_RET_INT64	5
 
 /*===================== End of Defines ===============================*/
- 
+
 /*====================================================================*/
 /*                          Prototypes                                */
 /*                          ----------                                */
 /*====================================================================*/
- 
+
 static void ffi_prep_args (unsigned char *, extended_cif *);
 void
 #if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ > 2)
 __attribute__ ((visibility ("hidden")))
 #endif
-ffi_closure_helper_SYSV (ffi_closure *, unsigned long *, 
+ffi_closure_helper_SYSV (ffi_closure *, unsigned long *,
 			 unsigned long long *, unsigned long *);
 
 /*====================== End of Prototypes ===========================*/
- 
+
 /*====================================================================*/
 /*                          Externals                                 */
 /*                          ---------                                 */
 /*====================================================================*/
- 
+
 extern void ffi_call_SYSV(unsigned,
 			  extended_cif *,
 			  void (*)(unsigned char *, extended_cif *),
@@ -92,9 +92,9 @@ extern void ffi_call_SYSV(unsigned,
 			  void (*fn)(void));
 
 extern void ffi_closure_SYSV(void);
- 
+
 /*====================== End of Externals ============================*/
- 
+
 /*====================================================================*/
 /*                                                                    */
 /* Name     - ffi_check_struct_type.                                  */
@@ -103,7 +103,7 @@ extern void ffi_closure_SYSV(void);
 /*            general purpose or floating point register.             */
 /*                                                                    */
 /*====================================================================*/
- 
+
 static int
 ffi_check_struct_type (ffi_type *arg)
 {
@@ -111,7 +111,7 @@ ffi_check_struct_type (ffi_type *arg)
 
   /* If the struct has just one element, look at that element
      to find out whether to consider the struct as floating point.  */
-  while (arg->type == FFI_TYPE_STRUCT 
+  while (arg->type == FFI_TYPE_STRUCT
          && arg->elements[0] && !arg->elements[1])
     arg = arg->elements[0];
 
@@ -144,9 +144,9 @@ ffi_check_struct_type (ffi_type *arg)
   /* Other structs are passed via a pointer to the data.  */
   return FFI_TYPE_POINTER;
 }
- 
+
 /*======================== End of Routine ============================*/
- 
+
 /*====================================================================*/
 /*                                                                    */
 /* Name     - ffi_prep_args.                                          */
@@ -157,7 +157,7 @@ ffi_check_struct_type (ffi_type *arg)
 /* has been allocated for the function's arguments.                   */
 /*                                                                    */
 /*====================================================================*/
- 
+
 static void
 ffi_prep_args (unsigned char *stack, extended_cif *ecif)
 {
@@ -192,7 +192,7 @@ ffi_prep_args (unsigned char *stack, extended_cif *ecif)
   ffi_type **ptr;
   void **p_argv = ecif->avalue;
   int i;
- 
+
   /* If we returning a structure then we set the first parameter register
      to the address of where we are returning this structure.  */
 
@@ -200,7 +200,7 @@ ffi_prep_args (unsigned char *stack, extended_cif *ecif)
     p_gpr[n_gpr++] = (unsigned long) ecif->rvalue;
 
   /* Now for the arguments.  */
- 
+
   for (ptr = ecif->cif->arg_types, i = ecif->cif->nargs;
        i > 0;
        i--, ptr++, p_argv++)
@@ -229,7 +229,7 @@ ffi_prep_args (unsigned char *stack, extended_cif *ecif)
 	}
 
       /* Now handle all primitive int/pointer/float data types.  */
-      switch (type) 
+      switch (type)
 	{
 	  case FFI_TYPE_DOUBLE:
 	    if (n_fpr < MAX_FPRARGS)
@@ -242,7 +242,7 @@ ffi_prep_args (unsigned char *stack, extended_cif *ecif)
 	      p_ov[n_ov++] = ((unsigned long *) arg)[1];
 #endif
 	    break;
-	
+
 	  case FFI_TYPE_FLOAT:
 	    if (n_fpr < MAX_FPRARGS)
 	      p_fpr[n_fpr++] = (long long) *(unsigned int *) arg << 32;
@@ -256,7 +256,7 @@ ffi_prep_args (unsigned char *stack, extended_cif *ecif)
 	    else
 	      p_ov[n_ov++] = (unsigned long)*(unsigned char **) arg;
 	    break;
- 
+
 	  case FFI_TYPE_UINT64:
 	  case FFI_TYPE_SINT64:
 #ifdef __s390x__
@@ -275,14 +275,14 @@ ffi_prep_args (unsigned char *stack, extended_cif *ecif)
 	      p_ov[n_ov++] = ((unsigned long *) arg)[1];
 #endif
 	    break;
- 
+
 	  case FFI_TYPE_UINT32:
 	    if (n_gpr < MAX_GPRARGS)
 	      p_gpr[n_gpr++] = *(unsigned int *) arg;
 	    else
 	      p_ov[n_ov++] = *(unsigned int *) arg;
 	    break;
- 
+
 	  case FFI_TYPE_INT:
 	  case FFI_TYPE_SINT32:
 	    if (n_gpr < MAX_GPRARGS)
@@ -290,14 +290,14 @@ ffi_prep_args (unsigned char *stack, extended_cif *ecif)
 	    else
 	      p_ov[n_ov++] = *(signed int *) arg;
 	    break;
- 
+
 	  case FFI_TYPE_UINT16:
 	    if (n_gpr < MAX_GPRARGS)
 	      p_gpr[n_gpr++] = *(unsigned short *) arg;
 	    else
 	      p_ov[n_ov++] = *(unsigned short *) arg;
 	    break;
- 
+
 	  case FFI_TYPE_SINT16:
 	    if (n_gpr < MAX_GPRARGS)
 	      p_gpr[n_gpr++] = *(signed short *) arg;
@@ -311,14 +311,14 @@ ffi_prep_args (unsigned char *stack, extended_cif *ecif)
 	    else
 	      p_ov[n_ov++] = *(unsigned char *) arg;
 	    break;
- 
+
 	  case FFI_TYPE_SINT8:
 	    if (n_gpr < MAX_GPRARGS)
 	      p_gpr[n_gpr++] = *(signed char *) arg;
 	    else
 	      p_ov[n_ov++] = *(signed char *) arg;
 	    break;
- 
+
 	  default:
 	    FFI_ASSERT (0);
 	    break;
@@ -327,7 +327,7 @@ ffi_prep_args (unsigned char *stack, extended_cif *ecif)
 }
 
 /*======================== End of Routine ============================*/
- 
+
 /*====================================================================*/
 /*                                                                    */
 /* Name     - ffi_prep_cif_machdep.                                   */
@@ -335,7 +335,7 @@ ffi_prep_args (unsigned char *stack, extended_cif *ecif)
 /* Function - Perform machine dependent CIF processing.               */
 /*                                                                    */
 /*====================================================================*/
- 
+
 ffi_status
 ffi_prep_cif_machdep(ffi_cif *cif)
 {
@@ -347,7 +347,7 @@ ffi_prep_cif_machdep(ffi_cif *cif)
   ffi_type **ptr;
   int i;
 
-  /* Determine return value handling.  */ 
+  /* Determine return value handling.  */
 
   switch (cif->rtype->type)
     {
@@ -360,7 +360,7 @@ ffi_prep_cif_machdep(ffi_cif *cif)
       case FFI_TYPE_STRUCT:
 	cif->flags = FFI390_RET_STRUCT;
 	n_gpr++;  /* We need one GPR to pass the pointer.  */
-	break; 
+	break;
 
       /* Floating point values are returned in fpr 0.  */
       case FFI_TYPE_FLOAT:
@@ -399,14 +399,14 @@ ffi_prep_cif_machdep(ffi_cif *cif)
 	cif->flags = FFI390_RET_INT32;
 #endif
 	break;
- 
+
       default:
         FFI_ASSERT (0);
         break;
     }
 
   /* Now for the arguments.  */
- 
+
   for (ptr = cif->arg_types, i = cif->nargs;
        i > 0;
        i--, ptr++)
@@ -431,7 +431,7 @@ ffi_prep_cif_machdep(ffi_cif *cif)
 	}
 
       /* Now handle all primitive int/float data types.  */
-      switch (type) 
+      switch (type)
 	{
 	  /* The first MAX_FPRARGS floating point arguments
 	     go in FPRs, the rest overflow to the stack.  */
@@ -442,7 +442,7 @@ ffi_prep_cif_machdep(ffi_cif *cif)
 	    else
 	      n_ov += sizeof (double) / sizeof (long);
 	    break;
-	
+
 	  case FFI_TYPE_FLOAT:
 	    if (n_fpr < MAX_FPRARGS)
 	      n_fpr++;
@@ -452,9 +452,9 @@ ffi_prep_cif_machdep(ffi_cif *cif)
 
 	  /* On 31-bit machines, 64-bit integers are passed in GPR pairs,
 	     if one is still available, or else on the stack.  If only one
-	     register is free, skip the register (it won't be used for any 
+	     register is free, skip the register (it won't be used for any
 	     subsequent argument either).  */
-	      
+
 #ifndef __s390x__
 	  case FFI_TYPE_UINT64:
 	  case FFI_TYPE_SINT64:
@@ -470,7 +470,7 @@ ffi_prep_cif_machdep(ffi_cif *cif)
 	  /* Everything else is passed in GPRs (until MAX_GPRARGS
 	     have been used) or overflows to the stack.  */
 
-	  default: 
+	  default:
 	    if (n_gpr < MAX_GPRARGS)
 	      n_gpr++;
 	    else
@@ -483,12 +483,12 @@ ffi_prep_cif_machdep(ffi_cif *cif)
      and temporary structure copies.  */
 
   cif->bytes = ROUND_SIZE (n_ov * sizeof (long)) + struct_size;
- 
+
   return FFI_OK;
 }
- 
+
 /*======================== End of Routine ============================*/
- 
+
 /*====================================================================*/
 /*                                                                    */
 /* Name     - ffi_call.                                               */
@@ -496,7 +496,7 @@ ffi_prep_cif_machdep(ffi_cif *cif)
 /* Function - Call the FFI routine.                                   */
 /*                                                                    */
 /*====================================================================*/
- 
+
 void
 ffi_call(ffi_cif *cif,
 	 void (*fn)(void),
@@ -505,7 +505,7 @@ ffi_call(ffi_cif *cif,
 {
   int ret_type = cif->flags;
   extended_cif ecif;
- 
+
   ecif.cif    = cif;
   ecif.avalue = avalue;
   ecif.rvalue = rvalue;
@@ -517,7 +517,7 @@ ffi_call(ffi_cif *cif,
 	ecif.rvalue = alloca (cif->rtype->size);
       else
 	ret_type = FFI390_RET_VOID;
-    } 
+    }
 
   switch (cif->abi)
     {
@@ -525,13 +525,13 @@ ffi_call(ffi_cif *cif,
         ffi_call_SYSV (cif->bytes, &ecif, ffi_prep_args,
 		       ret_type, ecif.rvalue, fn);
         break;
- 
+
       default:
         FFI_ASSERT (0);
         break;
     }
 }
- 
+
 /*======================== End of Routine ============================*/
 
 /*====================================================================*/
@@ -541,7 +541,7 @@ ffi_call(ffi_cif *cif,
 /* Function - Call a FFI closure target function.                     */
 /*                                                                    */
 /*====================================================================*/
- 
+
 void
 ffi_closure_helper_SYSV (ffi_closure *closure,
 			 unsigned long *p_gpr,
@@ -565,8 +565,8 @@ ffi_closure_helper_SYSV (ffi_closure *closure,
 
   p_arg = avalue = alloca (closure->cif->nargs * sizeof (void *));
 
-  /* If we returning a structure, pass the structure address 
-     directly to the target function.  Otherwise, have the target 
+  /* If we returning a structure, pass the structure address
+     directly to the target function.  Otherwise, have the target
      function store the return value to the GPR save area.  */
 
   if (closure->cif->flags == FFI390_RET_STRUCT)
@@ -592,7 +592,7 @@ ffi_closure_helper_SYSV (ffi_closure *closure,
 	{
 	  type = ffi_check_struct_type (*ptr);
 
-	  /* If we pass the struct via pointer, remember to 
+	  /* If we pass the struct via pointer, remember to
 	     retrieve the pointer later.  */
 	  if (type == FFI_TYPE_POINTER)
 	    deref_struct_pointer = 1;
@@ -607,23 +607,23 @@ ffi_closure_helper_SYSV (ffi_closure *closure,
 #endif
 
       /* Now handle all primitive int/float data types.  */
-      switch (type) 
+      switch (type)
 	{
 	  case FFI_TYPE_DOUBLE:
 	    if (n_fpr < MAX_FPRARGS)
 	      *p_arg = &p_fpr[n_fpr++];
 	    else
-	      *p_arg = &p_ov[n_ov], 
+	      *p_arg = &p_ov[n_ov],
 	      n_ov += sizeof (double) / sizeof (long);
 	    break;
-	
+
 	  case FFI_TYPE_FLOAT:
 	    if (n_fpr < MAX_FPRARGS)
 	      *p_arg = &p_fpr[n_fpr++];
 	    else
 	      *p_arg = (char *)&p_ov[n_ov++] + sizeof (long) - 4;
 	    break;
- 
+
 	  case FFI_TYPE_UINT64:
 	  case FFI_TYPE_SINT64:
 #ifdef __s390x__
@@ -640,7 +640,7 @@ ffi_closure_helper_SYSV (ffi_closure *closure,
 	      *p_arg = &p_ov[n_ov], n_ov += 2;
 #endif
 	    break;
- 
+
 	  case FFI_TYPE_INT:
 	  case FFI_TYPE_UINT32:
 	  case FFI_TYPE_SINT32:
@@ -649,7 +649,7 @@ ffi_closure_helper_SYSV (ffi_closure *closure,
 	    else
 	      *p_arg = (char *)&p_ov[n_ov++] + sizeof (long) - 4;
 	    break;
- 
+
 	  case FFI_TYPE_UINT16:
 	  case FFI_TYPE_SINT16:
 	    if (n_gpr < MAX_GPRARGS)
@@ -665,7 +665,7 @@ ffi_closure_helper_SYSV (ffi_closure *closure,
 	    else
 	      *p_arg = (char *)&p_ov[n_ov++] + sizeof (long) - 1;
 	    break;
- 
+
 	  default:
 	    FFI_ASSERT (0);
 	    break;
@@ -732,7 +732,7 @@ ffi_closure_helper_SYSV (ffi_closure *closure,
         break;
     }
 }
- 
+
 /*======================== End of Routine ============================*/
 
 /*====================================================================*/
@@ -742,7 +742,7 @@ ffi_closure_helper_SYSV (ffi_closure *closure,
 /* Function - Prepare a FFI closure.                                  */
 /*                                                                    */
 /*====================================================================*/
- 
+
 ffi_status
 ffi_prep_closure_loc (ffi_closure *closure,
 		      ffi_cif *cif,
@@ -767,14 +767,14 @@ ffi_prep_closure_loc (ffi_closure *closure,
   *(short *)&closure->tramp [8] = 0x07f1;   /* br %r1 */
   *(long  *)&closure->tramp[16] = (long)codeloc;
   *(long  *)&closure->tramp[24] = (long)&ffi_closure_SYSV;
-#endif 
- 
+#endif
+
   closure->cif = cif;
   closure->user_data = user_data;
   closure->fun = fun;
- 
+
   return FFI_OK;
 }
 
 /*======================== End of Routine ============================*/
- 
+

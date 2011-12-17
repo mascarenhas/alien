@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    ffi.c - Copyright (c) 1996, 2003, 2004, 2007, 2008 Red Hat, Inc.
-   
-   SPARC Foreign Function Interface 
+
+   SPARC Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -90,15 +90,15 @@ void ffi_prep_args_v8(char *stack, extended_cif *ecif)
 		    case FFI_TYPE_SINT8:
 		      *(signed int *) argp = *(SINT8 *)(* p_argv);
 		      break;
-		      
+
 		    case FFI_TYPE_UINT8:
 		      *(unsigned int *) argp = *(UINT8 *)(* p_argv);
 		      break;
-		      
+
 		    case FFI_TYPE_SINT16:
 		      *(signed int *) argp = *(SINT16 *)(* p_argv);
 		      break;
-		      
+
 		    case FFI_TYPE_UINT16:
 		      *(unsigned int *) argp = *(UINT16 *)(* p_argv);
 		      break;
@@ -115,7 +115,7 @@ void ffi_prep_args_v8(char *stack, extended_cif *ecif)
 	  p_argv++;
 	  argp += z;
     }
-  
+
   return;
 }
 
@@ -264,7 +264,7 @@ ffi_status ffi_prep_cif_machdep(ffi_cif *cif)
 
       /* sparc call frames require that space is allocated for 6 args,
 	 even if they aren't used. Make that space if necessary. */
-  
+
       if (cif->bytes < 4*6+4)
 	cif->bytes = 4*6+4;
     }
@@ -274,7 +274,7 @@ ffi_status ffi_prep_cif_machdep(ffi_cif *cif)
 
       /* sparc call frames require that space is allocated for 6 args,
 	 even if they aren't used. Make that space if necessary. */
-  
+
       if (cif->bytes < 8*6)
 	cif->bytes = 8*6;
     }
@@ -368,10 +368,10 @@ int ffi_v9_layout_struct(ffi_type *arg, int off, char *ret, char *intg, char *fl
 
 
 #ifdef SPARC64
-extern int ffi_call_v9(void *, extended_cif *, unsigned, 
+extern int ffi_call_v9(void *, extended_cif *, unsigned,
 		       unsigned, unsigned *, void (*fn)(void));
 #else
-extern int ffi_call_v8(void *, extended_cif *, unsigned, 
+extern int ffi_call_v8(void *, extended_cif *, unsigned,
 		       unsigned, unsigned *, void (*fn)(void));
 #endif
 
@@ -399,14 +399,14 @@ void ffi_call(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 	}
     }
 
-  switch (cif->abi) 
+  switch (cif->abi)
     {
     case FFI_V8:
 #ifdef SPARC64
       /* We don't yet support calling 32bit code from 64bit */
       FFI_ASSERT(0);
 #else
-      ffi_call_v8(ffi_prep_args_v8, &ecif, cif->bytes, 
+      ffi_call_v8(ffi_prep_args_v8, &ecif, cif->bytes,
 		  cif->flags, rvalue, fn);
 #endif
       break;
@@ -496,7 +496,7 @@ ffi_closure_sparc_inner_v8(ffi_closure *closure,
   /* Copy the caller's structure return address so that the closure
      returns the data directly to the caller.  */
   if (cif->flags == FFI_TYPE_STRUCT
-#if FFI_TYPE_LONGDOUBLE != FFI_TYPE_DOUBLE  
+#if FFI_TYPE_LONGDOUBLE != FFI_TYPE_DOUBLE
       || cif->flags == FFI_TYPE_LONGDOUBLE
 #endif
      )
