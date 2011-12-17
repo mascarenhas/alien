@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    osf.S - Copyright (c) 1998, 2001, 2007, 2008 Red Hat
-   
-   Alpha/OSF Foreign Function Interface 
+
+   Alpha/OSF Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -24,7 +24,7 @@
    DEALINGS IN THE SOFTWARE.
    ----------------------------------------------------------------------- */
 
-#define LIBFFI_ASM	
+#define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
 

@@ -9,7 +9,7 @@
 #include "ffitest.h"
 
 static void
-cls_double_va_fn(ffi_cif* cif __UNUSED__, void* resp, 
+cls_double_va_fn(ffi_cif* cif __UNUSED__, void* resp,
 		 void** args, void* userdata __UNUSED__)
 {
 	char*	format		= *(char**)args[0];

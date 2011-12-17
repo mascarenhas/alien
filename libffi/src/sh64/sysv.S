@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    sysv.S - Copyright (c) 2003, 2004, 2006, 2008 Kaz Kojima
-   
-   SuperH SHmedia Foreign Function Interface 
+
+   SuperH SHmedia Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -14,7 +14,7 @@
    The above copyright notice and this permission notice shall be included
    in all copies or substantial portions of the Software.
 
- 
+
    THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,7 +25,7 @@
    DEALINGS IN THE SOFTWARE.
    ----------------------------------------------------------------------- */
 
-#define LIBFFI_ASM	
+#define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
 #ifdef HAVE_MACHINE_ASM_H
@@ -165,7 +165,7 @@ ENTRY(ffi_call_SYSV)
 	pt/l	5f, tr2
 	gettr	tr1, r20
 	bge/l	r23, r63, tr2
-	add	r1, r63, r23 
+	add	r1, r63, r23
 	shlli	r1, 3, r21
 	addi	r1, 2, r1
 	add	r20, r21, r20
@@ -330,7 +330,7 @@ ENTRY(ffi_closure_SYSV)
 .LCFI4:
 	add	r15, r63, r14
 .LCFI5:
-	/* Stack layout:	
+	/* Stack layout:
 	   ...
 	   64 bytes (register parameters)
 	   48 bytes (floating register parameters)

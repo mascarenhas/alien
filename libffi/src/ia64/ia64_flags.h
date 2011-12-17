@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    ia64_flags.h - Copyright (c) 2000 Hewlett Packard Company
-   
-   IA64/unix Foreign Function Interface 
+
+   IA64/unix Foreign Function Interface
 
    Original author: Hans Boehm, HP Labs
 

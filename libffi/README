@@ -25,7 +25,7 @@ bridge from the interpreter program to compiled code.
 The libffi library provides a portable, high level programming
 interface to various calling conventions. This allows a programmer to
 call any function specified by a call interface description at run
-time.  
+time.
 
 FFI stands for Foreign Function Interface.  A foreign function
 interface is the popular name for the interface that allows code
@@ -96,15 +96,15 @@ distribution.
 
 You may want to tell configure where to install the libffi library and
 header files. To do that, use the --prefix configure switch.  Libffi
-will install under /usr/local by default. 
+will install under /usr/local by default.
 
 If you want to enable extra run-time debugging checks use the the
 --enable-debug configure switch. This is useful when your program dies
-mysteriously while using libffi. 
+mysteriously while using libffi.
 
 Another useful configure switch is --enable-purify-safety. Using this
 will add some extra code which will suppress certain warnings when you
-are using Purify with libffi. Only use this switch when using 
+are using Purify with libffi. Only use this switch when using
 Purify, as it will slow down the library.
 
 Configure has many other options. Use "configure --help" to see them all.
@@ -202,9 +202,9 @@ See the ChangeLog files for details.
 	Linux x86 a.out fix.
 
 1.12 Nov-22-96
-	Added missing ffi_type_void, needed for supporting void return 
-	types. Fixed test case for non MIPS machines. Cygnus Support 
-	is now Cygnus Solutions. 
+	Added missing ffi_type_void, needed for supporting void return
+	types. Fixed test case for non MIPS machines. Cygnus Support
+	is now Cygnus Solutions.
 
 1.11 Oct-30-96
 	Added notes about GNU make.
@@ -213,8 +213,8 @@ See the ChangeLog files for details.
 	Added configuration fix for non GNU compilers.
 
 1.09 Oct-29-96
-	Added --enable-debug configure switch. Clean-ups based on LCLint 
-	feedback. ffi_mips.h is always installed. Many configuration 
+	Added --enable-debug configure switch. Clean-ups based on LCLint
+	feedback. ffi_mips.h is always installed. Many configuration
 	fixes. Fixed ffitest.c for sparc builds.
 
 1.08 Oct-15-96
@@ -224,7 +224,7 @@ See the ChangeLog files for details.
 	Gordon Irlam rewrites v8.S again. Bug fixes.
 
 1.06 Oct-14-96
-	Gordon Irlam improved the sparc port. 
+	Gordon Irlam improved the sparc port.
 
 1.05 Oct-14-96
 	Interface changes based on feedback.
@@ -276,7 +276,7 @@ m68k		Andreas Schwab
 mips		Anthony Green, Casey Marshall
 mips64		David Daney
 pa		Randolph Chung, Dave Anglin, Andreas Tobler
-powerpc		Geoffrey Keating, Andreas Tobler, 
+powerpc		Geoffrey Keating, Andreas Tobler,
 			 David Edelsohn, John Hornkvist
 powerpc64	Jakub Jelinek
 s390		Gerhard Tonn, Ulrich Weigand

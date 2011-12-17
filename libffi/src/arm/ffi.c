@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    ffi.c - Copyright (c) 1998, 2008  Red Hat, Inc.
-   
-   ARM Foreign Function Interface 
+
+   ARM Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -71,19 +71,19 @@ void ffi_prep_args(char *stack, extended_cif *ecif)
 		case FFI_TYPE_SINT8:
 		  *(signed int *) argp = (signed int)*(SINT8 *)(* p_argv);
 		  break;
-		  
+
 		case FFI_TYPE_UINT8:
 		  *(unsigned int *) argp = (unsigned int)*(UINT8 *)(* p_argv);
 		  break;
-		  
+
 		case FFI_TYPE_SINT16:
 		  *(signed int *) argp = (signed int)*(SINT16 *)(* p_argv);
 		  break;
-		  
+
 		case FFI_TYPE_UINT16:
 		  *(unsigned int *) argp = (unsigned int)*(UINT16 *)(* p_argv);
 		  break;
-		  
+
 		case FFI_TYPE_STRUCT:
 		  memcpy(argp, *p_argv, (*p_arg)->size);
 		  break;
@@ -103,14 +103,14 @@ void ffi_prep_args(char *stack, extended_cif *ecif)
 	  p_argv++;
 	  argp += z;
     }
-  
+
   return;
 }
 
 /* Perform machine dependent cif processing */
 ffi_status ffi_prep_cif_machdep(ffi_cif *cif)
 {
-  /* Round the stack up to a multiple of 8 bytes.  This isn't needed 
+  /* Round the stack up to a multiple of 8 bytes.  This isn't needed
      everywhere, but it is on some platforms, and it doesn't harm anything
      when it isn't needed.  */
   cif->bytes = (cif->bytes + 7) & ~7;
@@ -155,18 +155,18 @@ void ffi_call(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 {
   extended_cif ecif;
 
-  int small_struct = (cif->flags == FFI_TYPE_INT 
+  int small_struct = (cif->flags == FFI_TYPE_INT
 		      && cif->rtype->type == FFI_TYPE_STRUCT);
 
   ecif.cif = cif;
   ecif.avalue = avalue;
 
   unsigned int temp;
-  
+
   /* If the return value is a struct and we don't have a return	*/
   /* value address then we need to make one		        */
 
-  if ((rvalue == NULL) && 
+  if ((rvalue == NULL) &&
       (cif->flags == FFI_TYPE_STRUCT))
     {
       ecif.rvalue = alloca(cif->rtype->size);
@@ -176,7 +176,7 @@ void ffi_call(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   else
     ecif.rvalue = rvalue;
 
-  switch (cif->abi) 
+  switch (cif->abi)
     {
     case FFI_SYSV:
       ffi_call_SYSV(ffi_prep_args, &ecif, cif->bytes, cif->flags, ecif.rvalue,
@@ -211,10 +211,10 @@ ffi_closure_SYSV_inner (closure, respp, args)
   void         **arg_area;
 
   cif         = closure->cif;
-  arg_area    = (void**) alloca (cif->nargs * sizeof (void*));  
+  arg_area    = (void**) alloca (cif->nargs * sizeof (void*));
 
   /* this call will initialize ARG_AREA, such that each
-   * element in that array points to the corresponding 
+   * element in that array points to the corresponding
    * value on the stack; and if the function returns
    * a structure, it will re-set RESP to point to the
    * structure return address.  */
@@ -227,7 +227,7 @@ ffi_closure_SYSV_inner (closure, respp, args)
 }
 
 /*@-exportheader@*/
-static void 
+static void
 ffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
 			    void **avalue, ffi_cif *cif)
 /*@=exportheader@*/
@@ -267,7 +267,7 @@ ffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
       p_argv++;
       argp += z;
     }
-  
+
   return;
 }
 
@@ -300,7 +300,7 @@ ffi_prep_closure_loc (ffi_closure* closure,
   FFI_INIT_TRAMPOLINE (&closure->tramp[0], \
 		       &ffi_closure_SYSV,  \
 		       codeloc);
-    
+
   closure->cif  = cif;
   closure->user_data = user_data;
   closure->fun  = fun;

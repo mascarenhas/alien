@@ -18,7 +18,7 @@ libffi/.libs/libffi.a: libffi/Makefile
 src/alien/core.so: src/alien/core.o libffi/.libs/libffi.a
 	export MACOSX_DEPLOYMENT_TARGET=10.3; $(CC) $(LIB_OPTION) -o src/alien/core.so src/alien/core.o -lgcc -Llibffi/.libs -lffi
 
-src/alien/struct.so: src/alien/struct.o 
+src/alien/struct.so: src/alien/struct.o
 	export MACOSX_DEPLOYMENT_TARGET=10.3; $(CC) $(LIB_OPTION) -o src/alien/struct.so src/alien/struct.o
 
 install: src/alien/core.so src/alien/struct.so

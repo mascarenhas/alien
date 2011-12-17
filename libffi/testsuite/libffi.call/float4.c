@@ -34,23 +34,23 @@ int main (void)
 
   args[0] = &ffi_type_double;
   values[0] = &d;
-  
+
   /* Initialize the cif */
   CHECK(ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 1,
 		     &ffi_type_double, args) == FFI_OK);
-  
+
   d = DBL_MIN / 2;
-  
+
   /* Put a canary in the return array.  This is a regression test for
      a buffer overrun.  */
   memset(result[1].c, CANARY, sizeof (double));
 
   ffi_call(&cif, FFI_FN(dblit), &result[0].d, values);
-  
+
   /* The standard delta check doesn't work for denorms.  Since we didn't do
      any arithmetic, we should get the original result back, and hence an
      exact check should be OK here.  */
- 
+
   CHECK(result[0].d == dblit(d));
 
   /* Check the canary.  */

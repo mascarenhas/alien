@@ -661,7 +661,7 @@
 \def\?{?\spacefactor=\endofsentencespacefactor\space}
 
 % @frenchspacing on|off  says whether to put extra space after punctuation.
-% 
+%
 \def\onword{on}
 \def\offword{off}
 %
@@ -1207,7 +1207,7 @@ where each line of input produces a line of output.}
 % that's we do).
 
 % double active backslashes.
-% 
+%
 {\catcode`\@=0 \catcode`\\=\active
  @gdef@activebackslash{@catcode`@\=@active @otherbackslash}
  @gdef@activebackslashdouble{%
@@ -1219,11 +1219,11 @@ where each line of input produces a line of output.}
 % not active characters.  hyperref.dtx (which has the same problem as
 % us) handles it with this amazing macro to replace tokens.  I've
 % tinkered with it a little for texinfo, but it's definitely from there.
-% 
+%
 % #1 is the tokens to replace.
 % #2 is the replacement.
 % #3 is the control sequence with the string.
-% 
+%
 \def\HyPsdSubst#1#2#3{%
   \def\HyPsdReplace##1#1##2\END{%
     ##1%
@@ -1913,7 +1913,7 @@ where each line of input produces a line of output.}
 % each of the four underscores in __typeof__.  This is undesirable in
 % some manuals, especially if they don't have long identifiers in
 % general.  @allowcodebreaks provides a way to control this.
-% 
+%
 \newif\ifallowcodebreaks  \allowcodebreakstrue
 
 \def\keywordtrue{true}
@@ -2044,7 +2044,7 @@ where each line of input produces a line of output.}
 % @acronym for "FBI", "NATO", and the like.
 % We print this one point size smaller, since it's intended for
 % all-uppercase.
-% 
+%
 \def\acronym#1{\doacronym #1,,\finish}
 \def\doacronym#1,#2,#3\finish{%
   {\selectfonts\lsize #1}%
@@ -2056,7 +2056,7 @@ where each line of input produces a line of output.}
 
 % @abbr for "Comput. J." and the like.
 % No font change, but don't do end-of-sentence spacing.
-% 
+%
 \def\abbr#1{\doabbr #1,,\finish}
 \def\doabbr#1,#2,#3\finish{%
   {\plainfrenchspacing #1}%
@@ -2075,43 +2075,43 @@ where each line of input produces a line of output.}
 % Theiling, which support regular, slanted, bold and bold slanted (and
 % "outlined" (blackboard board, sort of) versions, which we don't need).
 % It is available from http://www.ctan.org/tex-archive/fonts/eurosym.
-% 
+%
 % Although only regular is the truly official Euro symbol, we ignore
 % that.  The Euro is designed to be slightly taller than the regular
 % font height.
-% 
+%
 % feymr - regular
 % feymo - slanted
 % feybr - bold
 % feybo - bold slanted
-% 
+%
 % There is no good (free) typewriter version, to my knowledge.
 % A feymr10 euro is ~7.3pt wide, while a normal cmtt10 char is ~5.25pt wide.
 % Hmm.
-% 
+%
 % Also doesn't work in math.  Do we need to do math with euro symbols?
 % Hope not.
-% 
-% 
+%
+%
 \def\euro{{\eurofont e}}
 \def\eurofont{%
   % We set the font at each command, rather than predefining it in
   % \textfonts and the other font-switching commands, so that
   % installations which never need the symbol don't have to have the
   % font installed.
-  % 
+  %
   % There is only one designed size (nominal 10pt), so we always scale
   % that to the current nominal size.
-  % 
+  %
   % By the way, simply using "at 1em" works for cmr10 and the like, but
   % does not work for cmbx10 and other extended/shrunken fonts.
-  % 
+  %
   \def\eurosize{\csname\curfontsize nominalsize\endcsname}%
   %
-  \ifx\curfontstyle\bfstylename 
+  \ifx\curfontstyle\bfstylename
     % bold:
     \font\thiseurofont = \ifusingit{feybo10}{feybr10} at \eurosize
-  \else 
+  \else
     % regular:
     \font\thiseurofont = \ifusingit{feymo10}{feymr10} at \eurosize
   \fi
@@ -2131,7 +2131,7 @@ where each line of input produces a line of output.}
 % Laurent Siebenmann reports \Orb undefined with:
 %  Textures 1.7.7 (preloaded format=plain 93.10.14)  (68K)  16 APR 2004 02:38
 % so we'll define it if necessary.
-% 
+%
 \ifx\Orb\undefined
 \def\Orb{\mathhexbox20D}
 \fi
@@ -2447,7 +2447,7 @@ where each line of input produces a line of output.}
     % cause the example and the item to crash together.  So we use this
     % bizarre value of 10001 as a signal to \aboveenvbreak to insert
     % \parskip glue after all.  Section titles are handled this way also.
-    % 
+    %
     \penalty 10001
     \endgroup
     \itemxneedsnegativevskipfalse
@@ -3457,11 +3457,11 @@ where each line of input produces a line of output.}
   % makeinfo does not expand macros in the argument to @deffn, which ends up
   % writing an index entry, and texindex isn't prepared for an index sort entry
   % that starts with \.
-  % 
+  %
   % Since macro invocations are followed by braces, we can just redefine them
   % to take a single TeX argument.  The case of a macro invocation that
   % goes to end-of-line is not handled.
-  % 
+  %
   \macrolist
 }
 
@@ -3587,7 +3587,7 @@ where each line of input produces a line of output.}
     % to re-insert the same penalty (values >10000 are used for various
     % signals); since we just inserted a non-discardable item, any
     % following glue (such as a \parskip) would be a breakpoint.  For example:
-    % 
+    %
     %   @deffn deffn-whatever
     %   @vindex index-whatever
     %   Description.
@@ -4527,11 +4527,11 @@ where each line of input produces a line of output.}
   % glue accumulate.  (Not a breakpoint because it's preceded by a
   % discardable item.)
   \vskip-\parskip
-  % 
+  %
   % This is purely so the last item on the list is a known \penalty >
   % 10000.  This is so \startdefun can avoid allowing breakpoints after
   % section headings.  Otherwise, it would insert a valid breakpoint between:
-  % 
+  %
   %   @section sec-whatever
   %   @deffn def-whatever
   \penalty 10001
@@ -4589,7 +4589,7 @@ where each line of input produces a line of output.}
 % These characters do not print properly in the Computer Modern roman
 % fonts, so we must take special care.  This is more or less redundant
 % with the Texinfo input format setup at the end of this file.
-% 
+%
 \def\activecatcodes{%
   \catcode`\"=\active
   \catcode`\$=\active
@@ -5303,7 +5303,7 @@ where each line of input produces a line of output.}
     % by \defargscommonending, instead of 10000, since the sectioning
     % commands also insert a nobreak penalty, and we don't want to allow
     % a break between a section heading and a defun.
-    % 
+    %
     \ifnum\lastpenalty=10002 \penalty2000 \fi
     %
     % Similarly, after a section heading, do not allow a break.
@@ -5682,7 +5682,7 @@ where each line of input produces a line of output.}
 % This does \let #1 = #2, with \csnames; that is,
 %   \let \csname#1\endcsname = \csname#2\endcsname
 % (except of course we have to play expansion games).
-% 
+%
 \def\cslet#1#2{%
   \expandafter\let
   \csname#1\expandafter\endcsname

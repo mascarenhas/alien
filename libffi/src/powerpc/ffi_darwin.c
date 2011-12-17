@@ -6,7 +6,7 @@
    Copyright (C) 2002, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    FFI support for Darwin and AIX.
-   
+
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
    ``Software''), to deal in the Software without restriction, including
@@ -278,7 +278,7 @@ darwin_adjust_aggregate_sizes (ffi_type *s)
     {
       ffi_type *p;
       int align;
-      
+
       p = s->elements[i];
       darwin_adjust_aggregate_sizes (p);
       if (i == 0
@@ -293,9 +293,9 @@ darwin_adjust_aggregate_sizes (ffi_type *s)
 	align = 4;
       s->size = ALIGN(s->size, align) + p->size;
     }
-  
+
   s->size = ALIGN(s->size, s->alignment);
-  
+
   if (s->elements[0]->type == FFI_TYPE_UINT64
       || s->elements[0]->type == FFI_TYPE_SINT64
       || s->elements[0]->type == FFI_TYPE_DOUBLE
@@ -320,7 +320,7 @@ aix_adjust_aggregate_sizes (ffi_type *s)
     {
       ffi_type *p;
       int align;
-      
+
       p = s->elements[i];
       aix_adjust_aggregate_sizes (p);
       align = p->alignment;
@@ -328,9 +328,9 @@ aix_adjust_aggregate_sizes (ffi_type *s)
 	align = 4;
       s->size = ALIGN(s->size, align) + p->size;
     }
-  
+
   s->size = ALIGN(s->size, s->alignment);
-  
+
   if (s->elements[0]->type == FFI_TYPE_UINT64
       || s->elements[0]->type == FFI_TYPE_SINT64
       || s->elements[0]->type == FFI_TYPE_DOUBLE

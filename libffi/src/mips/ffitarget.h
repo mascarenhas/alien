@@ -69,7 +69,7 @@
 
 #define FFI_FLAG_BITS 2
 
-/* SGI's strange assembler requires that we multiply by 4 rather 
+/* SGI's strange assembler requires that we multiply by 4 rather
    than shift left by FFI_FLAG_BITS */
 
 #define FFI_ARGS_D   FFI_TYPE_DOUBLE
@@ -115,21 +115,21 @@
 #define a1 $5
 #define a2 $6
 #define a3 $7
-#define a4 $8		
-#define a5 $9		
-#define a6 $10		
-#define a7 $11		
+#define a4 $8
+#define a5 $9
+#define a6 $10
+#define a7 $11
 #define t0 $8
 #define t1 $9
 #define t2 $10
 #define t3 $11
-#define t4 $12		
+#define t4 $12
 #define t5 $13
-#define t6 $14	
+#define t6 $14
 #define t7 $15
 #define t8 $24
 #define t9 $25
-#define ra $31		
+#define ra $31
 
 #ifdef FFI_MIPS_O32
 # define REG_L	lw

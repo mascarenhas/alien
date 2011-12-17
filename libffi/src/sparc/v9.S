@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    v9.S - Copyright (c) 2000, 2003, 2004, 2008 Red Hat, Inc.
-   
-   SPARC 64-bit Foreign Function Interface 
+
+   SPARC 64-bit Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -24,7 +24,7 @@
    DEALINGS IN THE SOFTWARE.
    ----------------------------------------------------------------------- */
 
-#define LIBFFI_ASM	
+#define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
 
@@ -46,9 +46,9 @@ _ffi_call_v9:
 .LLFB1:
 	save	%sp, -STACKFRAME, %sp
 .LLCFI0:
-	
+
 	sub	%sp, %i2, %sp	! alloca() space in stack for frame to set up
-	add	%sp, STACKFRAME+STACK_BIAS, %l0	! %l0 has start of 
+	add	%sp, STACKFRAME+STACK_BIAS, %l0	! %l0 has start of
 						! frame to set up
 
 	mov	%l0, %o0	! call routine to set up frame

@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    ffi.c - Copyright (c) 1998, 2001, 2007, 2008  Red Hat, Inc.
-   
-   Alpha Foreign Function Interface 
+
+   Alpha Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -70,7 +70,7 @@ ffi_prep_cif_machdep(ffi_cif *cif)
       cif->flags = FFI_TYPE_INT;
       break;
     }
-  
+
   return FFI_OK;
 }
 
@@ -81,7 +81,7 @@ ffi_call(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   unsigned long *stack, *argp;
   long i, avn;
   ffi_type **arg_types;
-  
+
   /* If the return value is a struct and we don't have a return
      value address then we need to make one.  */
   if (rvalue == NULL && cif->flags == FFI_TYPE_STRUCT)
@@ -107,25 +107,25 @@ ffi_call(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 	case FFI_TYPE_SINT8:
 	  *(SINT64 *) argp = *(SINT8 *)(* avalue);
 	  break;
-		  
+
 	case FFI_TYPE_UINT8:
 	  *(SINT64 *) argp = *(UINT8 *)(* avalue);
 	  break;
-		  
+
 	case FFI_TYPE_SINT16:
 	  *(SINT64 *) argp = *(SINT16 *)(* avalue);
 	  break;
-		  
+
 	case FFI_TYPE_UINT16:
 	  *(SINT64 *) argp = *(UINT16 *)(* avalue);
 	  break;
-		  
+
 	case FFI_TYPE_SINT32:
 	case FFI_TYPE_UINT32:
 	  /* Note that unsigned 32-bit quantities are sign extended.  */
 	  *(SINT64 *) argp = *(SINT32 *)(* avalue);
 	  break;
-		  
+
 	case FFI_TYPE_SINT64:
 	case FFI_TYPE_UINT64:
 	case FFI_TYPE_POINTER:
@@ -225,7 +225,7 @@ ffi_closure_osf_inner(ffi_closure *closure, void *rvalue, unsigned long *argp)
   i = 0;
   avn = cif->nargs;
   arg_types = cif->arg_types;
-  
+
   /* Grab the addresses of the arguments from the stack frame.  */
   while (i < avn)
     {

@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    sysv.S - Copyright (c) 2004 Renesas Technology
-   
-   M32R Foreign Function Interface 
+
+   M32R Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -58,7 +58,7 @@ ENTRY(ffi_call_SYSV)
 	sub	sp, r2
 
 	/* Place all of the ffi_prep_args in position.  */
-	mv	lr, r0	
+	mv	lr, r0
 	mv	r0, sp
 	/* R1 already set.  */
 
@@ -81,10 +81,10 @@ adjust_stack:
 
 	/* Call the function.  */
 	ld	lr, @(28,fp)
-	jl	lr	
+	jl	lr
 
 	/* Remove the space we pushed for the args.  */
-	mv	sp, fp	
+	mv	sp, fp
 
 	/* Load R2 with the pointer to storage for the return value.  */
 	ld	r2, @(24,sp)
@@ -98,14 +98,14 @@ adjust_stack:
 	/* Return INT.  */
 	ldi	r4, #FFI_TYPE_INT
 	bne	r3, r4, return_double
-	st	r0, @r2	
+	st	r0, @r2
 	bra	epilogue
 
 return_double:
 	/* Return DOUBLE or LONGDOUBLE.  */
 	ldi	r4, #FFI_TYPE_DOUBLE
 	bne	r3, r4, epilogue
-	st	r0, @r2	
+	st	r0, @r2
 	st	r1, @(4,r2)
 
 epilogue:

@@ -269,7 +269,7 @@ L..finish:
 	blr
 
 #else /* ! __64BIT__ */
-	
+
 	.long .ffi_closure_ASM, TOC[tc0], 0
 	.csect .text[PR]
 .ffi_closure_ASM:

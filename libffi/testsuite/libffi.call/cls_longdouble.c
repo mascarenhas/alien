@@ -30,7 +30,7 @@ long double cls_ldouble_fn(
 }
 
 static void
-cls_ldouble_gn(ffi_cif* cif __UNUSED__, void* resp, 
+cls_ldouble_gn(ffi_cif* cif __UNUSED__, void* resp,
 	       void** args, void* userdata __UNUSED__)
 {
 	long double	a1	= *(long double*)args[0];

@@ -2,7 +2,7 @@
    unix64.S - Copyright (c) 2002  Bo Thorsen <bo@suse.de>
 	      Copyright (c) 2008  Red Hat, Inc
 
-   x86-64 Foreign Function Interface 
+   x86-64 Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -26,7 +26,7 @@
    ----------------------------------------------------------------------- */
 
 #ifdef __x86_64__
-#define LIBFFI_ASM	
+#define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
 

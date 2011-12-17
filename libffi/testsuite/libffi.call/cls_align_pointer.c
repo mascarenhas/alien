@@ -22,7 +22,7 @@ cls_struct_align cls_struct_align_fn(struct cls_struct_align a1,
   result.b = (void *)((uintptr_t)a1.b + (uintptr_t)a2.b);
   result.c = a1.c + a2.c;
 
-  printf("%d %" PRIuPTR " %d %d %" PRIuPTR " %d: %d %" PRIuPTR " %d\n", 
+  printf("%d %" PRIuPTR " %d %d %" PRIuPTR " %d: %d %" PRIuPTR " %d\n",
          a1.a, (uintptr_t)a1.b, a1.c,
 	 a2.a, (uintptr_t)a2.b, a2.c,
          result.a, (uintptr_t)result.b,

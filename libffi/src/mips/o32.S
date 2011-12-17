@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    o32.S - Copyright (c) 1996, 1998, 2005  Red Hat, Inc.
-   
-   MIPS Foreign Function Interface 
+
+   MIPS Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -24,18 +24,18 @@
    DEALINGS IN THE SOFTWARE.
    ----------------------------------------------------------------------- */
 
-#define LIBFFI_ASM	
+#define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
 
-/* Only build this code if we are compiling for o32 */	
+/* Only build this code if we are compiling for o32 */
 
 #if defined(FFI_MIPS_O32)
-	
+
 #define callback a0
 #define bytes	 a2
 #define flags	 a3
-		
+
 #define SIZEOF_FRAME	(4 * FFI_SIZEOF_ARG + 2 * FFI_SIZEOF_ARG)
 #define A3_OFF		(SIZEOF_FRAME + 3 * FFI_SIZEOF_ARG)
 #define FP_OFF		(SIZEOF_FRAME - 2 * FFI_SIZEOF_ARG)
@@ -46,7 +46,7 @@
 	.align	2
 	.globl	ffi_call_O32
 	.ent	ffi_call_O32
-ffi_call_O32:	
+ffi_call_O32:
 $LFB0:
 	# Prologue
 	SUBU	$sp, SIZEOF_FRAME	# Frame size
@@ -65,7 +65,7 @@ $LCFI3:
 	LI	v0, 4 * FFI_SIZEOF_ARG
 	blt	bytes, v0, sixteen
 
-	ADDU	v0, bytes, 7	# make sure it is aligned 
+	ADDU	v0, bytes, 7	# make sure it is aligned
 	and	v0, -8		# to an 8 byte boundry
 
 sixteen:
@@ -75,11 +75,11 @@ sixteen:
 	ADDU	a0, $sp, 4 * FFI_SIZEOF_ARG
 
 	jalr	t9
-	
+
 	REG_L	t0, A3_OFF($fp)		# load the flags word
 	SRL	t2, t0, 4		# shift our arg info
 	and     t0, ((1<<4)-1)          # mask out the return type
-		
+
 	ADDU	$sp, 4 * FFI_SIZEOF_ARG		# adjust $sp to new args
 
 	bnez	t0, pass_d			# make it quick for int
@@ -96,21 +96,21 @@ pass_d:
 	REG_L	a3,   3*FFI_SIZEOF_ARG($sp)
 	b	call_it
 
-pass_f:	
+pass_f:
 	bne	t0, FFI_ARGS_F, pass_d_d
 	l.s	$f12, 0*FFI_SIZEOF_ARG($sp)	# load $fp regs from args
 	REG_L	a1,   1*FFI_SIZEOF_ARG($sp)	# passing a float
 	REG_L	a2,   2*FFI_SIZEOF_ARG($sp)
 	REG_L	a3,   3*FFI_SIZEOF_ARG($sp)
-	b	call_it		
+	b	call_it
 
-pass_d_d:		
+pass_d_d:
 	bne	t0, FFI_ARGS_DD, pass_f_f
 	l.d	$f12, 0*FFI_SIZEOF_ARG($sp)	# load $fp regs from args
 	l.d	$f14, 2*FFI_SIZEOF_ARG($sp)	# passing two doubles
 	b	call_it
 
-pass_f_f:	
+pass_f_f:
 	bne	t0, FFI_ARGS_FF, pass_d_f
 	l.s	$f12, 0*FFI_SIZEOF_ARG($sp)	# load $fp regs from args
 	l.s	$f14, 1*FFI_SIZEOF_ARG($sp)	# passing two floats
@@ -118,20 +118,20 @@ pass_f_f:
 	REG_L	a3,   3*FFI_SIZEOF_ARG($sp)
 	b	call_it
 
-pass_d_f:		
+pass_d_f:
 	bne	t0, FFI_ARGS_DF, pass_f_d
 	l.d	$f12, 0*FFI_SIZEOF_ARG($sp)	# load $fp regs from args
 	l.s	$f14, 2*FFI_SIZEOF_ARG($sp)	# passing double and float
 	REG_L	a3,   3*FFI_SIZEOF_ARG($sp)
 	b	call_it
 
-pass_f_d:		
+pass_f_d:
  # assume that the only other combination must be float then double
  #	bne	t0, FFI_ARGS_F_D, call_it
 	l.s	$f12, 0*FFI_SIZEOF_ARG($sp)	# load $fp regs from args
 	l.d	$f14, 2*FFI_SIZEOF_ARG($sp)	# passing double and float
 
-call_it:	
+call_it:
 	# Load the function pointer
 	REG_L	t9, SIZEOF_FRAME + 5*FFI_SIZEOF_ARG($fp)
 
@@ -161,19 +161,19 @@ retfloat:
 	s.s	$f0, 0(t0)
 	b	epilogue
 
-retdouble:	
+retdouble:
 	bne	t2, FFI_TYPE_DOUBLE, noretval
 	jalr	t9
 	REG_L	t0, SIZEOF_FRAME + 4*FFI_SIZEOF_ARG($fp)
 	s.d	$f0, 0(t0)
 	b	epilogue
-	
-noretval:	
+
+noretval:
 	jalr	t9
-	
+
 	# Epilogue
-epilogue:	
-	move	$sp, $fp	
+epilogue:
+	move	$sp, $fp
 	REG_L	$fp, FP_OFF($sp)	# Restore frame pointer
 	REG_L	ra, RA_OFF($sp)		# Restore return address
 	ADDU	$sp, SIZEOF_FRAME	# Fix stack pointer
@@ -187,7 +187,7 @@ $LFE0:
 	in t4 ($12). Stores any arguments passed in registers onto the
 	stack, then calls ffi_closure_mips_inner_O32, which
 	then decodes them.
-	
+
 	Stack layout:
 
 	 3 - a3 save
@@ -209,7 +209,7 @@ $LFE0:
        -13 - Called function a1 save
        -14 - Called function a0 save, our sp and fp point here
 	 */
-	
+
 #define SIZEOF_FRAME2	(14 * FFI_SIZEOF_ARG)
 #define A3_OFF2		(SIZEOF_FRAME2 + 3 * FFI_SIZEOF_ARG)
 #define A2_OFF2		(SIZEOF_FRAME2 + 2 * FFI_SIZEOF_ARG)
@@ -260,11 +260,11 @@ $LCFI7:
 
 	li	$13, 1		# FFI_O32
 	bne	$16, $13, 1f	# Skip fp save if FFI_O32_SOFT_FLOAT
-	
+
 	# Store all possible float/double registers.
 	s.d	$f12, FA_0_0_OFF2($fp)
 	s.d	$f14, FA_1_0_OFF2($fp)
-1:	
+1:
 	# Call ffi_closure_mips_inner_O32 to do the work.
 	la	t9, ffi_closure_mips_inner_O32
 	move	a0, $12	 # Pointer to the ffi_closure
@@ -288,7 +288,7 @@ $LCFI7:
 	li	$9, FFI_TYPE_DOUBLE
 	l.d	$f0, V0_OFF2($fp)
 	beq	$8, $9, closure_done
-1:	
+1:
 	REG_L	$3, V1_OFF2($fp)
 	REG_L	$2, V0_OFF2($fp)
 

@@ -1,8 +1,8 @@
 /* -----------------------------------------------------------------------
    ffi.c - Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 Kaz Kojima
            Copyright (c) 2008 Red Hat, Inc.
-   
-   SuperH Foreign Function Interface 
+
+   SuperH Foreign Function Interface
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -154,19 +154,19 @@ void ffi_prep_args(char *stack, extended_cif *ecif)
 	    case FFI_TYPE_SINT8:
 	      *(signed int *) argp = (signed int)*(SINT8 *)(* p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_UINT8:
 	      *(unsigned int *) argp = (unsigned int)*(UINT8 *)(* p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_SINT16:
 	      *(signed int *) argp = (signed int)*(SINT16 *)(* p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_UINT16:
 	      *(unsigned int *) argp = (unsigned int)*(UINT16 *)(* p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_STRUCT:
 	      *(unsigned int *) argp = (unsigned int)*(UINT32 *)(* p_argv);
 	      break;
@@ -243,19 +243,19 @@ void ffi_prep_args(char *stack, extended_cif *ecif)
 	    case FFI_TYPE_SINT8:
 	      *(signed int *) argp = (signed int)*(SINT8 *)(* p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_UINT8:
 	      *(unsigned int *) argp = (unsigned int)*(UINT8 *)(* p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_SINT16:
 	      *(signed int *) argp = (signed int)*(SINT16 *)(* p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_UINT16:
 	      *(unsigned int *) argp = (unsigned int)*(UINT16 *)(* p_argv);
 	      break;
-  
+
 	    case FFI_TYPE_STRUCT:
 	      *(unsigned int *) argp = (unsigned int)*(UINT32 *)(* p_argv);
 	      break;
@@ -356,7 +356,7 @@ ffi_status ffi_prep_cif_machdep(ffi_cif *cif)
 	  cif->flags += ((cif->arg_types)[i]->type) << (2 * j);
 	  j++;
 	  break;
-	      
+
 	default:
 	  size = (cif->arg_types)[i]->size;
 	  n = (size + sizeof (int) - 1) / sizeof (int);
@@ -416,14 +416,14 @@ void ffi_call(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 
   ecif.cif = cif;
   ecif.avalue = avalue;
-  
+
   /* If the return value is a struct and we don't have a return	*/
   /* value address then we need to make one		        */
 
   if (cif->rtype->type == FFI_TYPE_STRUCT
       && return_type (cif->rtype) != FFI_TYPE_STRUCT)
     ecif.rvalue = &trvalue;
-  else if ((rvalue == NULL) && 
+  else if ((rvalue == NULL) &&
       (cif->rtype->type == FFI_TYPE_STRUCT))
     {
       ecif.rvalue = alloca(cif->rtype->size);
@@ -431,7 +431,7 @@ void ffi_call(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   else
     ecif.rvalue = rvalue;
 
-  switch (cif->abi) 
+  switch (cif->abi)
     {
     case FFI_SYSV:
       ffi_call_SYSV(ffi_prep_args, &ecif, cif->bytes, cif->flags, ecif.rvalue,
@@ -493,11 +493,11 @@ ffi_prep_closure_loc (ffi_closure* closure,
   return FFI_OK;
 }
 
-/* Basically the trampoline invokes ffi_closure_SYSV, and on 
+/* Basically the trampoline invokes ffi_closure_SYSV, and on
  * entry, r3 holds the address of the closure.
  * After storing the registers that could possibly contain
  * parameters to be passed into the stack frame and setting
- * up space for a return value, ffi_closure_SYSV invokes the 
+ * up space for a return value, ffi_closure_SYSV invokes the
  * following helper function to do most of the work.
  */
 
@@ -510,8 +510,8 @@ ffi_prep_closure_loc (ffi_closure* closure,
 #endif
 
 int
-ffi_closure_helper_SYSV (ffi_closure *closure, void *rvalue, 
-			 unsigned long *pgr, unsigned long *pfr, 
+ffi_closure_helper_SYSV (ffi_closure *closure, void *rvalue,
+			 unsigned long *pgr, unsigned long *pfr,
 			 unsigned long *pst)
 {
   void **avalue;
@@ -521,7 +521,7 @@ ffi_closure_helper_SYSV (ffi_closure *closure, void *rvalue,
 #if defined(__SH4__)
   int freg = 0;
 #endif
-  ffi_cif *cif; 
+  ffi_cif *cif;
 
   cif = closure->cif;
   avalue = alloca(cif->nargs * sizeof(void *));
@@ -558,12 +558,12 @@ ffi_closure_helper_SYSV (ffi_closure *closure, void *rvalue,
 	    case FFI_TYPE_UINT8:
 	      avalue[i] = (((char *)pgr) + OFS_INT8);
 	      break;
-  
+
 	    case FFI_TYPE_SINT16:
 	    case FFI_TYPE_UINT16:
 	      avalue[i] = (((char *)pgr) + OFS_INT16);
 	      break;
-  
+
 	    case FFI_TYPE_STRUCT:
 	      avalue[i] = pgr;
 	      break;
@@ -643,12 +643,12 @@ ffi_closure_helper_SYSV (ffi_closure *closure, void *rvalue,
 	    case FFI_TYPE_UINT8:
 	      avalue[i] = (((char *)pst) + OFS_INT8);
 	      break;
-  
+
 	    case FFI_TYPE_SINT16:
 	    case FFI_TYPE_UINT16:
 	      avalue[i] = (((char *)pst) + OFS_INT16);
 	      break;
-  
+
 	    case FFI_TYPE_STRUCT:
 	      avalue[i] = pst;
 	      break;

@@ -28,7 +28,7 @@
 
 #ifndef __x86_64__
 
-#define LIBFFI_ASM	
+#define LIBFFI_ASM
 #include <fficonfig.h>
 #include <ffi.h>
 
@@ -59,12 +59,12 @@ _ffi_call_SYSV:
 	call  *8(%ebp)
 
 	/* Return stack to previous state and call the function  */
-	addl  $16,%esp	
+	addl  $16,%esp
 
 	call  *28(%ebp)
 
 	/* Load %ecx with the return type code  */
-	movl  20(%ebp),%ecx	
+	movl  20(%ebp),%ecx
 
 	/* Protect %esi.  We're going to pop it in the epilogue.  */
 	pushl %esi
@@ -73,7 +73,7 @@ _ffi_call_SYSV:
 	cmpl  $0,24(%ebp)
 	jne  0f
 
-	/* Even if there is no space for the return value, we are 
+	/* Even if there is no space for the return value, we are
 	   obliged to handle floating-point values.  */
 	cmpl  $FFI_TYPE_FLOAT,%ecx
 	jne   noretval
