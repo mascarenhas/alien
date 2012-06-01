@@ -112,7 +112,7 @@ typedef struct _alien_Wrap {
   } val;
 } alien_Wrap;
 
-/* Information to compute strucuture access */
+/* Information to compute structure access */
 
 typedef struct { char c; char x; } s_char;
 typedef struct { char c; short x; } s_short;
