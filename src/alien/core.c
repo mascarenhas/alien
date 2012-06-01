@@ -318,8 +318,10 @@ static int alien_get(lua_State *L) {
   char *name;
   const char *libname;
   size_t len;
+  void *aud;
+  lua_Alloc lalloc = lua_getallocf(L, &aud);
   libname = luaL_checklstring(L, lua_gettop(L), &len);
-  name = (char*)malloc(sizeof(char) * (len + 1));
+  name = (char*)lalloc(aud, NULL, 0, sizeof(char) * (len + 1));
   if(name) {
     void *lib;
     alien_Library *al;
@@ -367,13 +369,15 @@ static int alien_library_get(lua_State *L) {
   size_t len;
   alien_Library *al;
   int cache;
+  void *aud;
+  lua_Alloc lalloc = lua_getallocf(L, &aud);
   al = alien_checklibrary(L, 1);
   funcname = luaL_checklstring(L, 2, &len);
   lua_getfenv(L, 1);
   cache = lua_gettop(L);
   lua_getfield(L, cache, funcname);
   if(!lua_isnil(L, -1)) return 1;
-  name = (char*)malloc(sizeof(char) * (len + 1));
+  name = (char*)lalloc(aud, NULL, 0, sizeof(char) * (len + 1));
   if(name) {
     void *fn;
     strcpy(name, funcname);
@@ -388,7 +392,7 @@ static int alien_library_get(lua_State *L) {
       lua_setfield(L, cache, funcname);
       return 1;
     } else {
-      free(name);
+      lalloc(aud, name, 0, 0);
       lua_error(L);
     }
   } else {
@@ -487,13 +491,15 @@ static int alien_callback_new(lua_State *L) {
   ffi_closure **ud;
   ffi_status status;
   ffi_abi abi;
+  void *aud;
+  lua_Alloc lalloc = lua_getallocf(L, &aud);
   luaL_checktype(L, 1, LUA_TFUNCTION);
-  ac = (alien_Callback *)malloc(sizeof(alien_Callback));
+  ac = (alien_Callback *)lalloc(aud, NULL, 0, sizeof(alien_Callback));
   ud = (ffi_closure **)lua_newuserdata(L, sizeof(ffi_closure**) * 2);
   if(ac != NULL && ud != NULL) {
     int j;
-    *ud = ffi_closure_alloc(sizeof(ffi_closure), &ud[1]);
-    if(*ud == NULL) { free(ac); luaL_error(L, "alien: cannot allocate callback"); }
+    *ud = ffi_closure_alloc(sizeof(ffi_closure), (void*)&ud[1]);
+    if(*ud == NULL) { lalloc(aud, ac, 0, 0); luaL_error(L, "alien: cannot allocate callback"); }
     ac->L = L;
     ac->ret_type = AT_VOID;
     ac->ffi_ret_type = &ffi_type_void;
@@ -515,7 +521,7 @@ static int alien_callback_new(lua_State *L) {
     if(status != FFI_OK) luaL_error(L, "alien: cannot create callback");
     return 1;
   } else {
-    if(ac) free(ac);
+    if(ac) lalloc(aud, ac, 0, 0);
     luaL_error(L, "alien: cannot allocate callback");
   }
   return 0;
@@ -578,6 +584,8 @@ static int alien_function_types(lua_State *L) {
   ffi_abi abi;
   alien_Function *af = alien_tofunction(L, 1);
   int i, j, ret_type;
+  void *aud;
+  lua_Alloc lalloc = lua_getallocf(L, &aud);
   if(lua_istable(L, 2)) {
     lua_getfield(L, 2, "ret");
     ret_type = luaL_checkoption(L, -1, "int", typenames);
@@ -593,7 +601,7 @@ static int alien_function_types(lua_State *L) {
     abi = FFI_DEFAULT_ABI;
   }
   if(af->params) {
-    free(af->params); free(af->ffi_params);
+    lalloc(aud, af->params, 0, 0); lalloc(aud, af->ffi_params, 0, 0);
     af->params = NULL; af->ffi_params = NULL;
   }
   if(lua_istable(L, 2)) {
@@ -602,9 +610,9 @@ static int alien_function_types(lua_State *L) {
     af->nparams = lua_gettop(L) - 2;
   }
   if(af->nparams > 0) {
-    af->ffi_params = (ffi_type **)malloc(sizeof(ffi_type *) * af->nparams);
+    af->ffi_params = (ffi_type **)lalloc(aud, NULL, 0, sizeof(ffi_type *) * af->nparams);
     if(!af->ffi_params) luaL_error(L, "alien: out of memory");
-    af->params = (alien_Type *)malloc(af->nparams * sizeof(alien_Type));
+    af->params = (alien_Type *)lalloc(aud, NULL, 0, af->nparams * sizeof(alien_Type));
     if(!af->params) luaL_error(L, "alien: out of memory");
   } else {
     af->ffi_params = NULL;
@@ -796,28 +804,34 @@ static int alien_function_call(lua_State *L) {
 
 static int alien_library_gc(lua_State *L) {
   alien_Library *al = alien_checklibrary(L, 1);
+  void *aud;
+  lua_Alloc lalloc = lua_getallocf(L, &aud);
   if(al->lib) {
     alien_unload(al->lib);
     al->lib = NULL;
-    if(al->name) { free(al->name); al->name = NULL; }
+    if(al->name) { lalloc(aud, al->name, 0, 0); al->name = NULL; }
   }
   return 0;
 }
 
 static int alien_function_gc(lua_State *L) {
   alien_Function *af = alien_checkfunction(L, 1);
-  if(af->name) free(af->name);
-  if(af->params) free(af->params);
-  if(af->ffi_params) free(af->ffi_params);
+  void *aud;
+  lua_Alloc lalloc = lua_getallocf(L, &aud);
+  if(af->name) lalloc(aud, af->name, 0, 0);
+  if(af->params) lalloc(aud, af->params, 0, 0);
+  if(af->ffi_params) lalloc(aud, af->ffi_params, 0, 0);
   return 0;
 }
 
 static int alien_callback_gc(lua_State *L) {
   ffi_closure *ud = alien_checkcallback(L, 1);
   alien_Callback *ac = (alien_Callback *)ud->user_data;
+  void *aud;
+  lua_Alloc lalloc = lua_getallocf(L, &aud);
   luaL_unref(ac->L, LUA_REGISTRYINDEX, ac->fn_ref);
-  if(ac->params) free(ac->params);
-  if(ac->ffi_params) free(ac->ffi_params);
+  if(ac->params) lalloc(aud, ac->params, 0, 0);
+  if(ac->ffi_params) lalloc(aud, ac->ffi_params, 0, 0);
   ffi_closure_free(ud);
   return 0;
 }
