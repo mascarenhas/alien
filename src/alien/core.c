@@ -1407,7 +1407,7 @@ static const luaL_Reg alienlib[] = {
   {"funcptr", alien_function_new},
   {"table", alien_table_new},
   {"memcpy", alien_memcpy },
-  {"memset", alien_memcpy },
+  {"memset", alien_memset },
   {NULL, NULL},
 };
 
