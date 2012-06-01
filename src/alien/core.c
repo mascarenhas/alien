@@ -37,13 +37,8 @@ static int luaL_typerror (lua_State *L, int narg, const char *tname) {
 #else
 #include <sys/mman.h>
 #include <unistd.h>
-# if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
-#  define MAP_ANONYMOUS MAP_ANON
-# endif
 #define ALLOCA alloca
 #endif
-
-#define BLOCKSIZE _pagesize
 
 #define ALIEN_LIBRARY_META "alien_library"
 #define ALIEN_FUNCTION_META "alien_function"
@@ -117,14 +112,6 @@ typedef struct _alien_Wrap {
   } val;
 } alien_Wrap;
 
-typedef union _tagITEM {
-        ffi_closure closure;
-        union _tagITEM *next;
-} ITEM;
-
-static ITEM *free_list;
-int _pagesize;
-
 /* Information to compute strucuture access */
 
 typedef struct { char c; char x; } s_char;
@@ -145,76 +132,7 @@ typedef struct { char c; void *x; } s_void_p;
 #define AT_CHAR_P_ALIGN (sizeof(s_char_p) - sizeof(char*))
 #define AT_VOID_P_ALIGN (sizeof(s_void_p) - sizeof(void*))
 
-static void more_core(void)
-{
-        ITEM *item;
-        int count, i;
-
-/* determine the pagesize */
-#ifdef WINDOWS
-        if (!_pagesize) {
-                SYSTEM_INFO systeminfo;
-                GetSystemInfo(&systeminfo);
-                _pagesize = systeminfo.dwPageSize;
-        }
-#else
-        if (!_pagesize) {
-                _pagesize = getpagesize();
-        }
-#endif
-
-        /* calculate the number of nodes to allocate */
-        count = BLOCKSIZE / sizeof(ITEM);
-
-        /* allocate a memory block */
-#ifdef WINDOWS
-        item = (ITEM *)VirtualAlloc(NULL,
-                                               count * sizeof(ITEM),
-                                               MEM_COMMIT,
-                                               PAGE_EXECUTE_READWRITE);
-        if (item == NULL)
-                return;
-#else
-        item = (ITEM *)mmap(NULL,
-                            count * sizeof(ITEM),
-                            PROT_READ | PROT_WRITE | PROT_EXEC,
-                            MAP_PRIVATE | MAP_ANONYMOUS,
-                            -1,
-                            0);
-        if (item == (void *)MAP_FAILED)
-                return;
-#endif
-
-        /* put them into the free list */
-        for (i = 0; i < count; ++i) {
-                item->next = free_list;
-                free_list = item;
-                ++item;
-        }
-}
-
 /******************************************************************/
-
-/* put the item back into the free list */
-void free_closure(void *p)
-{
-        ITEM *item = (ITEM *)p;
-        item->next = free_list;
-        free_list = item;
-}
-
-/* return one item from the free list, allocating more if needed */
-void *malloc_closure(void)
-{
-        ITEM *item;
-        if (!free_list)
-                more_core();
-        if (!free_list)
-                return NULL;
-        item = free_list;
-        free_list = item->next;
-        return item;
-}
 
 #if defined(linux)
 #define PLATFORM "linux"
@@ -571,10 +489,10 @@ static int alien_callback_new(lua_State *L) {
   ffi_abi abi;
   luaL_checktype(L, 1, LUA_TFUNCTION);
   ac = (alien_Callback *)malloc(sizeof(alien_Callback));
-  ud = (ffi_closure **)lua_newuserdata(L, sizeof(ffi_closure**));
+  ud = (ffi_closure **)lua_newuserdata(L, sizeof(ffi_closure**) * 2);
   if(ac != NULL && ud != NULL) {
     int j;
-    *ud = malloc_closure();
+    *ud = ffi_closure_alloc(sizeof(ffi_closure), &ud[1]);
     if(*ud == NULL) { free(ac); luaL_error(L, "alien: cannot allocate callback"); }
     ac->L = L;
     ac->ret_type = AT_VOID;
@@ -590,7 +508,7 @@ static int alien_callback_new(lua_State *L) {
     status = ffi_prep_cif(&(ac->cif), abi, ac->nparams,
                           ac->ffi_ret_type, ac->ffi_params);
     if(status != FFI_OK) luaL_error(L, "alien: cannot create callback");
-    status = ffi_prep_closure(*ud, &(ac->cif), &alien_callback_call, ac);
+    status = ffi_prep_closure_loc(*ud, &(ac->cif), &alien_callback_call, ac, ud[1]);
     ac->fn = *ud;
     ac->lib = NULL;
     ac->name = NULL;
@@ -900,7 +818,7 @@ static int alien_callback_gc(lua_State *L) {
   luaL_unref(ac->L, LUA_REGISTRYINDEX, ac->fn_ref);
   if(ac->params) free(ac->params);
   if(ac->ffi_params) free(ac->ffi_params);
-  free_closure(ud);
+  ffi_closure_free(ud);
   return 0;
 }
 
