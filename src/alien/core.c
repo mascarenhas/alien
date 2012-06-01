@@ -1421,7 +1421,7 @@ static const luaL_Reg alienlib[] = {
   {"funcptr", alien_function_new},
   {"table", alien_table_new},
   {"memmove", alien_memmove },
-  {"memcpy", alien_memmove },
+  {"memcpy", alien_memmove }, /* For backwards compatibility only; deprecated */
   {"memset", alien_memset },
   {NULL, NULL},
 };
