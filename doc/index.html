@@ -18,7 +18,7 @@ itself is not as robust as a standard Lua extension, but you can use
 it to write extensions that won&rsquo;t crash if you code them well.</p>
 
 <p>Alien works on Unix-based systems and Windows. It has been tested on Linux x86,
-Linux x64, Linux ARM, FreeBSD x86, Windows x86, OSX x86, and OSX PPC. The Windows
+Linux x64, Linux ARM, FreeBSD x86, Windows x86, OS X x86, and OS X PPC. The Windows
 binary uses MSVCR80.DLL for compatibility with LuaBinaries.</p>
 
 <h2>Installing Alien</h2>
@@ -109,7 +109,7 @@ after the function normal return value. An example, using <em>scanf</em>:</p>
 can see above.</p>
 
 <p>Another way to specify types is by passing a table to <em>func:types</em>. The array
-part of this table shoudl have one item for each parameter, and you can also pass
+part of this table should have one item for each parameter, and you can also pass
 two hash keys, <em>ret</em>, the function&rsquo;s return type (defaults to <code>int</code> as usual), and
 <em>abi</em>, the function&rsquo;s calling convention (useful for Windows, where you can specify &ldquo;stdcall&rdquo; as the
 ABI for <code>__stdcall</code> functions. The default ABI is always &ldquo;default&rdquo;, and all systems
@@ -304,7 +304,7 @@ integers and other userdata.</li>
 previously stored in it.</li>
 <li><code>alien.rewrap("tag", obj, ...)</code> replaces the elements on <em>obj</em> with
 new values. If you pass more values than <em>obj</em> had previously the extra
-values are silently ignored. If you pass less tehn <em>obj</em> is filled with
+values are silently ignored. If you pass less then <em>obj</em> is filled with
 <em>nil</em>.</li>
 </ul>
 
@@ -374,7 +374,7 @@ change their types with their &ldquo;types&rdquo; method.</p>
 numbers, as they are replaced by the preprocessor before even the C
 compiler has a chance to see them. This means that all these constants
 are on header files. This also includes things such as the layout and
-size of strucutres the library depends on. All this information can
+size of structures the library depends on. All this information can
 change from version to version of the library, or from platform to
 platform.</p>
 
