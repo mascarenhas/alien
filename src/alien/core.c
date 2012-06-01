@@ -1348,7 +1348,7 @@ static int alien_table_new(lua_State *L) {
   return 1;
 }
 
-static int alien_memcpy(lua_State *L) {
+static int alien_memmove(lua_State *L) {
   void* dst;
   void* src;
   size_t size;
@@ -1365,7 +1365,7 @@ static int alien_memcpy(lua_State *L) {
     size = luaL_optint(L, 3, size);
   }
   if (size > 0)
-    memcpy(dst, src, size);
+    memmove(dst, src, size);
   return 0;
 }
 
@@ -1406,7 +1406,8 @@ static const luaL_Reg alienlib[] = {
   {"callback", alien_callback_new},
   {"funcptr", alien_function_new},
   {"table", alien_table_new},
-  {"memcpy", alien_memcpy },
+  {"memmove", alien_memmove },
+  {"memcpy", alien_memmove },
   {"memset", alien_memset },
   {NULL, NULL},
 };
