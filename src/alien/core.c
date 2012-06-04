@@ -402,7 +402,6 @@ static int alien_library_get(lua_State *L) {
 }
 
 static int alien_function_new(lua_State *L) {
-  void *fn;
   if(lua_isuserdata(L, 1)) {
     void *fn = lua_touserdata(L, 1);
     return alien_makefunction(L, NULL, fn, NULL);
@@ -486,7 +485,6 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
 }
 
 static int alien_callback_new(lua_State *L) {
-  int fn_ref;
   alien_Callback *ac;
   ffi_closure **ud;
   ffi_status status;
@@ -497,7 +495,6 @@ static int alien_callback_new(lua_State *L) {
   ac = (alien_Callback *)lalloc(aud, NULL, 0, sizeof(alien_Callback));
   ud = (ffi_closure **)lua_newuserdata(L, sizeof(ffi_closure**) * 2);
   if(ac != NULL && ud != NULL) {
-    int j;
     *ud = ffi_closure_alloc(sizeof(ffi_closure), (void*)&ud[1]);
     if(*ud == NULL) { lalloc(aud, ac, 0, 0); luaL_error(L, "alien: cannot allocate callback"); }
     ac->L = L;
@@ -656,11 +653,11 @@ static int alien_function_tostring(lua_State *L) {
 static int alien_function_call(lua_State *L) {
   int i, j, nargs, nparams;
   int iret; double dret; void *pret; long lret; unsigned long ulret; float fret;
-  int *refi_args, nrefi, nrefui, nrefd, nrefc;
-  double *refd_args;
-  char *refc_args;
-  unsigned int *refui_args;
-  void **args;
+  int *refi_args = NULL, nrefi, nrefui, nrefd, nrefc;
+  double *refd_args = NULL;
+  char *refc_args = NULL;
+  unsigned int *refui_args = NULL;
+  void **args = NULL;
   ffi_cif *cif;
   alien_Function *af = alien_tofunction(L, 1);
   cif = &(af->cif);
@@ -678,6 +675,7 @@ static int alien_function_call(lua_State *L) {
     case AT_REFUINT: nrefui++; break;
     case AT_REFDOUBLE: nrefd++; break;
     case AT_REFCHAR: nrefc++; break;
+    default: break;
     }
   }
   if(nrefi > 0) refi_args = (int*)ALLOCA(sizeof(int) * nrefi);
@@ -797,6 +795,7 @@ static int alien_function_call(lua_State *L) {
     case AT_REFUINT: lua_pushnumber(L, *refui_args); refui_args++; break;
     case AT_REFDOUBLE: lua_pushnumber(L, *refd_args); refd_args++; break;
     case AT_REFCHAR: lua_pushnumber(L, *refc_args); refc_args++; break;
+    default: break;
     }
   }
   return 1 + nrefi + nrefui + nrefc + nrefd;
@@ -870,7 +869,6 @@ static int alien_pack(lua_State *L) {
 }
 
 static int alien_unpack(lua_State *L) {
-  int size, i;
   alien_Wrap *ud;
   const char *meta = luaL_checkstring(L, 1);
   ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
@@ -887,7 +885,7 @@ static int alien_unpack(lua_State *L) {
 }
 
 static int alien_repack(lua_State *L) {
-  int size, i, top;
+  int i, top;
   alien_Wrap *ud;
   const char *meta = luaL_checkstring(L, 1);
   ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);

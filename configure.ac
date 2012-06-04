@@ -9,7 +9,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 dnl Check for programs
 AC_PROG_CC
-AS_IF([test "x$GCC" = "xyes"],[CFLAGS_STACK="-fno-stack-protector"])
+AS_IF([test "x$GCC" = "xyes"],[CFLAGS_STACK="-fno-stack-protector -Wall"])
 AC_SUBST(CFLAGS_STACK)
 
 dnl Set up libtool
