@@ -26,6 +26,9 @@ AC_SUBST(LIBTOOL_DEPS)
 dnl Check for header files
 AC_HEADER_STDC
 
+dnl Check for functions
+AC_FUNC_ALLOCA
+
 dnl libffi
 AC_CHECK_HEADER([ffi.h], , AC_MSG_FAILURE([cannot find ffi.h]))
 AC_CHECK_LIB([ffi], [ffi_call], , AC_MSG_FAILURE([cannot find libffi]))

@@ -2,6 +2,8 @@
 /* Author: Fabio Mascarenhas */
 /* License: MIT/X11 */
 
+#include "config.h"
+
 #ifdef WINDOWS
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
@@ -31,13 +33,25 @@ static int luaL_typerror (lua_State *L, int narg, const char *tname) {
 #define luaL_register(L, n, f) luaL_setfuncs(L, f, 0)
 #endif
 
-#ifdef WINDOWS
-#include <windows.h>
-#define ALLOCA _alloca
+#ifdef STDC_HEADERS
+# include <stdlib.h>
+# include <stddef.h>
 #else
-#include <sys/mman.h>
-#include <unistd.h>
-#define ALLOCA alloca
+# ifdef HAVE_STDLIB_H
+#  include <stdlib.h>
+# endif
+#endif
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#elif defined __GNUC__
+# define alloca __builtin_alloca
+#elif defined _AIX
+# define alloca __alloca
+#elif defined _MSC_VER
+# include <malloc.h>
+# define alloca _alloca
+#else
+# error "cannot find alloca"
 #endif
 
 #define ALIEN_LIBRARY_META "alien_library"
@@ -656,46 +670,46 @@ static int alien_function_call(lua_State *L) {
     default: break;
     }
   }
-  if(nrefi > 0) refi_args = (int*)ALLOCA(sizeof(int) * nrefi);
-  if(nrefui > 0) refui_args = (unsigned int*)ALLOCA(sizeof(unsigned int) * nrefui);
-  if(nrefd > 0) refd_args = (double*)ALLOCA(sizeof(double) * nrefd);
-  if(nrefc > 0) refc_args = (char*)ALLOCA(sizeof(char) * nrefc);
-  if(nargs > 0) args = ALLOCA(sizeof(void*) * nargs);
+  if(nrefi > 0) refi_args = (int*)alloca(sizeof(int) * nrefi);
+  if(nrefui > 0) refui_args = (unsigned int*)alloca(sizeof(unsigned int) * nrefui);
+  if(nrefd > 0) refd_args = (double*)alloca(sizeof(double) * nrefd);
+  if(nrefc > 0) refc_args = (char*)alloca(sizeof(char) * nrefc);
+  if(nargs > 0) args = alloca(sizeof(void*) * nargs);
   for(i = 0, j = 2; i < nparams; i++, j++) {
     void *arg;
     switch(af->params[i]) {
     case AT_SHORT:
-      arg = ALLOCA(sizeof(short)); *((short*)arg) = (short)lua_tonumber(L, j);
+      arg = alloca(sizeof(short)); *((short*)arg) = (short)lua_tonumber(L, j);
       args[i] = arg; break;
     case AT_LONG:
-      arg = ALLOCA(sizeof(long)); *((long*)arg) = (long)lua_tonumber(L, j);
+      arg = alloca(sizeof(long)); *((long*)arg) = (long)lua_tonumber(L, j);
       args[i] = arg; break;
     case AT_INT:
-      arg = ALLOCA(sizeof(int)); *((int*)arg) = (int)lua_tonumber(L, j);
+      arg = alloca(sizeof(int)); *((int*)arg) = (int)lua_tonumber(L, j);
       args[i] = arg; break;
     case AT_USHORT:
-      arg = ALLOCA(sizeof(unsigned short)); *((unsigned short*)arg) = (unsigned short)lua_tonumber(L, j);
+      arg = alloca(sizeof(unsigned short)); *((unsigned short*)arg) = (unsigned short)lua_tonumber(L, j);
       args[i] = arg; break;
     case AT_ULONG:
-      arg = ALLOCA(sizeof(unsigned long)); *((unsigned long*)arg) = (unsigned long)lua_tonumber(L, j);
+      arg = alloca(sizeof(unsigned long)); *((unsigned long*)arg) = (unsigned long)lua_tonumber(L, j);
       args[i] = arg; break;
     case AT_UINT:
-      arg = ALLOCA(sizeof(unsigned int)); *((unsigned int*)arg) = (unsigned int)lua_tonumber(L, j);
+      arg = alloca(sizeof(unsigned int)); *((unsigned int*)arg) = (unsigned int)lua_tonumber(L, j);
       args[i] = arg; break;
     case AT_CHAR:
-      arg = ALLOCA(sizeof(uchar)); *((uchar*)arg) = (uchar)lua_tointeger(L, j);
+      arg = alloca(sizeof(uchar)); *((uchar*)arg) = (uchar)lua_tointeger(L, j);
       args[i] = arg; break;
     case AT_BYTE:
-      arg = ALLOCA(sizeof(char)); *((char*)arg) = (signed char)lua_tointeger(L, j);
+      arg = alloca(sizeof(char)); *((char*)arg) = (signed char)lua_tointeger(L, j);
       args[i] = arg; break;
     case AT_FLOAT:
-      arg = ALLOCA(sizeof(float)); *((float*)arg) = (float)lua_tonumber(L, j);
+      arg = alloca(sizeof(float)); *((float*)arg) = (float)lua_tonumber(L, j);
       args[i] = arg; break;
     case AT_DOUBLE:
-      arg = ALLOCA(sizeof(double)); *((double*)arg) = (double)lua_tonumber(L, j);
+      arg = alloca(sizeof(double)); *((double*)arg) = (double)lua_tonumber(L, j);
       args[i] = arg; break;
     case AT_STRING:
-      arg = ALLOCA(sizeof(char*));
+      arg = alloca(sizeof(char*));
       if(lua_isuserdata(L, j))
         *((char**)arg) = lua_isnil(L, j) ? NULL : lua_touserdata(L, j);
       else
@@ -703,12 +717,12 @@ static int alien_function_call(lua_State *L) {
       args[i] = arg;
       break;
     case AT_CALLBACK:
-      arg = ALLOCA(sizeof(void*));
+      arg = alloca(sizeof(void*));
       *((void**)arg) = alien_tocallback(L, j);
       args[i] = arg;
       break;
     case AT_PTR:
-      arg = ALLOCA(sizeof(char*));
+      arg = alloca(sizeof(char*));
       *((void**)arg) = lua_isnil(L, j) ? NULL :
              (lua_isstring(L, j) ? (void*)lua_tostring(L, j) :
               lua_touserdata(L, j));
@@ -716,25 +730,25 @@ static int alien_function_call(lua_State *L) {
       break;
     case AT_REFINT:
       *refi_args = (int)lua_tonumber(L, j);
-      arg = ALLOCA(sizeof(int*));
+      arg = alloca(sizeof(int*));
       *((int**)arg) = refi_args;
       args[i] = arg; refi_args++; break;
       break;
     case AT_REFUINT:
       *refui_args = (unsigned int)lua_tonumber(L, j);
-      arg = ALLOCA(sizeof(unsigned int*));
+      arg = alloca(sizeof(unsigned int*));
       *((unsigned int**)arg) = refui_args;
       args[i] = arg; refui_args++; break;
       break;
     case AT_REFCHAR:
       *refc_args = (char)lua_tonumber(L, j);
-      arg = ALLOCA(sizeof(char*));
+      arg = alloca(sizeof(char*));
       *((char**)arg) = refc_args;
       args[i] = arg; refc_args++; break;
       break;
     case AT_REFDOUBLE:
       *refd_args = lua_tonumber(L, j);
-      arg = ALLOCA(sizeof(double*));
+      arg = alloca(sizeof(double*));
       *((double**)arg) = refd_args;
       args[i] = arg; refd_args++; break;
       break;
