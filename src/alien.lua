@@ -20,7 +20,7 @@ _M.loaded = {}
 local load_library, find_library = {}, {}
 
 local function find_library_helper(libname, opt)
-  local expr = '/[^() ]*lib' .. libname .. '\.so[^() ]*'
+  local expr = '/[^() ]*lib' .. libname .. '%.so[^() ]*'
   local cmd = '/sbin/ldconfig ' .. opt ..
     ' 2>/dev/null | egrep -o "' .. expr .. '"'
   local pipe = io.popen(cmd)

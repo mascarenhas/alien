@@ -13,6 +13,8 @@
 #include <string.h>
 #include <errno.h>
 
+#define LUA_COMPAT_ALL
+
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
@@ -21,16 +23,12 @@
 #if LUA_VERSION_NUM == 502
 #define lua_setfenv lua_setuservalue
 #define lua_getfenv lua_getuservalue
-#define lua_objlen lua_rawlen
 
 static int luaL_typerror (lua_State *L, int narg, const char *tname) {
   const char *msg = lua_pushfstring(L, "%s expected, got %s",
                                     tname, luaL_typename(L, narg));
   return luaL_argerror(L, narg, msg);
 }
-
-#undef luaL_register
-#define luaL_register(L, n, f) luaL_setfuncs(L, f, 0)
 #endif
 
 #ifdef STDC_HEADERS
