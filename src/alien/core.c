@@ -50,26 +50,36 @@ static int luaL_typerror (lua_State *L, int narg, const char *tname) {
 #define uchar unsigned char
 #endif
 
+/* The following enum and arrays MUST all be in the same order. */
+/* N.B. void is first so it can be ignored for sizeof/alignment. */
+
 typedef enum {
-  AT_SHORT,
-  AT_USHORT,
-  AT_INT,
-  AT_UINT,
-  AT_LONG,
-  AT_ULONG,
-  AT_VOID,
-  AT_FLOAT,
-  AT_DOUBLE,
-  AT_CHAR,
-  AT_BYTE,
-  AT_STRING,
-  AT_PTR,
-  AT_REFINT,
-  AT_REFUINT,
-  AT_REFCHAR,
-  AT_REFDOUBLE,
-  AT_CALLBACK
+  AT_VOID, AT_BYTE, AT_CHAR,
+  AT_SHORT, AT_USHORT, AT_INT, AT_UINT,
+  AT_LONG, AT_ULONG, AT_FLOAT, AT_DOUBLE,
+  AT_STRING, AT_PTR,
+  AT_REFCHAR, AT_REFINT, AT_REFUINT, AT_REFDOUBLE,
+  AT_CALLBACK,
 } alien_Type;
+
+static const char *const alien_typenames[] =  {
+  "void", "byte", "char",
+  "short", "ushort", "int", "uint",
+  "long", "ulong", "float", "double",
+  "string", "pointer",
+  "ref char", "ref int", "ref uint", "ref double",
+  "callback",
+  NULL
+};
+
+static ffi_type* ffitypes[] = {
+  &ffi_type_void, &ffi_type_sint8, &ffi_type_uchar,
+  &ffi_type_sshort, &ffi_type_ushort, &ffi_type_sint, &ffi_type_uint,
+  &ffi_type_slong, &ffi_type_ulong, &ffi_type_float, &ffi_type_double,
+  &ffi_type_pointer, &ffi_type_pointer,
+  &ffi_type_pointer, &ffi_type_pointer, &ffi_type_pointer, &ffi_type_pointer,
+  &ffi_type_pointer,
+};
 
 typedef struct _alien_Library {
   void *lib;
@@ -525,58 +535,32 @@ static int alien_callback_new(lua_State *L) {
 }
 
 static int alien_sizeof(lua_State *L) {
-  static const size_t sizes[] = {sizeof(int), sizeof(double), sizeof(uchar), sizeof(char*),
-                                 sizeof(unsigned int), sizeof(unsigned short), sizeof(unsigned long), sizeof(unsigned int*),
-                                 sizeof(void*), sizeof(char),
-                                 sizeof(short), sizeof(long), sizeof(float),
-                                 sizeof(void*), sizeof(char*), sizeof(int*),
-                                 sizeof(double*)};
-  static const char *const typenames[] = {"int", "double", "char", "string",
-                                          "uint", "ushort", "ulong", "ref uint",
-                                          "pointer", "byte", "short", "long",
-                                          "float", "callback", "ref char",
-                                          "ref int", "ref double", NULL};
-  lua_pushinteger(L, sizes[luaL_checkoption(L, 1, "int", typenames)]);
+  static const size_t sizes[] = {
+    /* No void */ sizeof(uchar), sizeof(char),
+    sizeof(short), sizeof(unsigned short), sizeof(int), sizeof(unsigned int),
+    sizeof(long), sizeof(unsigned long), sizeof(float), sizeof(double),
+    sizeof(char*), sizeof(void*),
+    sizeof(char*), sizeof(int*), sizeof(unsigned int*), sizeof(double*),
+    sizeof(void*),
+  };
+  lua_pushinteger(L, sizes[luaL_checkoption(L, 1, "int", alien_typenames + 1)]); /* N.B. Add 1 to miss out "void" */
   return 1;
 }
 
 static int alien_align(lua_State *L) {
-  static const size_t aligns[] = {AT_INT_ALIGN, AT_DOUBLE_ALIGN, AT_CHAR_ALIGN, AT_CHAR_P_ALIGN,
-                                  AT_INT_ALIGN, AT_SHORT_ALIGN, AT_LONG_ALIGN, AT_VOID_P_ALIGN,
-                                  AT_VOID_P_ALIGN, AT_CHAR_ALIGN,
-                                  AT_SHORT_ALIGN, AT_LONG_ALIGN, AT_FLOAT_ALIGN,
-                                  AT_VOID_P_ALIGN, AT_CHAR_P_ALIGN, AT_VOID_P_ALIGN,
-                                  AT_VOID_P_ALIGN};
-  static const char *const typenames[] = {"int", "double", "char", "string",
-                                          "uint", "ushort", "ulong", "ref uint",
-                                          "pointer", "byte", "short", "long",
-                                          "float", "callback", "ref char",
-                                          "ref int", "ref double", NULL};
-  lua_pushinteger(L, aligns[luaL_checkoption(L, 1, "char", typenames)]);
+  static const size_t aligns[] = {
+    /* No void */ AT_CHAR_ALIGN, AT_CHAR_ALIGN,
+    AT_SHORT_ALIGN, AT_SHORT_ALIGN, AT_INT_ALIGN, AT_INT_ALIGN,
+    AT_LONG_ALIGN, AT_LONG_ALIGN, AT_FLOAT_ALIGN, AT_DOUBLE_ALIGN,
+    AT_CHAR_P_ALIGN, AT_VOID_P_ALIGN,
+    AT_CHAR_P_ALIGN, AT_VOID_P_ALIGN, AT_VOID_P_ALIGN, AT_VOID_P_ALIGN,
+    AT_VOID_P_ALIGN,
+  };
+  lua_pushinteger(L, aligns[luaL_checkoption(L, 1, "char", alien_typenames + 1)]);
   return 1;
 }
 
 static int alien_function_types(lua_State *L) {
-  static ffi_type* ffitypes[] = {&ffi_type_void, &ffi_type_sint, &ffi_type_double,
-                                 &ffi_type_uint, &ffi_type_ushort,
-                                 &ffi_type_uchar, &ffi_type_pointer, &ffi_type_pointer,
-                                 &ffi_type_pointer, &ffi_type_pointer, &ffi_type_pointer,
-                                 &ffi_type_pointer, &ffi_type_sshort, &ffi_type_schar,
-#ifndef WINDOWS
-                                 &ffi_type_ulong,
-                                 &ffi_type_slong,
-#else
-                                 &ffi_type_uint,
-                                 &ffi_type_sint,
-#endif
-                                 &ffi_type_float, &ffi_type_pointer};
-  static const int types[] = {AT_VOID, AT_INT, AT_DOUBLE, AT_UINT, AT_USHORT, AT_CHAR, AT_STRING, AT_PTR, AT_REFINT,
-                              AT_REFDOUBLE, AT_REFCHAR, AT_CALLBACK, AT_SHORT, AT_BYTE, AT_ULONG, AT_LONG,
-                              AT_FLOAT, AT_REFUINT};
-  static const char *const typenames[] =
-    {"void", "int", "double", "uint", "ushort", "char", "string", "pointer",
-     "ref int", "ref double", "ref char", "callback",
-     "short", "byte", "ulong", "long", "float", "ref uint", NULL};
   ffi_status status;
   ffi_abi abi;
   alien_Function *af = alien_tofunction(L, 1);
@@ -585,15 +569,15 @@ static int alien_function_types(lua_State *L) {
   lua_Alloc lalloc = lua_getallocf(L, &aud);
   if(lua_istable(L, 2)) {
     lua_getfield(L, 2, "ret");
-    ret_type = luaL_checkoption(L, -1, "int", typenames);
-    af->ret_type = types[ret_type];
+    ret_type = luaL_checkoption(L, -1, "int", alien_typenames);
+    af->ret_type = ret_type;
     af->ffi_ret_type = ffitypes[ret_type];
     lua_getfield(L, 2, "abi");
     abi = ffi_abis[luaL_checkoption(L, -1, "default", ffi_abi_names)];
     lua_pop(L, 2);
   } else {
-    ret_type = luaL_checkoption(L, 2, "int", typenames);
-    af->ret_type = types[ret_type];
+    ret_type = luaL_checkoption(L, 2, "int", alien_typenames);
+    af->ret_type = ret_type;
     af->ffi_ret_type = ffitypes[ret_type];
     abi = FFI_DEFAULT_ABI;
   }
@@ -617,16 +601,18 @@ static int alien_function_types(lua_State *L) {
   }
   if(lua_istable(L, 2)) {
     for(i = 0, j = 1; i < af->nparams; i++, j++) {
+      int type;
       lua_rawgeti(L, 2, j);
-      af->ffi_params[i] = ffitypes[luaL_checkoption(L, -1, "int", typenames)];
-      af->params[i] = types[luaL_checkoption(L, -1, "int", typenames)];
+      type = luaL_checkoption(L, -1, "int", alien_typenames);
+      af->params[i] = type;
+      af->ffi_params[i] = ffitypes[type];
       lua_pop(L, 1);
     }
   } else {
     for(i = 0, j = 3; i < af->nparams; i++, j++) {
-      int type = luaL_checkoption(L, j, "int", typenames);
+      int type = luaL_checkoption(L, j, "int", alien_typenames);
       af->ffi_params[i] = ffitypes[type];
-      af->params[i] = types[type];
+      af->params[i] = type;
     }
   }
   status = ffi_prep_cif(&(af->cif), abi, af->nparams,
@@ -982,14 +968,6 @@ static int alien_buffer_get(lua_State *L) {
                                 &alien_buffer_get,
                                 &alien_buffer_put};
   static const char *const funcnames[] = { "tostring", "topointer", "len", "get", "set", NULL };
-  static const int types[] = {AT_VOID, AT_INT, AT_DOUBLE, AT_CHAR, AT_STRING, AT_PTR, AT_REFINT,
-                              AT_UINT, AT_USHORT, AT_ULONG, AT_REFUINT,
-                              AT_REFDOUBLE, AT_REFCHAR, AT_CALLBACK, AT_SHORT, AT_BYTE, AT_LONG,
-                              AT_FLOAT};
-  static const char *const typenames[] =
-    {"void", "int", "double", "char", "string", "pointer",
-     "ref int", "uint", "ushort", "ulong", "ref uint", "ref double", "ref char", "callback",
-     "short", "byte", "long", "float", NULL};
   char *b = alien_checkbuffer(L, 1);
   if(lua_type(L, 2) == LUA_TSTRING) {
     lua_getfenv(L, 1);
@@ -1001,7 +979,7 @@ static int alien_buffer_get(lua_State *L) {
   } else {
     void *p;
     ptrdiff_t offset = luaL_checkinteger(L, 2) - 1;
-    int type = types[luaL_checkoption(L, 3, "char", typenames)];
+    int type = luaL_checkoption(L, 3, "char", alien_typenames);
     switch(type) {
     case AT_SHORT: lua_pushnumber(L, *((short*)(&b[offset]))); break;
     case AT_INT: lua_pushnumber(L, *((int*)(&b[offset]))); break;
@@ -1033,17 +1011,9 @@ static int alien_buffer_get(lua_State *L) {
 }
 
 static int alien_buffer_put(lua_State *L) {
-  static const int types[] = {AT_VOID, AT_INT, AT_DOUBLE, AT_CHAR, AT_STRING, AT_PTR, AT_REFINT,
-                              AT_UINT, AT_USHORT, AT_ULONG, AT_REFUINT,
-                              AT_REFDOUBLE, AT_REFCHAR, AT_CALLBACK, AT_SHORT, AT_BYTE, AT_LONG,
-                              AT_FLOAT};
-  static const char *const typenames[] =
-    {"void", "int", "double", "char", "string", "pointer",
-     "ref int", "uint", "ushort", "ulong", "ref uint", "ref double", "ref char", "callback",
-     "short", "byte", "long", "float", NULL};
   char *b = alien_checkbuffer(L, 1);
   ptrdiff_t offset = luaL_checkinteger(L, 2) - 1;
-  int type = types[luaL_checkoption(L, 4, "char", typenames)];
+  int type = luaL_checkoption(L, 4, "char", alien_typenames);
   switch(type) {
   case AT_SHORT: *((short*)(&b[offset])) = (short)lua_tonumber(L, 3); break;
   case AT_INT: *((int*)(&b[offset])) = (int)lua_tonumber(L, 3); break;
