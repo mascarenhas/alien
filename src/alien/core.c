@@ -525,34 +525,34 @@ static int alien_callback_new(lua_State *L) {
 }
 
 static int alien_sizeof(lua_State *L) {
-  static const int sizes[] = {sizeof(int), sizeof(double), sizeof(uchar), sizeof(char*),
-                              sizeof(unsigned int), sizeof(unsigned short), sizeof(unsigned long), sizeof(unsigned int*),
-                              sizeof(void*), sizeof(char),
-                              sizeof(short), sizeof(long), sizeof(float),
-                              sizeof(void*), sizeof(char*), sizeof(int*),
-                              sizeof(double*)};
+  static const size_t sizes[] = {sizeof(int), sizeof(double), sizeof(uchar), sizeof(char*),
+                                 sizeof(unsigned int), sizeof(unsigned short), sizeof(unsigned long), sizeof(unsigned int*),
+                                 sizeof(void*), sizeof(char),
+                                 sizeof(short), sizeof(long), sizeof(float),
+                                 sizeof(void*), sizeof(char*), sizeof(int*),
+                                 sizeof(double*)};
   static const char *const typenames[] = {"int", "double", "char", "string",
                                           "uint", "ushort", "ulong", "ref uint",
                                           "pointer", "byte", "short", "long",
                                           "float", "callback", "ref char",
                                           "ref int", "ref double", NULL};
-  lua_pushnumber(L, sizes[luaL_checkoption(L, 1, "int", typenames)]);
+  lua_pushinteger(L, sizes[luaL_checkoption(L, 1, "int", typenames)]);
   return 1;
 }
 
 static int alien_align(lua_State *L) {
-  static const int aligns[] = {AT_INT_ALIGN, AT_DOUBLE_ALIGN, AT_CHAR_ALIGN, AT_CHAR_P_ALIGN,
-                               AT_INT_ALIGN, AT_SHORT_ALIGN, AT_LONG_ALIGN, AT_VOID_P_ALIGN,
-                               AT_VOID_P_ALIGN, AT_CHAR_ALIGN,
-                              AT_SHORT_ALIGN, AT_LONG_ALIGN, AT_FLOAT_ALIGN,
-                              AT_VOID_P_ALIGN, AT_CHAR_P_ALIGN, AT_VOID_P_ALIGN,
-                               AT_VOID_P_ALIGN};
+  static const size_t aligns[] = {AT_INT_ALIGN, AT_DOUBLE_ALIGN, AT_CHAR_ALIGN, AT_CHAR_P_ALIGN,
+                                  AT_INT_ALIGN, AT_SHORT_ALIGN, AT_LONG_ALIGN, AT_VOID_P_ALIGN,
+                                  AT_VOID_P_ALIGN, AT_CHAR_ALIGN,
+                                  AT_SHORT_ALIGN, AT_LONG_ALIGN, AT_FLOAT_ALIGN,
+                                  AT_VOID_P_ALIGN, AT_CHAR_P_ALIGN, AT_VOID_P_ALIGN,
+                                  AT_VOID_P_ALIGN};
   static const char *const typenames[] = {"int", "double", "char", "string",
                                           "uint", "ushort", "ulong", "ref uint",
                                           "pointer", "byte", "short", "long",
                                           "float", "callback", "ref char",
                                           "ref int", "ref double", NULL};
-  lua_pushnumber(L, aligns[luaL_checkoption(L, 1, "char", typenames)]);
+  lua_pushinteger(L, aligns[luaL_checkoption(L, 1, "char", typenames)]);
   return 1;
 }
 
@@ -923,7 +923,7 @@ static int alien_buffer_new(lua_State *L) {
     return 1;
   } else {
     s = NULL;
-    size = luaL_optint(L, 1, BUFSIZ);
+    size = luaL_optinteger(L, 1, BUFSIZ);
   }
   b = (char *)lua_newuserdata(L, size);
   if(b) {
@@ -946,14 +946,15 @@ static int alien_buffer_new(lua_State *L) {
 
 static int alien_buffer_tostring(lua_State *L) {
   char *b;
-  int size, offset;
+  size_t size;
+  ptrdiff_t offset;
   b = alien_checkbuffer(L, 1);
   if(lua_gettop(L) < 2 || lua_isnil(L, 2)) {
     size = strlen(b);
     offset = 0;
   } else {
     size = luaL_checkinteger(L, 2);
-    offset = luaL_optint(L, 3, 1) - 1;
+    offset = luaL_optinteger(L, 3, 1) - 1;
   }
   lua_pushlstring(L, b + offset, size);
   return 1;
@@ -967,7 +968,7 @@ static int alien_buffer_len(lua_State *L) {
 
 static int alien_buffer_topointer(lua_State *L) {
   char *b = alien_checkbuffer(L, 1);
-  int offset = luaL_optint(L, 2, 1) - 1;
+  ptrdiff_t offset = luaL_optinteger(L, 2, 1) - 1;
   lua_pushlightuserdata(L, b + offset);
   return 1;
 }
@@ -999,7 +1000,7 @@ static int alien_buffer_get(lua_State *L) {
                         (lua_CFunction)funcs[luaL_checkoption(L, 2, "tostring", funcnames)]);
   } else {
     void *p;
-    int offset = luaL_checkinteger(L, 2) - 1;
+    ptrdiff_t offset = luaL_checkinteger(L, 2) - 1;
     int type = types[luaL_checkoption(L, 3, "char", typenames)];
     switch(type) {
     case AT_SHORT: lua_pushnumber(L, *((short*)(&b[offset]))); break;
@@ -1041,7 +1042,7 @@ static int alien_buffer_put(lua_State *L) {
      "ref int", "uint", "ushort", "ulong", "ref uint", "ref double", "ref char", "callback",
      "short", "byte", "long", "float", NULL};
   char *b = alien_checkbuffer(L, 1);
-  int offset = luaL_checkinteger(L, 2) - 1;
+  ptrdiff_t offset = luaL_checkinteger(L, 2) - 1;
   int type = types[luaL_checkoption(L, 4, "char", typenames)];
   switch(type) {
   case AT_SHORT: *((short*)(&b[offset])) = (short)lua_tonumber(L, 3); break;
@@ -1165,7 +1166,7 @@ static int alien_errno(lua_State *L) {
 
 static int alien_udata2str(lua_State *L) {
   char *ud;
-  int size;
+  size_t size;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
@@ -1182,7 +1183,7 @@ static int alien_udata2str(lua_State *L) {
 
 static int alien_udata2double(lua_State *L) {
   double *ud;
-  int size, i;
+  size_t size, i;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
@@ -1200,7 +1201,7 @@ static int alien_udata2double(lua_State *L) {
 
 static int alien_udata2int(lua_State *L) {
   int *ud;
-  int size, i;
+  size_t size, i;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
@@ -1219,7 +1220,7 @@ static int alien_udata2int(lua_State *L) {
 
 static int alien_udata2uint(lua_State *L) {
   unsigned int *ud;
-  int size, i;
+  size_t size, i;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
@@ -1238,7 +1239,7 @@ static int alien_udata2uint(lua_State *L) {
 
 static int alien_udata2short(lua_State *L) {
   short *ud;
-  int size, i;
+  size_t size, i;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
@@ -1256,7 +1257,7 @@ static int alien_udata2short(lua_State *L) {
 
 static int alien_udata2ushort(lua_State *L) {
   unsigned short *ud;
-  int size, i;
+  size_t size, i;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
@@ -1274,7 +1275,7 @@ static int alien_udata2ushort(lua_State *L) {
 
 static int alien_udata2char(lua_State *L) {
   char *ud;
-  int size, i;
+  size_t size, i;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
@@ -1292,7 +1293,7 @@ static int alien_udata2char(lua_State *L) {
 
 static int alien_udata2long(lua_State *L) {
   long *ud;
-  int size, i;
+  size_t size, i;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
@@ -1310,7 +1311,7 @@ static int alien_udata2long(lua_State *L) {
 
 static int alien_udata2ulong(lua_State *L) {
   unsigned long *ud;
-  int size, i;
+  size_t size, i;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
@@ -1328,7 +1329,7 @@ static int alien_udata2ulong(lua_State *L) {
 
 static int alien_udata2float(lua_State *L) {
   float *ud;
-  int size, i;
+  size_t size, i;
   if(lua_isnil(L, 1)) {
     lua_pushnil(L);
     return 1;
@@ -1371,10 +1372,10 @@ static int alien_memmove(lua_State *L) {
     luaL_typerror(L, 2, "string, userdata, or light userdata");
   if (lua_isuserdata(L, 2)) {
     src = lua_touserdata(L, 2);
-    size = luaL_checkint(L, 3);
+    size = luaL_checkinteger(L, 3);
   } else {
     src = (void*)lua_tolstring(L, 2, &size);
-    size = luaL_optint(L, 3, size);
+    size = luaL_optinteger(L, 3, size);
   }
   if (size > 0)
     memmove(dst, src, size);
