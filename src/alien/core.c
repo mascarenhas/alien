@@ -438,24 +438,18 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
     case AT_BYTE: lua_pushnumber(ac->L, (signed char)*((int*)args[i])); break;
     case AT_CHAR: lua_pushnumber(ac->L, (uchar)*((int*)args[i])); break;
     case AT_SHORT: lua_pushnumber(ac->L, (short)*((int*)args[i])); break;
-    case AT_LONG:
-      lua_pushnumber(ac->L, (long)*((long*)args[i])); break;
+    case AT_LONG: lua_pushnumber(ac->L, (long)*((long*)args[i])); break;
     case AT_INT: lua_pushnumber(ac->L, *((int*)args[i])); break;
     case AT_USHORT: lua_pushnumber(ac->L, (unsigned short)*((unsigned int*)args[i])); break;
-    case AT_ULONG:
-      lua_pushnumber(ac->L, (unsigned long)*((unsigned long*)args[i])); break;
+    case AT_ULONG: lua_pushnumber(ac->L, (unsigned long)*((unsigned long*)args[i])); break;
     case AT_UINT: lua_pushnumber(ac->L, *((unsigned int*)args[i])); break;
     case AT_FLOAT: lua_pushnumber(ac->L, (float)*((float*)args[i])); break;
     case AT_DOUBLE: lua_pushnumber(ac->L, *((double*)args[i])); break;
     case AT_STRING: lua_pushstring(ac->L, *((char**)args[i])); break;
-    case AT_REFINT:
-      lua_pushnumber(ac->L, **((int**)args[i])); break;
-    case AT_REFUINT:
-      lua_pushnumber(ac->L, **((unsigned int**)args[i])); break;
-    case AT_REFCHAR:
-      lua_pushnumber(ac->L, **((uchar**)args[i])); break;
-    case AT_REFDOUBLE:
-      lua_pushnumber(ac->L, **((double**)args[i])); break;
+    case AT_REFINT: lua_pushnumber(ac->L, **((int**)args[i])); break;
+    case AT_REFUINT: lua_pushnumber(ac->L, **((unsigned int**)args[i])); break;
+    case AT_REFCHAR: lua_pushnumber(ac->L, **((uchar**)args[i])); break;
+    case AT_REFDOUBLE: lua_pushnumber(ac->L, **((double**)args[i])); break;
     case AT_PTR:
       ptr = *((void**)args[i]);
       ptr ? lua_pushlightuserdata(ac->L, ptr) : lua_pushnil(ac->L);
@@ -467,12 +461,10 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
   switch(ac->ret_type) {
   case AT_VOID: break;
   case AT_SHORT: *((int*)resp) = (short)lua_tonumber(ac->L, -1); break;
-  case AT_LONG:
-    *((long*)resp) = (long)lua_tonumber(ac->L, -1); break;
+  case AT_LONG: *((long*)resp) = (long)lua_tonumber(ac->L, -1); break;
   case AT_INT: *((int*)resp) = (int)lua_tonumber(ac->L, -1); break;
   case AT_USHORT: *((unsigned int*)resp) = (unsigned short)lua_tonumber(ac->L, -1); break;
-  case AT_ULONG:
-    *((unsigned long*)resp) = (unsigned long)lua_tonumber(ac->L, -1); break;
+  case AT_ULONG: *((unsigned long*)resp) = (unsigned long)lua_tonumber(ac->L, -1); break;
   case AT_UINT: *((unsigned int*)resp) = (unsigned int)lua_tonumber(ac->L, -1); break;
   case AT_CHAR: *((int*)resp) = (uchar)lua_tointeger(ac->L, -1); break;
   case AT_BYTE: *((int*)resp) = (signed char)lua_tointeger(ac->L, -1); break;
