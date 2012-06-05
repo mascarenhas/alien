@@ -273,13 +273,10 @@ static void *alien_checkudata(lua_State *L, int ud, const char *tname) {
   if(p == NULL) return NULL;
   if(!lua_getmetatable(L, ud)) return NULL;
   lua_getfield(L, LUA_REGISTRYINDEX, tname);
-  if(!lua_rawequal(L, -1, -2)) {
-    lua_pop(L, 2);
-    return NULL;
-  } else {
-    lua_pop(L, 2);
-    return p;
-  }
+  if(!lua_rawequal(L, -1, -2))
+    p = NULL;
+  lua_pop(L, 2);
+  return p;
 }
 
 static alien_Library *alien_checklibrary(lua_State *L, int index) {
@@ -337,90 +334,74 @@ static char *alien_checkbuffer(lua_State *L, int index) {
 }
 
 static int alien_get(lua_State *L) {
-  char *name;
-  const char *libname;
   size_t len;
-  void *aud;
+  void *aud, *lib;
+  alien_Library *al;
+  const char *libname = luaL_checklstring(L, lua_gettop(L), &len);
   lua_Alloc lalloc = lua_getallocf(L, &aud);
-  libname = luaL_checklstring(L, lua_gettop(L), &len);
-  name = (char*)lalloc(aud, NULL, 0, sizeof(char) * (len + 1));
-  if(name) {
-    void *lib;
-    alien_Library *al;
-    strcpy(name, libname);
-    al = (alien_Library *)lua_newuserdata(L, sizeof(alien_Library));
-    if(!al) luaL_error(L, "out of memory!");
-    lib = alien_load(L, libname);
-    if(lib) {
-      lua_newtable(L);
-      lua_setfenv(L, -2);
-      luaL_getmetatable(L, ALIEN_LIBRARY_META);
-      lua_setmetatable(L, -2);
-      al->lib = lib;
-      al->name = name;
-      return 1;
-    } else {
-      lua_error(L);
-    }
-  } else {
-    luaL_error(L, "out of memory!");
-  }
-  return 0;
+  char *name = (char*)lalloc(aud, NULL, 0, sizeof(char) * (len + 1));
+  if(!name)
+    return luaL_error(L, "out of memory!");
+  strcpy(name, libname);
+  al = (alien_Library *)lua_newuserdata(L, sizeof(alien_Library));
+  if(!al) return luaL_error(L, "out of memory!");
+  lib = alien_load(L, libname);
+  if(!lib)
+    return lua_error(L);
+  lua_newtable(L);
+  lua_setfenv(L, -2);
+  luaL_getmetatable(L, ALIEN_LIBRARY_META);
+  lua_setmetatable(L, -2);
+  al->lib = lib;
+  al->name = name;
+  return 1;
 }
 
 static int alien_makefunction(lua_State *L, void *lib, void *fn, char *name) {
-  alien_Function *af;
-  af = (alien_Function *)lua_newuserdata(L, sizeof(alien_Function));
-  if(af) {
-    luaL_getmetatable(L, ALIEN_FUNCTION_META);
-    lua_setmetatable(L, -2);
-    af->fn = fn;
-    af->name = name;
-    af->lib = lib;
-    af->nparams = 0;
-    af->ret_type = AT_VOID;
-    af->params = NULL;
-    af->ffi_params = NULL;
-  } else luaL_error(L, "out of memory!");
+  alien_Function *af = (alien_Function *)lua_newuserdata(L, sizeof(alien_Function));
+  if(!af)
+    return luaL_error(L, "out of memory!");
+  luaL_getmetatable(L, ALIEN_FUNCTION_META);
+  lua_setmetatable(L, -2);
+  af->fn = fn;
+  af->name = name;
+  af->lib = lib;
+  af->nparams = 0;
+  af->ret_type = AT_VOID;
+  af->params = NULL;
+  af->ffi_params = NULL;
   return 1;
 }
 
 static int alien_library_get(lua_State *L) {
-  const char *funcname;
   char *name;
-  size_t len;
-  alien_Library *al;
   int cache;
-  void *aud;
+  void *aud, *fn;
   lua_Alloc lalloc = lua_getallocf(L, &aud);
-  al = alien_checklibrary(L, 1);
-  funcname = luaL_checklstring(L, 2, &len);
+  alien_Library *al = alien_checklibrary(L, 1);
+  size_t len;
+  const char *funcname = luaL_checklstring(L, 2, &len);
   lua_getfenv(L, 1);
   cache = lua_gettop(L);
   lua_getfield(L, cache, funcname);
   if(!lua_isnil(L, -1)) return 1;
   name = (char*)lalloc(aud, NULL, 0, sizeof(char) * (len + 1));
-  if(name) {
-    void *fn;
-    strcpy(name, funcname);
-    fn = alien_loadfunc(L, al->lib, funcname);
-    if(fn) {
-      alien_makefunction(L, al, fn, name);
-      lua_newtable(L);
-      lua_pushvalue(L, 1);
-      lua_rawseti(L, -2, 1);
-      lua_setfenv(L, -2);
-      lua_pushvalue(L, -1);
-      lua_setfield(L, cache, funcname);
-      return 1;
-    } else {
-      lalloc(aud, name, 0, 0);
-      lua_error(L);
-    }
-  } else {
-    luaL_error(L, "out of memory!");
+  if(!name)
+    return luaL_error(L, "out of memory!");
+  strcpy(name, funcname);
+  fn = alien_loadfunc(L, al->lib, funcname);
+  if(!fn) {
+    lalloc(aud, name, 0, 0);
+    return lua_error(L);
   }
-  return 0;
+  alien_makefunction(L, al, fn, name);
+  lua_newtable(L);
+  lua_pushvalue(L, 1);
+  lua_rawseti(L, -2, 1);
+  lua_setfenv(L, -2);
+  lua_pushvalue(L, -1);
+  lua_setfield(L, cache, funcname);
+  return 1;
 }
 
 static int alien_function_new(lua_State *L) {
@@ -431,20 +412,16 @@ static int alien_function_new(lua_State *L) {
 }
 
 static int alien_library_tostring(lua_State *L) {
-  alien_Library *al;
-  al = alien_checklibrary(L, 1);
+  alien_Library *al = alien_checklibrary(L, 1);
   lua_pushfstring(L, "alien library %s", (al->name ? al->name : "default"));
   return 1;
 }
 
 static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *data) {
-  alien_Callback *ac;
-  int nparams, i;
-  void *ptr;
-  ac = (alien_Callback *)data;
+  alien_Callback *ac = (alien_Callback *)data;
+  int i;
   lua_rawgeti(ac->L, LUA_REGISTRYINDEX, ac->fn_ref);
-  nparams = ac->nparams;
-  for(i = 0; i < nparams; i++) {
+  for(i = 0; i < ac->nparams; i++) {
     switch(ac->params[i]) {
     case AT_BYTE: lua_pushnumber(ac->L, (signed char)*((int*)args[i])); break;
     case AT_CHAR: lua_pushnumber(ac->L, (uchar)*((int*)args[i])); break;
@@ -462,13 +439,15 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
     case AT_REFCHAR: lua_pushnumber(ac->L, **((uchar**)args[i])); break;
     case AT_REFDOUBLE: lua_pushnumber(ac->L, **((double**)args[i])); break;
     case AT_PTR:
-      ptr = *((void**)args[i]);
-      ptr ? lua_pushlightuserdata(ac->L, ptr) : lua_pushnil(ac->L);
+      {
+        void *ptr = *((void**)args[i]);
+        ptr ? lua_pushlightuserdata(ac->L, ptr) : lua_pushnil(ac->L);
+      }
       break;
     default: luaL_error(ac->L, "alien: unknown parameter type in callback");
     }
   }
-  lua_call(ac->L, nparams, 1);
+  lua_call(ac->L, ac->nparams, 1);
   switch(ac->ret_type) {
   case AT_VOID: break;
   case AT_SHORT: *((int*)resp) = (short)lua_tonumber(ac->L, -1); break;
@@ -507,34 +486,32 @@ static int alien_callback_new(lua_State *L) {
   luaL_checktype(L, 1, LUA_TFUNCTION);
   ac = (alien_Callback *)lalloc(aud, NULL, 0, sizeof(alien_Callback));
   ud = (ffi_closure **)lua_newuserdata(L, sizeof(ffi_closure**) * 2);
-  if(ac != NULL && ud != NULL) {
-    *ud = ffi_closure_alloc(sizeof(ffi_closure), (void*)&ud[1]);
-    if(*ud == NULL) { lalloc(aud, ac, 0, 0); return luaL_error(L, "alien: cannot allocate callback"); }
-    ac->L = L;
-    ac->ret_type = AT_VOID;
-    ac->ffi_ret_type = &ffi_type_void;
-    abi = FFI_DEFAULT_ABI;
-    ac->nparams = 0;
-    ac->params = NULL;
-    ac->ffi_params = NULL;
-    lua_pushvalue(L, 1);
-    ac->fn_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-    luaL_getmetatable(L, ALIEN_CALLBACK_META);
-    lua_setmetatable(L, -2);
-    status = ffi_prep_cif(&(ac->cif), abi, ac->nparams,
-                          ac->ffi_ret_type, ac->ffi_params);
-    if(status != FFI_OK) return luaL_error(L, "alien: cannot create callback");
-    status = ffi_prep_closure_loc(*ud, &(ac->cif), &alien_callback_call, ac, ud[1]);
-    ac->fn = *ud;
-    ac->lib = NULL;
-    ac->name = NULL;
-    if(status != FFI_OK) return luaL_error(L, "alien: cannot create callback");
-    return 1;
-  } else {
+  if(ac == NULL || ud == NULL) {
     if(ac) lalloc(aud, ac, 0, 0);
     return luaL_error(L, "alien: cannot allocate callback");
   }
-  return 0;
+  *ud = ffi_closure_alloc(sizeof(ffi_closure), (void*)&ud[1]);
+  if(*ud == NULL) { lalloc(aud, ac, 0, 0); return luaL_error(L, "alien: cannot allocate callback"); }
+  ac->L = L;
+  ac->ret_type = AT_VOID;
+  ac->ffi_ret_type = &ffi_type_void;
+  abi = FFI_DEFAULT_ABI;
+  ac->nparams = 0;
+  ac->params = NULL;
+  ac->ffi_params = NULL;
+  lua_pushvalue(L, 1);
+  ac->fn_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+  luaL_getmetatable(L, ALIEN_CALLBACK_META);
+  lua_setmetatable(L, -2);
+  status = ffi_prep_cif(&(ac->cif), abi, ac->nparams,
+                        ac->ffi_ret_type, ac->ffi_params);
+  if(status != FFI_OK) return luaL_error(L, "alien: cannot create callback");
+  status = ffi_prep_closure_loc(*ud, &(ac->cif), &alien_callback_call, ac, ud[1]);
+  ac->fn = *ud;
+  ac->lib = NULL;
+  ac->name = NULL;
+  if(status != FFI_OK) return luaL_error(L, "alien: cannot create callback");
+  return 1;
 }
 
 static int alien_sizeof(lua_State *L) {
@@ -632,33 +609,30 @@ static int alien_function_types(lua_State *L) {
 }
 
 static int alien_function_tostring(lua_State *L) {
-  alien_Function*af;
-  af = alien_tofunction(L, 1);
+  alien_Function *af = alien_tofunction(L, 1);
   lua_pushfstring(L, "alien function %s, library %s", af->name ? af->name : "anonymous",
                    ((af->lib && af->lib->name) ? af->lib->name : "default"));
   return 1;
 }
 
 static int alien_function_call(lua_State *L) {
-  int i, j, nargs, nparams;
+  int i, j;
   int iret; double dret; void *pret; long lret; unsigned long ulret; float fret;
   int *refi_args = NULL, nrefi, nrefui, nrefd, nrefc;
   double *refd_args = NULL;
   char *refc_args = NULL;
   unsigned int *refui_args = NULL;
   void **args = NULL;
-  ffi_cif *cif;
   alien_Function *af = alien_tofunction(L, 1);
-  cif = &(af->cif);
-  nparams = af->nparams;
-  nargs = lua_gettop(L) - 1;
-  if(nargs < nparams)
+  ffi_cif *cif = &(af->cif);
+  int nargs = lua_gettop(L) - 1;
+  if(nargs < af->nparams)
     return luaL_error(L, "alien: too few arguments (function %s)", af->name ?
                       af->name : "anonymous");
-  else if(nargs > nparams)
+  else if(nargs > af->nparams)
     return luaL_error(L, "alien: too many arguments (function %s)", af->name ?
                       af->name : "anonymous");
-  for(i = 0, nrefi = 0, nrefui = 0, nrefd = 0, nrefc = 0; i < nparams; i++) {
+  for(i = 0, nrefi = 0, nrefui = 0, nrefd = 0, nrefc = 0; i < af->nparams; i++) {
     switch(af->params[i]) {
     case AT_REFINT: nrefi++; break;
     case AT_REFUINT: nrefui++; break;
@@ -672,7 +646,7 @@ static int alien_function_call(lua_State *L) {
   if(nrefd > 0) refd_args = (double*)alloca(sizeof(double) * nrefd);
   if(nrefc > 0) refc_args = (char*)alloca(sizeof(char) * nrefc);
   if(nargs > 0) args = alloca(sizeof(void*) * nargs);
-  for(i = 0, j = 2; i < nparams; i++, j++) {
+  for(i = 0, j = 2; i < af->nparams; i++, j++) {
     void *arg;
     switch(af->params[i]) {
     case AT_SHORT:
@@ -778,7 +752,7 @@ static int alien_function_call(lua_State *L) {
                       af->name : "anonymous");
   }
   refi_args -= nrefi; refd_args -= nrefd; refc_args -= nrefc; refui_args -= nrefui;
-  for(i = 0; i < nparams; i++) {
+  for(i = 0; i < af->nparams; i++) {
     switch(af->params[i]) {
     case AT_REFINT: lua_pushnumber(L, *refi_args); refi_args++; break;
     case AT_REFUINT: lua_pushnumber(L, *refui_args); refui_args++; break;
@@ -833,11 +807,10 @@ static int alien_register(lua_State *L) {
 }
 
 static int alien_pack(lua_State *L) {
-  int i, top;
-  alien_Wrap *ud;
+  int i;
   const char *meta = luaL_checkstring(L, 1);
-  ud = (alien_Wrap*)lua_newuserdata(L, sizeof(alien_Wrap) * lua_gettop(L));
-  top = lua_gettop(L);
+  alien_Wrap *ud = (alien_Wrap*)lua_newuserdata(L, sizeof(alien_Wrap) * lua_gettop(L));
+  int top = lua_gettop(L);
   for(i = 2; i < top ; i++) {
     if(lua_isnil(L, i)) {
       ud[i - 2].tag = AT_PTR;
@@ -858,9 +831,8 @@ static int alien_pack(lua_State *L) {
 }
 
 static int alien_unpack(lua_State *L) {
-  alien_Wrap *ud;
   const char *meta = luaL_checkstring(L, 1);
-  ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
+  alien_Wrap *ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
   while(ud->tag != AT_VOID) {
     switch(ud->tag) {
     case AT_INT: lua_pushnumber(L, ud->val.i); break;
@@ -874,12 +846,10 @@ static int alien_unpack(lua_State *L) {
 }
 
 static int alien_repack(lua_State *L) {
-  int i, top;
-  alien_Wrap *ud;
   const char *meta = luaL_checkstring(L, 1);
-  ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
-  i = 3;
-  top = lua_gettop(L);
+  alien_Wrap *ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
+  int i = 3;
+  int top = lua_gettop(L);
   while(ud->tag != AT_VOID) {
     if(i > top || lua_isnil(L, i)) {
       ud->tag = AT_PTR;
@@ -915,28 +885,25 @@ static int alien_buffer_new(lua_State *L) {
     size = luaL_optinteger(L, 1, BUFSIZ);
   }
   b = (char *)lua_newuserdata(L, size);
-  if(b) {
-    if(s) {
-      memcpy(b, s, size - 1);
-      b[size - 1] = '\0';
-    }
-    lua_newtable(L);
-    lua_pushnumber(L, size);
-    lua_setfield(L, -2, "size");
-    lua_setfenv(L, -2);
-    luaL_getmetatable(L, ALIEN_BUFFER_META);
-    lua_setmetatable(L, -2);
-    return 1;
-  } else
+  if(!b)
     return luaL_error(L, "cannot allocate buffer");
-  return 0;
+  if(s) {
+    memcpy(b, s, size - 1);
+    b[size - 1] = '\0';
+  }
+  lua_newtable(L);
+  lua_pushnumber(L, size);
+  lua_setfield(L, -2, "size");
+  lua_setfenv(L, -2);
+  luaL_getmetatable(L, ALIEN_BUFFER_META);
+  lua_setmetatable(L, -2);
+  return 1;
 }
 
 static int alien_buffer_tostring(lua_State *L) {
-  char *b;
   size_t size;
   ptrdiff_t offset;
-  b = alien_checkbuffer(L, 1);
+  char *b = alien_checkbuffer(L, 1);
   if(lua_gettop(L) < 2 || lua_isnil(L, 2)) {
     size = strlen(b);
     offset = 0;
@@ -1153,169 +1120,34 @@ static int alien_udata2str(lua_State *L) {
   return 1;
 }
 
-static int alien_udata2double(lua_State *L) {
-  double *ud;
-  size_t size, i;
-  if(lua_isnil(L, 1)) {
-    lua_pushnil(L);
-    return 1;
+#define alien_udata2x(name, type) \
+  static int alien_udata2 ## name(lua_State *L) { \
+    type *ud; \
+    size_t size, i; \
+    if(lua_isnil(L, 1)) { \
+      lua_pushnil(L); \
+      return 1; \
+    } \
+    luaL_checktype(L, 1, LUA_TLIGHTUSERDATA); \
+    if(lua_gettop(L) < 2 || lua_isnil(L, 2)) \
+      size = 1; \
+    else \
+      size = luaL_checkinteger(L, 2); \
+    ud = (type *)lua_touserdata(L, 1); \
+    for(i = 0; i < size; i++) \
+      lua_pushnumber(L, ud[i]); \
+    return size; \
   }
-  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
-  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
-    size = 1;
-  else
-    size = luaL_checkinteger(L, 2);
-  ud = (double *)lua_touserdata(L, 1);
-  for(i = 0; i < size; i++)
-    lua_pushnumber(L, ud[i]);
-  return size;
-}
 
-static int alien_udata2int(lua_State *L) {
-  int *ud;
-  size_t size, i;
-  if(lua_isnil(L, 1)) {
-    lua_pushnil(L);
-    return 1;
-  }
-  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
-  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
-    size = 1;
-  else
-    size = luaL_checkinteger(L, 2);
-  ud = (int *)lua_touserdata(L, 1);
-  for(i = 0; i < size; i++) {
-    lua_pushnumber(L, ud[i]);
-  }
-  return size;
-}
-
-static int alien_udata2uint(lua_State *L) {
-  unsigned int *ud;
-  size_t size, i;
-  if(lua_isnil(L, 1)) {
-    lua_pushnil(L);
-    return 1;
-  }
-  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
-  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
-    size = 1;
-  else
-    size = luaL_checkinteger(L, 2);
-  ud = (unsigned int *)lua_touserdata(L, 1);
-  for(i = 0; i < size; i++) {
-    lua_pushnumber(L, ud[i]);
-  }
-  return size;
-}
-
-static int alien_udata2short(lua_State *L) {
-  short *ud;
-  size_t size, i;
-  if(lua_isnil(L, 1)) {
-    lua_pushnil(L);
-    return 1;
-  }
-  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
-  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
-    size = 1;
-  else
-    size = luaL_checkinteger(L, 2);
-  ud = (short *)lua_touserdata(L, 1);
-  for(i = 0; i < size; i++)
-    lua_pushnumber(L, ud[i]);
-  return size;
-}
-
-static int alien_udata2ushort(lua_State *L) {
-  unsigned short *ud;
-  size_t size, i;
-  if(lua_isnil(L, 1)) {
-    lua_pushnil(L);
-    return 1;
-  }
-  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
-  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
-    size = 1;
-  else
-    size = luaL_checkinteger(L, 2);
-  ud = (unsigned short *)lua_touserdata(L, 1);
-  for(i = 0; i < size; i++)
-    lua_pushnumber(L, ud[i]);
-  return size;
-}
-
-static int alien_udata2char(lua_State *L) {
-  char *ud;
-  size_t size, i;
-  if(lua_isnil(L, 1)) {
-    lua_pushnil(L);
-    return 1;
-  }
-  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
-  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
-    size = 1;
-  else
-    size = luaL_checkinteger(L, 2);
-  ud = (char *)lua_touserdata(L, 1);
-  for(i = 0; i < size; i++)
-    lua_pushnumber(L, ud[i]);
-  return size;
-}
-
-static int alien_udata2long(lua_State *L) {
-  long *ud;
-  size_t size, i;
-  if(lua_isnil(L, 1)) {
-    lua_pushnil(L);
-    return 1;
-  }
-  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
-  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
-    size = 1;
-  else
-    size = luaL_checkinteger(L, 2);
-  ud = (long *)lua_touserdata(L, 1);
-  for(i = 0; i < size; i++)
-    lua_pushnumber(L, ud[i]);
-  return size;
-}
-
-static int alien_udata2ulong(lua_State *L) {
-  unsigned long *ud;
-  size_t size, i;
-  if(lua_isnil(L, 1)) {
-    lua_pushnil(L);
-    return 1;
-  }
-  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
-  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
-    size = 1;
-  else
-    size = luaL_checkinteger(L, 2);
-  ud = (unsigned long *)lua_touserdata(L, 1);
-  for(i = 0; i < size; i++)
-    lua_pushnumber(L, ud[i]);
-  return size;
-}
-
-static int alien_udata2float(lua_State *L) {
-  float *ud;
-  size_t size, i;
-  if(lua_isnil(L, 1)) {
-    lua_pushnil(L);
-    return 1;
-  }
-  luaL_checktype(L, 1, LUA_TLIGHTUSERDATA);
-  if(lua_gettop(L) < 2 || lua_isnil(L, 2))
-    size = 1;
-  else
-    size = luaL_checkinteger(L, 2);
-  ud = (float *)lua_touserdata(L, 1);
-  for(i = 0; i < size; i++)
-    lua_pushnumber(L, ud[i]);
-  return size;
-}
+alien_udata2x(char, char)
+alien_udata2x(short, short)
+alien_udata2x(ushort, unsigned short)
+alien_udata2x(int, int)
+alien_udata2x(uint, unsigned int)
+alien_udata2x(long, long)
+alien_udata2x(ulong, unsigned long)
+alien_udata2x(float, float)
+alien_udata2x(double, double)
 
 static int alien_isnull(lua_State *L) {
   void *ud;
@@ -1334,10 +1166,9 @@ static int alien_table_new(lua_State *L) {
 }
 
 static int alien_memmove(lua_State *L) {
-  void* dst;
   void* src;
   size_t size;
-  dst = lua_touserdata(L, 1);
+  void *dst = lua_touserdata(L, 1);
   if(!dst)
     return luaL_typerror(L, 1, "userdata");
   if (!(lua_isuserdata(L, 2) || lua_isstring(L, 2)))
@@ -1355,10 +1186,9 @@ static int alien_memmove(lua_State *L) {
 }
 
 static int alien_memset(lua_State *L) {
-  void* dst;
   int c;
   size_t n;
-  dst = lua_touserdata(L, 1);
+  void *dst = lua_touserdata(L, 1);
   if(!dst)
     return luaL_typerror(L, 1, "userdata");
   c = luaL_checkinteger(L, 2);
