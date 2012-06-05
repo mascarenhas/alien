@@ -9,7 +9,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 dnl Check for programs
 AC_PROG_CC
-AS_IF([test "x$GCC" = "xyes"],[CFLAGS_STACK="-fno-stack-protector"])
+AS_IF([test "x$GCC" = "xyes"],[CFLAGS_STACK="-fno-stack-protector -Wall"])
 AC_SUBST(CFLAGS_STACK)
 
 dnl Set up libtool
@@ -26,14 +26,17 @@ AC_SUBST(LIBTOOL_DEPS)
 dnl Check for header files
 AC_HEADER_STDC
 
+dnl Check for functions
+AC_FUNC_ALLOCA
+
 dnl libffi
 AC_CHECK_HEADER([ffi.h], , AC_MSG_FAILURE([cannot find ffi.h]))
 AC_CHECK_LIB([ffi], [ffi_call], , AC_MSG_FAILURE([cannot find libffi]))
 
 dnl Lua 5.1
-AX_PROG_LUA(501)
+AX_PROG_LUA(501, 503)
 AX_LUA_HEADERS
-AX_LUA_HEADERS_VERSION(501)
+AX_LUA_HEADERS_VERSION(501, 503)
 AC_SUBST(LUA)
 AC_SUBST(LUA_INCLUDE)
 
