@@ -1,5 +1,3 @@
-
-pcall(require, "luarocks.require")
 require "alien"
 require "alien.struct"
 
