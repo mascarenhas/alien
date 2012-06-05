@@ -928,14 +928,48 @@ static int alien_buffer_topointer(lua_State *L) {
   return 1;
 }
 
-static int alien_buffer_put(lua_State *L);
+static int alien_buffer_set(lua_State *L) {
+  char *b = alien_checkbuffer(L, 1);
+  ptrdiff_t offset = luaL_checkinteger(L, 2) - 1;
+  int type = luaL_checkoption(L, 4, "char", alien_typenames);
+  switch(type) {
+  case AT_SHORT: *((short*)(&b[offset])) = (short)lua_tonumber(L, 3); break;
+  case AT_INT: *((int*)(&b[offset])) = (int)lua_tonumber(L, 3); break;
+  case AT_LONG: *((long*)(&b[offset])) = (long)lua_tonumber(L, 3); break;
+  case AT_USHORT: *((unsigned short*)(&b[offset])) = (unsigned short)lua_tonumber(L, 3); break;
+  case AT_UINT: *((unsigned int*)(&b[offset])) = (unsigned int)lua_tonumber(L, 3); break;
+  case AT_ULONG: *((unsigned long*)(&b[offset])) = (unsigned long)lua_tonumber(L, 3); break;
+  case AT_BYTE: b[offset] = (signed char)lua_tointeger(L, 3); break;
+  case AT_CHAR: b[offset] = (char)lua_tointeger(L, 3); break;
+  case AT_FLOAT: *((float*)(&b[offset])) = (float)lua_tonumber(L, 3); break;
+  case AT_DOUBLE: *((double*)(&b[offset])) = (double)lua_tonumber(L, 3); break;
+  case AT_PTR: {
+        if(lua_isnil(L, 3) || lua_isuserdata(L, 3)) {
+          *((void**)(&b[offset])) =
+              (lua_isnil(L, 3) ? NULL : lua_touserdata(L, 3));
+          break;
+        }
+      }
+  case AT_STRING: {
+       const char *s;
+       size_t size;
+       s = lua_tolstring(L, 3, &size);
+       memcpy(*((char**)(&b[offset])), s, size + 1);
+       break;
+      }
+  case AT_CALLBACK: *((void**)(&b[offset])) = alien_tocallback(L, 3); break;
+  default:
+    return luaL_error(L, "alien: unknown type in buffer:put");
+  }
+  return 0;
+}
 
 static int alien_buffer_get(lua_State *L) {
   static const void* funcs[] = {&alien_buffer_tostring,
                                 &alien_buffer_topointer,
                                 &alien_buffer_len,
                                 &alien_buffer_get,
-                                &alien_buffer_put};
+                                &alien_buffer_set};
   static const char *const funcnames[] = { "tostring", "topointer", "len", "get", "set", NULL };
   char *b = alien_checkbuffer(L, 1);
   if(lua_type(L, 2) == LUA_TSTRING) {
@@ -977,42 +1011,6 @@ static int alien_buffer_get(lua_State *L) {
     }
   }
   return 1;
-}
-
-static int alien_buffer_put(lua_State *L) {
-  char *b = alien_checkbuffer(L, 1);
-  ptrdiff_t offset = luaL_checkinteger(L, 2) - 1;
-  int type = luaL_checkoption(L, 4, "char", alien_typenames);
-  switch(type) {
-  case AT_SHORT: *((short*)(&b[offset])) = (short)lua_tonumber(L, 3); break;
-  case AT_INT: *((int*)(&b[offset])) = (int)lua_tonumber(L, 3); break;
-  case AT_LONG: *((long*)(&b[offset])) = (long)lua_tonumber(L, 3); break;
-  case AT_USHORT: *((unsigned short*)(&b[offset])) = (unsigned short)lua_tonumber(L, 3); break;
-  case AT_UINT: *((unsigned int*)(&b[offset])) = (unsigned int)lua_tonumber(L, 3); break;
-  case AT_ULONG: *((unsigned long*)(&b[offset])) = (unsigned long)lua_tonumber(L, 3); break;
-  case AT_BYTE: b[offset] = (signed char)lua_tointeger(L, 3); break;
-  case AT_CHAR: b[offset] = (char)lua_tointeger(L, 3); break;
-  case AT_FLOAT: *((float*)(&b[offset])) = (float)lua_tonumber(L, 3); break;
-  case AT_DOUBLE: *((double*)(&b[offset])) = (double)lua_tonumber(L, 3); break;
-  case AT_PTR: {
-        if(lua_isnil(L, 3) || lua_isuserdata(L, 3)) {
-          *((void**)(&b[offset])) =
-              (lua_isnil(L, 3) ? NULL : lua_touserdata(L, 3));
-          break;
-        }
-      }
-  case AT_STRING: {
-       const char *s;
-       size_t size;
-       s = lua_tolstring(L, 3, &size);
-       memcpy(*((char**)(&b[offset])), s, size + 1);
-       break;
-      }
-  case AT_CALLBACK: *((void**)(&b[offset])) = alien_tocallback(L, 3); break;
-  default:
-    return luaL_error(L, "alien: unknown type in buffer:put");
-  }
-  return 0;
 }
 
 static int alien_register_library_meta(lua_State *L) {
@@ -1078,7 +1076,7 @@ static int alien_register_buffer_meta(lua_State *L) {
   lua_pushcfunction(L, alien_buffer_get);
   lua_settable(L, -3);
   lua_pushliteral(L, "__newindex");
-  lua_pushcfunction(L, alien_buffer_put);
+  lua_pushcfunction(L, alien_buffer_set);
   lua_settable(L, -3);
   lua_pushliteral(L, "__tostring");
   lua_pushcfunction(L, alien_buffer_tostring);
@@ -1089,7 +1087,7 @@ static int alien_register_buffer_meta(lua_State *L) {
   lua_pushcfunction(L, alien_buffer_get);
   lua_settable(L, -3);
   lua_pushliteral(L, "__newindex");
-  lua_pushcfunction(L, alien_buffer_put);
+  lua_pushcfunction(L, alien_buffer_set);
   lua_settable(L, -3);
   lua_pushliteral(L, "__tostring");
   lua_pushcfunction(L, alien_buffer_tostring);
