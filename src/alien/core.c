@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include <errno.h>
 
@@ -42,14 +43,6 @@ static void *luaL_testudata(lua_State *L, int ud, const char *tname) {
 }
 #endif
 
-#ifdef STDC_HEADERS
-# include <stdlib.h>
-# include <stddef.h>
-#else
-# ifdef HAVE_STDLIB_H
-#  include <stdlib.h>
-# endif
-#endif
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
 #elif defined __GNUC__
@@ -156,14 +149,14 @@ typedef struct { char c; double x; } s_double;
 typedef struct { char c; char *x; } s_char_p;
 typedef struct { char c; void *x; } s_void_p;
 
-#define AT_CHAR_ALIGN (sizeof(s_char) - sizeof(char))
-#define AT_SHORT_ALIGN (sizeof(s_short) - sizeof(short))
-#define AT_INT_ALIGN (sizeof(s_int) - sizeof(int))
-#define AT_LONG_ALIGN (sizeof(s_long) - sizeof(long))
-#define AT_FLOAT_ALIGN (sizeof(s_float) - sizeof(float))
-#define AT_DOUBLE_ALIGN (sizeof(s_double) - sizeof(double))
-#define AT_CHAR_P_ALIGN (sizeof(s_char_p) - sizeof(char*))
-#define AT_VOID_P_ALIGN (sizeof(s_void_p) - sizeof(void*))
+#define AT_CHAR_ALIGN (offsetof(s_char, x))
+#define AT_SHORT_ALIGN (offsetof(s_short, x))
+#define AT_INT_ALIGN (offsetof(s_int, x))
+#define AT_LONG_ALIGN (offsetof(s_long, x))
+#define AT_FLOAT_ALIGN (offsetof(s_float, x))
+#define AT_DOUBLE_ALIGN (offsetof(s_double, x))
+#define AT_CHAR_P_ALIGN (offsetof(s_char_p, x))
+#define AT_VOID_P_ALIGN (offsetof(s_void_p, x))
 
 /******************************************************************/
 
