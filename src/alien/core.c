@@ -29,6 +29,17 @@ static int luaL_typerror (lua_State *L, int narg, const char *tname) {
                                     tname, luaL_typename(L, narg));
   return luaL_argerror(L, narg, msg);
 }
+#else
+static void *luaL_testudata(lua_State *L, int ud, const char *tname) {
+  void *p = lua_touserdata(L, ud);
+  if(p == NULL) return NULL;
+  if(!lua_getmetatable(L, ud)) return NULL;
+  lua_getfield(L, LUA_REGISTRYINDEX, tname);
+  if(!lua_rawequal(L, -1, -2))
+    p = NULL;
+  lua_pop(L, 2);
+  return p;
+}
 #endif
 
 #ifdef STDC_HEADERS
@@ -52,11 +63,11 @@ static int luaL_typerror (lua_State *L, int narg, const char *tname) {
 # error "cannot find alloca"
 #endif
 
-#define ALIEN_LIBRARY_META "alien_library"
-#define ALIEN_FUNCTION_META "alien_function"
-#define ALIEN_BUFFER_META "alien_buffer"
-#define ALIEN_LBUFFER_META "alien_lbuffer"
-#define ALIEN_CALLBACK_META "alien_callback"
+#define ALIEN_LIBRARY_META "alien library"
+#define ALIEN_FUNCTION_META "alien function"
+#define ALIEN_BUFFER_META "alien buffer"
+#define ALIEN_LBUFFER_META "alien light buffer"
+#define ALIEN_CALLBACK_META "alien callback"
 
 #ifndef uchar
 #define uchar unsigned char
@@ -268,66 +279,45 @@ static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
 static const ffi_abi ffi_abis[] = { FFI_DEFAULT_ABI, FFI_SYSV, FFI_STDCALL };
 static const char *const ffi_abi_names[] = { "default", "cdecl", "stdcall", NULL };
 
-static void *alien_checkudata(lua_State *L, int ud, const char *tname) {
-  void *p = lua_touserdata(L, ud);
-  if(p == NULL) return NULL;
-  if(!lua_getmetatable(L, ud)) return NULL;
-  lua_getfield(L, LUA_REGISTRYINDEX, tname);
-  if(!lua_rawequal(L, -1, -2))
-    p = NULL;
-  lua_pop(L, 2);
-  return p;
-}
-
 static alien_Library *alien_checklibrary(lua_State *L, int index) {
-  void *ud = alien_checkudata(L, index, ALIEN_LIBRARY_META);
-  luaL_argcheck(L, ud != NULL, index, "alien library expected");
-  return (alien_Library *)ud;
+  return (alien_Library *)luaL_checkudata(L, index, ALIEN_LIBRARY_META);
 }
 
 static alien_Function *alien_checkfunction(lua_State *L, int index) {
-  void *ud = alien_checkudata(L, index, ALIEN_FUNCTION_META);
-  luaL_argcheck(L, ud != NULL, index, "alien function expected");
-  return (alien_Function *)ud;
+  return (alien_Function *)luaL_checkudata(L, index, ALIEN_FUNCTION_META);
 }
 
 static alien_Function *alien_tofunction(lua_State *L, int index) {
-  void *ud = alien_checkudata(L, index, ALIEN_FUNCTION_META);
+  void *ud = luaL_testudata(L, index, ALIEN_FUNCTION_META);
   if(ud) return (alien_Function *)ud;
-  ud = alien_checkudata(L, index, ALIEN_CALLBACK_META);
-  if(ud) {
-    ffi_closure *ud2 = *((ffi_closure**)ud);
-    return (alien_Function *)ud2->user_data;
-  }
+  ud = luaL_testudata(L, index, ALIEN_CALLBACK_META);
+  if(ud) return (alien_Function *)(*((ffi_closure**)ud))->user_data;
   luaL_argcheck(L, 0, index, "alien function or callback expected");
   return NULL;
 }
 
 static ffi_closure *alien_tocallback(lua_State *L, int index) {
-  void *ud = alien_checkudata(L, index, ALIEN_CALLBACK_META);
+  void *ud = luaL_testudata(L, index, ALIEN_CALLBACK_META);
   if(ud) return *((ffi_closure **)ud);
-  ud = alien_checkudata(L, index, ALIEN_FUNCTION_META);
+  ud = luaL_testudata(L, index, ALIEN_FUNCTION_META);
   if(ud) return ((alien_Function *)ud)->fn;
   luaL_argcheck(L, 0, index, "alien function or callback expected");
   return NULL;
 }
 
 static ffi_closure *alien_checkcallback(lua_State *L, int index) {
-  void *ud = alien_checkudata(L, index, ALIEN_CALLBACK_META);
-  luaL_argcheck(L, ud != NULL, index, "alien callback expected");
-  return *((ffi_closure **)ud);
+  return *((ffi_closure **)luaL_checkudata(L, index, ALIEN_CALLBACK_META));
 }
 
 static int alien_iscallback(lua_State *L, int index) {
-  void *ud = alien_checkudata(L, index, ALIEN_CALLBACK_META);
-  return ud != NULL;
+  return luaL_testudata(L, index, ALIEN_CALLBACK_META) != NULL;
 }
 
 static char *alien_checkbuffer(lua_State *L, int index) {
-  void *ud = alien_checkudata(L, index, ALIEN_BUFFER_META);
+  void *ud = luaL_testudata(L, index, ALIEN_BUFFER_META);
   if(ud == NULL) {
-    void **ud2 = alien_checkudata(L, index, ALIEN_LBUFFER_META);
-    ud = *ud2;
+    void **ud2 = luaL_testudata(L, index, ALIEN_LBUFFER_META);
+    if (ud2) ud = *ud2;
   }
   luaL_argcheck(L, ud != NULL, index, "alien buffer expected");
   return (char *)ud;
