@@ -806,7 +806,7 @@ static int alien_register(lua_State *L) {
   return 1;
 }
 
-static int alien_pack(lua_State *L) {
+static int alien_wrap(lua_State *L) {
   int i;
   const char *meta = luaL_checkstring(L, 1);
   alien_Wrap *ud = (alien_Wrap*)lua_newuserdata(L, sizeof(alien_Wrap) * lua_gettop(L));
@@ -830,7 +830,7 @@ static int alien_pack(lua_State *L) {
   return 1;
 }
 
-static int alien_unpack(lua_State *L) {
+static int alien_unwrap(lua_State *L) {
   const char *meta = luaL_checkstring(L, 1);
   alien_Wrap *ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
   while(ud->tag != AT_VOID) {
@@ -845,7 +845,7 @@ static int alien_unpack(lua_State *L) {
   return lua_gettop(L) - 2;
 }
 
-static int alien_repack(lua_State *L) {
+static int alien_rewrap(lua_State *L) {
   const char *meta = luaL_checkstring(L, 1);
   alien_Wrap *ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
   int i = 3;
@@ -1199,9 +1199,9 @@ static const luaL_Reg alienlib[] = {
   {"load", alien_get},
   {"align", alien_align},
   {"tag", alien_register},
-  {"wrap", alien_pack},
-  {"rewrap", alien_repack},
-  {"unwrap", alien_unpack},
+  {"wrap", alien_wrap},
+  {"rewrap", alien_rewrap},
+  {"unwrap", alien_unwrap},
   {"errno", alien_errno},
   {"tostring", alien_udata2str},
   {"isnull", alien_isnull},
