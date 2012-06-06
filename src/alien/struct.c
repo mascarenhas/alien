@@ -5,14 +5,10 @@
 #include <string.h>
 
 
+#define LUA_COMPAT_ALL
+
 #include "lua.h"
 #include "lauxlib.h"
-
-#if LUA_VERSION_NUM == 502
-#undef luaL_register
-#define luaL_register(L, n, f) luaL_setfuncs(L, f, 0)
-#define luaL_putchar(B,c)	luaL_addchar(B,c)
-#endif
 
 /*
 ** {======================================================
@@ -37,7 +33,7 @@
                 not affected by endiannes setting.
 ** s - zero-terminated string
 ** f - float
-** d - doulbe
+** d - double
 ** ' ' - ignored
 */
 
@@ -186,7 +182,7 @@ static int b_pack (lua_State *L) {
     size_t size = optsize(L, opt, &fmt);
     int toalign = gettoalign(totalsize, &h, opt, size);
     totalsize += toalign;
-    while (toalign-- > 0) luaL_putchar(&b, '\0');
+    while (toalign-- > 0) luaL_addchar(&b, '\0');
     switch (opt) {
       case 'b': case 'B': case 'h': case 'H':
       case 'l': case 'L': case 'i': case 'I': {  /* integer types */
@@ -194,7 +190,7 @@ static int b_pack (lua_State *L) {
         break;
       }
       case 'x': {
-        luaL_putchar(&b, '\0');
+        luaL_addchar(&b, '\0');
         break;
       }
       case 'f': {
@@ -216,7 +212,7 @@ static int b_pack (lua_State *L) {
         luaL_argcheck(L, l >= (size_t)size, arg, "string too short");
         luaL_addlstring(&b, s, size);
         if (opt == 's') {
-          luaL_putchar(&b, '\0');  /* add zero at the end */
+          luaL_addchar(&b, '\0');  /* add zero at the end */
           size++;
         }
         break;
