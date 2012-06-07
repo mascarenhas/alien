@@ -707,28 +707,39 @@ static int alien_register(lua_State *L) {
   return 1;
 }
 
+static void alien_wrap_one(lua_State *L, int i, alien_Wrap *ud) {
+  if(lua_isnoneornil(L, i)) {
+    ud->tag = AT_PTR;
+    ud->val.p = NULL;
+  } else if(lua_isuserdata(L, i)) {
+    ud->tag = AT_PTR;
+    ud->val.p = lua_touserdata(L, i);
+  } else {
+    ud->tag = AT_INT;
+    ud->val.i = lua_tointeger(L, i);
+  }
+}
+
 static int alien_wrap(lua_State *L) {
-  int i;
   const char *meta = luaL_checkstring(L, 1);
   alien_Wrap *ud = (alien_Wrap*)lua_newuserdata(L, sizeof(alien_Wrap) * lua_gettop(L));
   int top = lua_gettop(L);
-  for(i = 2; i < top ; i++) {
-    if(lua_isnil(L, i)) {
-      ud[i - 2].tag = AT_PTR;
-      ud[i - 2].val.p = NULL;
-    }
-    else if(lua_isuserdata(L, i)) {
-      ud[i - 2].tag = AT_PTR;
-      ud[i - 2].val.p = lua_touserdata(L, i);
-    } else {
-      ud[i - 2].tag = AT_INT;
-      ud[i - 2].val.i = lua_tointeger(L, i);
-    }
-  }
-  ud[lua_gettop(L) - 2].tag = AT_VOID;
+  int i;
+  for(i = 2; i < top; i++)
+    alien_wrap_one(L, i, ud++);
+  ud->tag = AT_VOID;
   luaL_getmetatable(L, meta);
   lua_setmetatable(L, -2);
   return 1;
+}
+
+static int alien_rewrap(lua_State *L) {
+  const char *meta = luaL_checkstring(L, 1);
+  alien_Wrap *ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
+  int i;
+  for (i = 3; ud->tag != AT_VOID; i++)
+    alien_wrap_one(L, i, ud++);
+  return 0;
 }
 
 static int alien_unwrap(lua_State *L) {
@@ -744,28 +755,6 @@ static int alien_unwrap(lua_State *L) {
     ud++;
   }
   return lua_gettop(L) - 2;
-}
-
-static int alien_rewrap(lua_State *L) {
-  const char *meta = luaL_checkstring(L, 1);
-  alien_Wrap *ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
-  int i = 3;
-  int top = lua_gettop(L);
-  while(ud->tag != AT_VOID) {
-    if(i > top || lua_isnil(L, i)) {
-      ud->tag = AT_PTR;
-      ud->val.p = NULL;
-    }
-    else if(lua_isuserdata(L, i)) {
-      ud->tag = AT_PTR;
-      ud->val.p = lua_touserdata(L, i);
-    } else {
-      ud->tag = AT_INT;
-      ud->val.i = lua_tointeger(L, i);
-    }
-    ud++; i++;
-  }
-  return 0;
 }
 
 static int alien_buffer_new(lua_State *L) {
