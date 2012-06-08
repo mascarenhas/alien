@@ -265,7 +265,7 @@ static char *alien_checkbuffer(lua_State *L, int index) {
     void **ud2 = luaL_testudata(L, index, ALIEN_LBUFFER_META);
     if (ud2) ud = *ud2;
   }
-  luaL_argcheck(L, ud != NULL, index, "alien buffer expected");
+  luaL_argcheck(L, ud != NULL, index, "alien: buffer expected");
   return (char *)ud;
 }
 
@@ -742,7 +742,7 @@ static int alien_unwrap(lua_State *L) {
     case AT_INT: lua_pushnumber(L, ud->val.i); break;
     case AT_PTR: ud->val.p ? lua_pushlightuserdata(L, ud->val.p) :
       lua_pushnil(L); break;
-    default: return luaL_error(L, "wrong type in wrapped value");
+    default: return luaL_error(L, "alien: wrong type in wrapped value");
     }
     ud++;
   }
@@ -768,7 +768,7 @@ static int alien_buffer_new(lua_State *L) {
   }
   b = (char *)lua_newuserdata(L, size);
   if(!b)
-    return luaL_error(L, "cannot allocate buffer");
+    return luaL_error(L, "alien: cannot allocate buffer");
   if(s) {
     memcpy(b, s, size - 1);
     b[size - 1] = '\0';
