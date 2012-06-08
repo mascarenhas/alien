@@ -112,15 +112,15 @@ end
 local array_methods = {}
 
 local function array_next(arr, i)
-   if i < arr.length then
-      return i + 1, arr[i + 1]
-   else
-      return nil
-   end
+  if i < arr.length then
+    return i + 1, arr[i + 1]
+  else
+    return nil
+  end
 end
 
 function array_methods:ipairs()
-   return array_next, self, 0
+  return array_next, self, 0
 end
 
 local function array_get(arr, key)
@@ -168,8 +168,8 @@ function _M.array(t, length, init)
     if type(init) == "table" then
       for i = 1, length do
         if type(init[i]) == "string" then
-	      local offset = (i - 1) * size + 1
-	      arr.pinned[i] = alien.buffer(#init[i] + 1)
+          local offset = (i - 1) * size + 1
+          arr.pinned[i] = alien.buffer(#init[i] + 1)
           arr.buffer:set(offset, arr.pinned[i], "pointer")
         end
         arr[i] = init[i]
@@ -226,7 +226,7 @@ function _M.defstruct(t)
     off = off + core.sizeof(type)
   end
   return { names = names, offsets = offsets, types = types, size = off, new = struct_new,
-            byval = struct_byval }
+           byval = struct_byval }
 end
 
 function _M.byval(buf)
