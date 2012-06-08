@@ -240,11 +240,7 @@ static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
 
 #endif
 
-#ifndef WINDOWS
-#define FFI_STDCALL FFI_DEFAULT_ABI
-#endif
-
-#ifdef _WIN64
+#if !defined(WINDOWS) || defined(_WIN64)
 #define FFI_STDCALL FFI_DEFAULT_ABI
 #endif
 
