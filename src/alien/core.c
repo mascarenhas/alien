@@ -825,23 +825,21 @@ static int alien_buffer_set(lua_State *L) {
   case AT_CHAR: b[offset] = (char)lua_tointeger(L, 3); break;
   case AT_FLOAT: *((float*)(&b[offset])) = (float)lua_tonumber(L, 3); break;
   case AT_DOUBLE: *((double*)(&b[offset])) = (double)lua_tonumber(L, 3); break;
-  case AT_PTR: {
+  case AT_PTR:
         if(lua_isnil(L, 3) || lua_isuserdata(L, 3)) {
           *((void**)(&b[offset])) =
               (lua_isnil(L, 3) ? NULL : lua_touserdata(L, 3));
           break;
         }
-      }
+        /* FALLTHROUGH */
   case AT_STRING: {
-       const char *s;
        size_t size;
-       s = lua_tolstring(L, 3, &size);
+       const char *s = lua_tolstring(L, 3, &size);
        memcpy(*((char**)(&b[offset])), s, size + 1);
        break;
       }
   case AT_CALLBACK: *((void**)(&b[offset])) = (alien_Function *)alien_checkfunction(L, 3)->fn; break;
-  default:
-    return luaL_error(L, "alien: unknown type in buffer:put");
+  default: return luaL_error(L, "alien: unknown type in buffer:put");
   }
   return 0;
 }
