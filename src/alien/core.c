@@ -342,10 +342,10 @@ static int alien_library_get(lua_State *L) {
 }
 
 static int alien_function_new(lua_State *L) {
-  if(lua_isuserdata(L, 1)) {
-    void *fn = lua_touserdata(L, 1);
-    return alien_makefunction(L, NULL, fn, NULL);
-  } else return luaL_error(L, "alien: not a userdata");
+  void *fn = lua_touserdata(L, 1);
+  if(!fn)
+    return luaL_error(L, "alien: not a userdata");
+  return alien_makefunction(L, NULL, fn, NULL);
 }
 
 static int alien_library_tostring(lua_State *L) {
