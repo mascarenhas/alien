@@ -277,10 +277,10 @@ static int alien_load(lua_State *L) {
   lua_Alloc lalloc = lua_getallocf(L, &aud);
   char *name = (char*)lalloc(aud, NULL, 0, sizeof(char) * (len + 1));
   if(!name)
-    return luaL_error(L, "out of memory!");
+    return luaL_error(L, "alien: out of memory");
   strcpy(name, libname);
   al = (alien_Library *)lua_newuserdata(L, sizeof(alien_Library));
-  if(!al) return luaL_error(L, "out of memory!");
+  if(!al) return luaL_error(L, "alien: out of memory");
   lib = alien_openlib(L, libname);
   if(!lib)
     return lua_error(L);
@@ -296,7 +296,7 @@ static int alien_load(lua_State *L) {
 static int alien_makefunction(lua_State *L, void *lib, void *fn, char *name) {
   alien_Function *af = (alien_Function *)lua_newuserdata(L, sizeof(alien_Function));
   if(!af)
-    return luaL_error(L, "out of memory!");
+    return luaL_error(L, "alien: out of memory");
   luaL_getmetatable(L, ALIEN_FUNCTION_META);
   lua_setmetatable(L, -2);
   af->fn = fn;
@@ -324,7 +324,7 @@ static int alien_library_get(lua_State *L) {
   if(!lua_isnil(L, -1)) return 1;
   name = (char*)lalloc(aud, NULL, 0, sizeof(char) * (len + 1));
   if(!name)
-    return luaL_error(L, "out of memory!");
+    return luaL_error(L, "alien: out of memory");
   strcpy(name, funcname);
   fn = alien_loadfunc(L, al->lib, funcname);
   if(!fn) {
@@ -419,7 +419,7 @@ static int alien_callback_new(lua_State *L) {
   ffi_status status;
   luaL_checktype(L, 1, LUA_TFUNCTION);
   ac = (alien_Function *)lua_newuserdata(L, sizeof(alien_Function));
-  if(!ac) return luaL_error(L, "out of memory!");
+  if(!ac) return luaL_error(L, "alien: out of memory");
   ac->fn = ffi_closure_alloc(sizeof(ffi_closure), &ac->ffi_codeloc);
   if(ac->fn == NULL) return luaL_error(L, "alien: cannot allocate callback");
   ac->L = L;
