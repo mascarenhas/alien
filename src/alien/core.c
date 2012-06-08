@@ -500,11 +500,7 @@ static int alien_function_types(lua_State *L) {
     lalloc(aud, af->params, 0, 0); lalloc(aud, af->ffi_params, 0, 0);
     af->params = NULL; af->ffi_params = NULL;
   }
-  if(lua_istable(L, 2)) {
-    af->nparams = lua_objlen(L, 2);
-  } else {
-    af->nparams = lua_gettop(L) - 2;
-  }
+  af->nparams = lua_istable(L, 2) ? lua_objlen(L, 2) : lua_gettop(L) - 2;
   if(af->nparams > 0) {
     af->ffi_params = (ffi_type **)lalloc(aud, NULL, 0, sizeof(ffi_type *) * af->nparams);
     if(!af->ffi_params) return luaL_error(L, "alien: out of memory");
