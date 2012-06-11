@@ -12,6 +12,6 @@ libalientest_la_SOURCES = alientest.c
 libalientest_la_LDFLAGS = -module -avoid-version
 
 check-local:
-	cp "$(abs_top_builddir)/src/alien/$(objdir)/"{core,struct}$(shrext) "$(abs_top_builddir)/src/alien/"
+	cp "$(abs_top_builddir)/src/alien/$(objdir)/"core$(shrext) "$(abs_top_builddir)/src/alien/"
 	$(LUA_ENV) $(LUA) test_alien.lua
-	rm -f "$(abs_top_builddir)/src/alien/{core,struct}$(shrext)"
+	rm -f "$(abs_top_builddir)/src/alien/core$(shrext)"

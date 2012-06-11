@@ -33,10 +33,7 @@ the test suite (<code>tests</code>) you can run the suite with:</p>
 <pre><code>lua -l luarocks.require test_alien.lua
 </code></pre>
 
-<p>Alien installs two modules, <code>alien</code> and <code>alien.struct</code>. The latter is a
-slightly modified version of Roberto Ierusalimschy&rsquo;s <a href="http://www.inf.puc-rio.br/~roberto/struct">struct
-library</a> that can unpack
-binary blobs (userdata) instead of just strings.</p>
+<p>Alien installs one module, <code>alien</code>.
 
 <h2>Basic Usage</h2>
 
@@ -166,6 +163,8 @@ You can also call <code>buf:len</code>, which calls <em>strlen</em> on the buffe
 
 <p>To get a pointer to a buffer, use <code>buf:topointer(offset)</code>; the argument is optional, defaulting to 1.</p>
 
+<p>You can reallocate a buffer using <code>buf:realloc(newsize)</code>. This uses the current Lua state's allocation function.</p>
+
 <p>An example of how to use a buffer:</p>
 
 <pre><code>&gt; gets = alien.default.gets
@@ -190,7 +189,8 @@ size (in bytes) of each element with <em>arr.size</em>. The underlying buffer is
 
 <p>You can access the i-th element with <em>arr[i]</em>, and set it with <em>arr[i] = val</em>. Type
 conversions are the same as with buffers, or function calls. Storing a string or userdata
-in an array pins it so it won&rsquo;t be collected while it is in the array.</p>
+in an array pins it so it won&rsquo;t be collected while it is in the array. You can resize an
+array too: <code>arr:realloc(newlen)</code> changes the length to <em>newlen</em>.</p>
 
 <p>For convenience <code>alien.array</code> also accepts two other forms: <code>alien.array(type, tab)</code> creates
 an array with the same length as <em>tab</em> and initializes it with its values;
@@ -217,7 +217,10 @@ for i, v in nums:ipairs() do print(v) end
 <h2>Structs</h2>
 
 <p>Alien also has basic support for declarative structs that is also implemented as a layer of sugar
-on the basic buffers. The <code>alien.defstruct(description)</code> function creates a struct type with the
+on the basic buffers. It uses a slightly modified version of Roberto Ierusalimschy&rsquo;s
+<a href="http://www.inf.puc-rio.br/~roberto/struct">struct library</a> that can unpack
+binary blobs (userdata) instead of just strings.
+The <code>alien.defstruct(description)</code> function creates a struct type with the
 given description, which is a list of pairs with the name and type of each field, where the type is any
 basic alien type (no structs inside structs yet). For example:</p>
 
@@ -275,7 +278,7 @@ a pointer to an array of four floats, the following code unpacks this array:</p>
 </code></pre>
 
 <p>Use these functions with extra care, as they don&rsquo;t make any safety
-checks. For more advanced unmarshaling use the <code>alien.struct.unpack</code>
+checks. For more advanced unmarshaling use the <code>alien.unpack</code>
 function.</p>
 
 <h2>Tags</h2>

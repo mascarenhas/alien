@@ -1,5 +1,4 @@
 require "alien"
-require "alien.struct"
 
 local dll = alien.alientest
 
@@ -466,6 +465,29 @@ end
 
 do
   io.write(".")
+  local buf = alien.buffer(4)
+  buf:realloc(8)
+  assert(buf.size == 8)
+end
+
+io.write(".")
+for _, t in ipairs(types) do
+  local arr = alien.array(t, 4)
+  local size = arr.size
+  local newlen = 15
+  arr:realloc(newlen)
+  assert(size == arr.size)
+  assert(arr.length == newlen)
+  for i = 1, newlen do
+    arr[i] = i*2
+  end
+  for i = 1, newlen do
+    assert(arr[i] == i*2)
+  end
+end
+
+do
+  io.write(".")
   local rect = alien.defstruct{
     { "left", "long" },
     { "top", "long" },
@@ -536,8 +558,6 @@ end
 
 do
   io.write(".")
-   local struct = alien.struct
-
    local buf = alien.buffer('123456')
    assert(alien.buffer(buf:topointer(3)):tostring(3,2)=='456')
 
@@ -547,24 +567,24 @@ do
    local S = '>ipbph'
    local ba = alien.buffer('a\0')
    local bb = alien.buffer('b\0')
-   local s = struct.pack(S,1,ba,2,bb,3)
+   local s = alien.pack(S,1,ba,2,bb,3)
    local buf = alien.buffer(s)
-   local one,pba,two,pbb,three = struct.unpack(S,buf,struct.size(S))
+   local one,pba,two,pbb,three = alien.unpack(S,buf,alien.size(S))
    assert(one==1) assert(two==2) assert(three==3)
    assert(alien.buffer(pba):tostring()=='a')
    assert(alien.tostring(pbb)=='b')
 
-   local pbb,three = struct.unpack('>ph',buf,struct.size(S),struct.offset(S,4))
+   local pbb,three = alien.unpack('>ph',buf,alien.size(S),alien.offset(S,4))
    assert(alien.buffer(pbb):tostring()=='b')
    assert(three==3)
 
-   --buf:set(struct.offset(S,4),struct.pack('p',ba))
-   --assert(alien.buffer(struct.unpack('p',buf,struct.size(S),struct.offset(S,4))):tostring()=='a')
+   --buf:set(alien.offset(S,4),alien.pack('p',ba))
+   --assert(alien.buffer(alien.unpack('p',buf,alien.size(S),alien.offset(S,4))):tostring()=='a')
 
-   assert(struct.size('p')==alien.sizeof("pointer"))
-   assert(struct.offset(S,1)==1)
-   assert(struct.offset(S,4)==6+alien.sizeof("pointer"))
-   assert(struct.offset(S,alien.sizeof("pointer")+2)==struct.size(S)+1)
+   assert(alien.size('p')==alien.sizeof("pointer"))
+   assert(alien.offset(S,1)==1)
+   assert(alien.offset(S,4)==6+alien.sizeof("pointer"))
+   assert(alien.offset(S,alien.sizeof("pointer")+2)==alien.size(S)+1)
 end
 
 local maxushort = 2^(8*alien.sizeof("ushort"))-1
