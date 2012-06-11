@@ -578,7 +578,7 @@ static int alien_function_call(lua_State *L) {
     case AT_STRING:
       arg = alloca(sizeof(char*));
       if(lua_isuserdata(L, j))
-        *((char**)arg) = lua_isnil(L, j) ? NULL : lua_touserdata(L, j);
+        *((char**)arg) = lua_touserdata(L, j);
       else
         *((const char**)arg) = lua_isnil(L, j) ? NULL : lua_tostring(L, j);
       break;
@@ -587,9 +587,7 @@ static int alien_function_call(lua_State *L) {
       break;
     case AT_PTR:
       arg = alloca(sizeof(char*));
-      *((void**)arg) = lua_isnil(L, j) ? NULL :
-             (lua_isstring(L, j) ? (void*)lua_tostring(L, j) :
-              lua_touserdata(L, j));
+      *((void**)arg) = lua_isstring(L, j) ? (void*)lua_tostring(L, j) : lua_touserdata(L, j);
       break;
     case AT_REFINT:
       arg = alloca(sizeof(int *));
