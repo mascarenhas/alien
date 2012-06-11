@@ -219,8 +219,8 @@ static int b_pack (lua_State *L) {
       }
       case 'p': {
         void *p;
-        luaL_argcheck(L, lua_isuserdata(L, arg) || lua_isnil(L, arg), arg, "userdata, light userdata, or nil required");
-        p = lua_touserdata(L, arg++);
+        luaL_argcheck(L, lua_isuserdata(L, arg) || lua_isnil(L, arg), arg, "userdata or nil required");
+        p = alien_touserdata(L, arg++);
         luaL_addlstring(&b, (char*)&p, size);
         break;
       }
@@ -328,7 +328,7 @@ static int b_unpack (lua_State *L) {
   size_t ld, pos;
   const char *data;
   if(lua_isuserdata(L, 2)) {
-    data = (const char*)lua_touserdata(L, 2);
+    data = alien_touserdata(L, 2);
     ld = (size_t)luaL_checkinteger(L, 3);
     pos = luaL_optint(L, 4, 1) - 1;
   } else {
@@ -401,30 +401,3 @@ static int b_unpack (lua_State *L) {
 }
 
 /* }====================================================== */
-
-
-
-static const luaL_Reg thislib[] = {
-  {"pack", b_pack},
-  {"unpack", b_unpack},
-  {"size", b_size},
-  {"offset", b_offset},
-  {NULL, NULL}
-};
-
-
-LUALIB_API int luaopen_alien_struct (lua_State *L) {
-  lua_getglobal(L, "alien");
-  if(lua_isnil(L, -1)) {
-    lua_newtable(L);
-    lua_pushvalue(L, -1);
-    lua_setglobal(L, "alien");
-  }
-  lua_newtable(L);
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -3, "struct");
-  luaL_register(L, NULL, thislib);
-  return 1;
-}
-
-

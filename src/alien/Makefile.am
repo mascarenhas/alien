@@ -3,10 +3,10 @@
 AM_CPPFLAGS = $(LUA_INCLUDE)
 AM_CFLAGS = $(CFLAGS_STACK)
 
-pkglib_LTLIBRARIES = core.la struct.la
+pkglib_LTLIBRARIES = core.la
 
 core_la_SOURCES = core.c
 core_la_LDFLAGS = -module -avoid-version -lffi
 
-struct_la_SOURCES = struct.c
-struct_la_LDFLAGS = -module -avoid-version
+# This file is #included, so does not need to be compiled
+EXTRA_DIST = struct.c
