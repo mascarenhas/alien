@@ -87,11 +87,10 @@ function load_library.windows(libname)
 end
 
 setmetatable(_M.loaded, { __index = function (t, libname)
-                                   local lib =
-                                     load_library[core.platform](libname)
-                                   t[libname] = lib
-                                   return lib
-                                 end, __mode = "kv" })
+                                      local lib = load_library[core.platform](libname)
+                                      t[libname] = lib
+                                      return lib
+                                    end, __mode = "kv" })
 
 setmetatable(_M, { __index = _M.loaded })
 
