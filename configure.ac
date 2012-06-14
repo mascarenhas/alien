@@ -8,6 +8,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign dist-zip no-dist-gzip])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 dnl Check for programs
+ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_PROG_CC
 AS_IF([test "x$GCC" = "xyes"],[CFLAGS_STACK="-fno-stack-protector -Wall"])
 AC_SUBST(CFLAGS_STACK)
