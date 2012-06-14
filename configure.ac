@@ -8,6 +8,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign dist-zip no-dist-gzip])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 dnl Check for programs
+ifdef([AM_PROG_AR], [AM_PROG_AR])
 AC_PROG_CC
 AS_IF([test "x$GCC" = "xyes"],[CFLAGS_STACK="-fno-stack-protector -Wall"])
 AC_SUBST(CFLAGS_STACK)
@@ -30,8 +31,12 @@ dnl Check for functions
 AC_FUNC_ALLOCA
 
 dnl libffi
-AC_CHECK_HEADER([ffi.h], , AC_MSG_FAILURE([cannot find ffi.h]))
-AC_CHECK_LIB([ffi], [ffi_call], , AC_MSG_FAILURE([cannot find libffi]))
+AC_CHECK_HEADERS([ffi.h ffi/ffi.h], [break])
+case $ac_cv_header_ffi_h$ac_cv_header_ffi_ffi_h in
+  *yes*) ;;
+  *)     AC_MSG_FAILURE([cannot find ffi.h]) ;;
+esac
+AC_CHECK_LIB([ffi], [ffi_closure_alloc], , AC_MSG_FAILURE([cannot find new enough libffi]))
 
 dnl Lua 5.1
 AX_PROG_LUA(501, 503)
