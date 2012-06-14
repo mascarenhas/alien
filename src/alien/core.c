@@ -28,6 +28,15 @@
 #include "lualib.h"
 #include "lauxlib.h"
 
+/* The extra indirection to these macros is required so that if the
+   arguments are themselves macros, they will get expanded too.  */
+#define ALIEN__SPLICE(_s, _t)	_s##_t
+#define ALIEN_SPLICE(_s, _t)	ALIEN__SPLICE(_s, _t)
+
+#define ALIEN__STR(_s)		#_s
+#define ALIEN_STR(_s)		ALIEN__STR(_s)
+
+
 #if LUA_VERSION_NUM == 502
 #define lua_setfenv lua_setuservalue
 #define lua_getfenv lua_getuservalue
@@ -67,35 +76,80 @@ static void *luaL_testudata(lua_State *L, int ud, const char *tname) {
 #define ALIEN_FUNCTION_META "alien function"
 #define ALIEN_BUFFER_META "alien buffer"
 
-/* The following enum and arrays MUST all be in the same order. */
-/* N.B. void is first so it can be ignored for sizeof/alignment. */
+/* Information to compute structure access */
+
+typedef struct { char c; char x; } s_char;
+typedef struct { char c; short x; } s_short;
+typedef struct { char c; int x; } s_int;
+typedef struct { char c; long x; } s_long;
+typedef struct { char c; float x; } s_float;
+typedef struct { char c; double x; } s_double;
+typedef struct { char c; char *x; } s_char_p;
+typedef struct { char c; void *x; } s_void_p;
+
+#define AT_NONE_ALIGN /* unused */
+#define AT_CHAR_ALIGN (offsetof(s_char, x))
+#define AT_SHORT_ALIGN (offsetof(s_short, x))
+#define AT_INT_ALIGN (offsetof(s_int, x))
+#define AT_LONG_ALIGN (offsetof(s_long, x))
+#define AT_FLOAT_ALIGN (offsetof(s_float, x))
+#define AT_DOUBLE_ALIGN (offsetof(s_double, x))
+#define AT_CHAR_P_ALIGN (offsetof(s_char_p, x))
+#define AT_VOID_P_ALIGN (offsetof(s_void_p, x))
+
+/*              NAME        SIZE		ALIGNMENT
+                ====        ====		=========	*/
+#define type_map \
+	MENTRY( void,	    void,		AT_NONE		) \
+	MENTRY( byte,	    unsigned char,	AT_CHAR		) \
+	MENTRY( char,	    char,		AT_CHAR		) \
+	MENTRY( short,	    short,		AT_SHORT	) \
+	MENTRY(	ushort,     unsigned short,	AT_SHORT	) \
+	MENTRY(	int,	    int,		AT_INT		) \
+	MENTRY(	uint,	    unsigned int,	AT_INT		) \
+	MENTRY(	long,	    long,		AT_LONG		) \
+	MENTRY(	ulong,	    unsigned long,	AT_LONG		) \
+	MENTRY(	float,	    float,		AT_FLOAT	) \
+	MENTRY(	double,     double,		AT_DOUBLE	) \
+	MENTRY(	string,     char *,		AT_CHAR_P	) \
+	MENTRY(	pointer,    void *,		AT_VOID_P	) \
+	MENTRY(	refchar,    char *,		AT_CHAR_P	) \
+	MENTRY(	refint,     int *,		AT_VOID_P	) \
+	MENTRY(	refuint,    unsigned int *,	AT_VOID_P	) \
+	MENTRY(	refdouble,  double *,		AT_VOID_P	) \
+	MENTRY(	callback,   void *,		AT_VOID_P	)
 
 typedef enum {
-  AT_VOID, AT_BYTE, AT_CHAR,
-  AT_SHORT, AT_USHORT, AT_INT, AT_UINT,
-  AT_LONG, AT_ULONG, AT_FLOAT, AT_DOUBLE,
-  AT_STRING, AT_PTR,
-  AT_REFCHAR, AT_REFINT, AT_REFUINT, AT_REFDOUBLE,
-  AT_CALLBACK,
+#define MENTRY(_n, _s, _a) ALIEN_SPLICE(AT_, _n),
+  type_map
+#undef MENTRY
+  AT_ENTRY_COUNT
 } alien_Type;
 
 static const char *const alien_typenames[] =  {
-  "void", "byte", "char",
-  "short", "ushort", "int", "uint",
-  "long", "ulong", "float", "double",
-  "string", "pointer",
-  "ref char", "ref int", "ref uint", "ref double",
-  "callback",
+#define MENTRY(_n, _s, _a) ALIEN_STR(_n),
+  type_map
+#undef MENTRY
   NULL
 };
 
+#define ffi_type_byte      ffi_type_sint8
+#define ffi_type_char      ffi_type_uchar
+#define ffi_type_short     ffi_type_sshort
+#define ffi_type_int       ffi_type_sint
+#define ffi_type_long      ffi_type_slong
+#define ffi_type_string	   ffi_type_pointer
+#define ffi_type_refchar   ffi_type_pointer
+#define ffi_type_refint    ffi_type_pointer
+#define ffi_type_refuint   ffi_type_pointer
+#define ffi_type_refdouble ffi_type_pointer
+#define ffi_type_callback  ffi_type_pointer
+
 static ffi_type* ffitypes[] = {
-  &ffi_type_void, &ffi_type_sint8, &ffi_type_uchar,
-  &ffi_type_sshort, &ffi_type_ushort, &ffi_type_sint, &ffi_type_uint,
-  &ffi_type_slong, &ffi_type_ulong, &ffi_type_float, &ffi_type_double,
-  &ffi_type_pointer, &ffi_type_pointer,
-  &ffi_type_pointer, &ffi_type_pointer, &ffi_type_pointer, &ffi_type_pointer,
-  &ffi_type_pointer,
+#define MENTRY(_n, _s, _a) &ALIEN_SPLICE(ffi_type_, _n),
+  type_map
+#undef MENTRY
+  NULL
 };
 
 typedef struct {
@@ -126,26 +180,6 @@ typedef struct {
     int i;
   } val;
 } alien_Wrap;
-
-/* Information to compute structure access */
-
-typedef struct { char c; char x; } s_char;
-typedef struct { char c; short x; } s_short;
-typedef struct { char c; int x; } s_int;
-typedef struct { char c; long x; } s_long;
-typedef struct { char c; float x; } s_float;
-typedef struct { char c; double x; } s_double;
-typedef struct { char c; char *x; } s_char_p;
-typedef struct { char c; void *x; } s_void_p;
-
-#define AT_CHAR_ALIGN (offsetof(s_char, x))
-#define AT_SHORT_ALIGN (offsetof(s_short, x))
-#define AT_INT_ALIGN (offsetof(s_int, x))
-#define AT_LONG_ALIGN (offsetof(s_long, x))
-#define AT_FLOAT_ALIGN (offsetof(s_float, x))
-#define AT_DOUBLE_ALIGN (offsetof(s_double, x))
-#define AT_CHAR_P_ALIGN (offsetof(s_char_p, x))
-#define AT_VOID_P_ALIGN (offsetof(s_void_p, x))
 
 /******************************************************************/
 
@@ -309,7 +343,7 @@ static int alien_makefunction(lua_State *L, void *lib, void *fn, char *name) {
   af->name = name;
   af->lib = lib;
   af->nparams = 0;
-  af->ret_type = AT_VOID;
+  af->ret_type = AT_void;
   af->params = NULL;
   af->ffi_params = NULL;
   return 1;
@@ -366,22 +400,22 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
   lua_rawgeti(L, LUA_REGISTRYINDEX, ac->fn_ref);
   for(i = 0; i < ac->nparams; i++) {
     switch(ac->params[i]) {
-    case AT_BYTE: lua_pushnumber(L, (signed char)*((int*)args[i])); break;
-    case AT_CHAR: lua_pushnumber(L, (unsigned char)*((int*)args[i])); break;
-    case AT_SHORT: lua_pushnumber(L, (short)*((int*)args[i])); break;
-    case AT_LONG: lua_pushnumber(L, (long)*((long*)args[i])); break;
-    case AT_INT: lua_pushnumber(L, *((int*)args[i])); break;
-    case AT_USHORT: lua_pushnumber(L, (unsigned short)*((unsigned int*)args[i])); break;
-    case AT_ULONG: lua_pushnumber(L, (unsigned long)*((unsigned long*)args[i])); break;
-    case AT_UINT: lua_pushnumber(L, *((unsigned int*)args[i])); break;
-    case AT_FLOAT: lua_pushnumber(L, (float)*((float*)args[i])); break;
-    case AT_DOUBLE: lua_pushnumber(L, *((double*)args[i])); break;
-    case AT_STRING: lua_pushstring(L, *((char**)args[i])); break;
-    case AT_REFINT: lua_pushnumber(L, **((int**)args[i])); break;
-    case AT_REFUINT: lua_pushnumber(L, **((unsigned int**)args[i])); break;
-    case AT_REFCHAR: lua_pushnumber(L, **((unsigned char**)args[i])); break;
-    case AT_REFDOUBLE: lua_pushnumber(L, **((double**)args[i])); break;
-    case AT_PTR:
+    case AT_byte: lua_pushnumber(L, (signed char)*((int*)args[i])); break;
+    case AT_char: lua_pushnumber(L, (unsigned char)*((int*)args[i])); break;
+    case AT_short: lua_pushnumber(L, (short)*((int*)args[i])); break;
+    case AT_long: lua_pushnumber(L, (long)*((long*)args[i])); break;
+    case AT_int: lua_pushnumber(L, *((int*)args[i])); break;
+    case AT_ushort: lua_pushnumber(L, (unsigned short)*((unsigned int*)args[i])); break;
+    case AT_ulong: lua_pushnumber(L, (unsigned long)*((unsigned long*)args[i])); break;
+    case AT_uint: lua_pushnumber(L, *((unsigned int*)args[i])); break;
+    case AT_float: lua_pushnumber(L, (float)*((float*)args[i])); break;
+    case AT_double: lua_pushnumber(L, *((double*)args[i])); break;
+    case AT_string: lua_pushstring(L, *((char**)args[i])); break;
+    case AT_refint: lua_pushnumber(L, **((int**)args[i])); break;
+    case AT_refuint: lua_pushnumber(L, **((unsigned int**)args[i])); break;
+    case AT_refchar: lua_pushnumber(L, **((unsigned char**)args[i])); break;
+    case AT_refdouble: lua_pushnumber(L, **((double**)args[i])); break;
+    case AT_pointer:
       {
         void *ptr = *((void**)args[i]);
         ptr ? lua_pushlightuserdata(L, ptr) : lua_pushnil(L);
@@ -392,19 +426,19 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
   }
   lua_call(L, ac->nparams, 1);
   switch(ac->ret_type) {
-  case AT_VOID: break;
-  case AT_SHORT: *((int*)resp) = (short)lua_tonumber(L, -1); break;
-  case AT_LONG: *((long*)resp) = (long)lua_tonumber(L, -1); break;
-  case AT_INT: *((int*)resp) = (int)lua_tonumber(L, -1); break;
-  case AT_USHORT: *((unsigned int*)resp) = (unsigned short)lua_tonumber(L, -1); break;
-  case AT_ULONG: *((unsigned long*)resp) = (unsigned long)lua_tonumber(L, -1); break;
-  case AT_UINT: *((unsigned int*)resp) = (unsigned int)lua_tonumber(L, -1); break;
-  case AT_CHAR: *((int*)resp) = (unsigned char)lua_tointeger(L, -1); break;
-  case AT_BYTE: *((int*)resp) = (signed char)lua_tointeger(L, -1); break;
-  case AT_FLOAT: *((float*)resp) = (float)lua_tonumber(L, -1); break;
-  case AT_DOUBLE: *((double*)resp) = (double)lua_tonumber(L, -1); break;
-  case AT_STRING: *((char**)resp) = lua_isuserdata(L, -1) ? alien_touserdata(L, -1) : (char *)lua_tostring(L, -1); break;
-  case AT_PTR: *((void**)resp) = lua_isstring(L, -1) ? (void*)lua_tostring(L, -1) : alien_touserdata(L, -1); break;
+  case AT_void: break;
+  case AT_short: *((int*)resp) = (short)lua_tonumber(L, -1); break;
+  case AT_long: *((long*)resp) = (long)lua_tonumber(L, -1); break;
+  case AT_int: *((int*)resp) = (int)lua_tonumber(L, -1); break;
+  case AT_ushort: *((unsigned int*)resp) = (unsigned short)lua_tonumber(L, -1); break;
+  case AT_ulong: *((unsigned long*)resp) = (unsigned long)lua_tonumber(L, -1); break;
+  case AT_uint: *((unsigned int*)resp) = (unsigned int)lua_tonumber(L, -1); break;
+  case AT_char: *((int*)resp) = (unsigned char)lua_tointeger(L, -1); break;
+  case AT_byte: *((int*)resp) = (signed char)lua_tointeger(L, -1); break;
+  case AT_float: *((float*)resp) = (float)lua_tonumber(L, -1); break;
+  case AT_double: *((double*)resp) = (double)lua_tonumber(L, -1); break;
+  case AT_string: *((char**)resp) = lua_isuserdata(L, -1) ? alien_touserdata(L, -1) : (char *)lua_tostring(L, -1); break;
+  case AT_pointer: *((void**)resp) = lua_isstring(L, -1) ? (void*)lua_tostring(L, -1) : alien_touserdata(L, -1); break;
   default: luaL_error(L, "alien: unknown return type in callback");
   }
 }
@@ -418,7 +452,7 @@ static int alien_callback_new(lua_State *L) {
   ac->fn = ffi_closure_alloc(sizeof(ffi_closure), &ac->ffi_codeloc);
   if(ac->fn == NULL) return luaL_error(L, "alien: cannot allocate callback");
   ac->L = L;
-  ac->ret_type = AT_VOID;
+  ac->ret_type = AT_void;
   ac->ffi_ret_type = &ffi_type_void;
   ac->nparams = 0;
   ac->params = NULL;
@@ -442,27 +476,24 @@ static int alien_callback_new(lua_State *L) {
 
 static int alien_sizeof(lua_State *L) {
   static const size_t sizes[] = {
-    /* No void */ sizeof(unsigned char), sizeof(char),
-    sizeof(short), sizeof(unsigned short), sizeof(int), sizeof(unsigned int),
-    sizeof(long), sizeof(unsigned long), sizeof(float), sizeof(double),
-    sizeof(char*), sizeof(void*),
-    sizeof(char*), sizeof(int*), sizeof(unsigned int*), sizeof(double*),
-    sizeof(void*),
+#define MENTRY(_n, _s, _a)  sizeof(_s),
+    type_map
+#undef MENTRY
+    0
   };
-  lua_pushinteger(L, sizes[luaL_checkoption(L, 1, "int", alien_typenames + 1)]); /* N.B. Add 1 to miss out "void" */
+  lua_pushinteger(L, sizes[luaL_checkoption(L, 1, "int", alien_typenames)]);
   return 1;
 }
 
 static int alien_align(lua_State *L) {
   static const size_t aligns[] = {
-    /* No void */ AT_CHAR_ALIGN, AT_CHAR_ALIGN,
-    AT_SHORT_ALIGN, AT_SHORT_ALIGN, AT_INT_ALIGN, AT_INT_ALIGN,
-    AT_LONG_ALIGN, AT_LONG_ALIGN, AT_FLOAT_ALIGN, AT_DOUBLE_ALIGN,
-    AT_CHAR_P_ALIGN, AT_VOID_P_ALIGN,
-    AT_CHAR_P_ALIGN, AT_VOID_P_ALIGN, AT_VOID_P_ALIGN, AT_VOID_P_ALIGN,
-    AT_VOID_P_ALIGN,
+    0
+#define MENTRY(_n, _s, _a) ALIEN_SPLICE(_a, _ALIGN),
+    type_map
+#undef MENTRY
+    0
   };
-  lua_pushinteger(L, aligns[luaL_checkoption(L, 1, "char", alien_typenames + 1)]);
+  lua_pushinteger(L, aligns[luaL_checkoption(L, 1, "char", alien_typenames)]);
   return 1;
 }
 
@@ -551,69 +582,69 @@ static int alien_function_call(lua_State *L) {
     void *arg;
     int j = i + 2;
     switch(af->params[i]) {
-    case AT_SHORT:
+    case AT_short:
       arg = alloca(sizeof(short)); *((short*)arg) = (short)lua_tonumber(L, j);
       break;
-    case AT_LONG:
+    case AT_long:
       arg = alloca(sizeof(long)); *((long*)arg) = (long)lua_tonumber(L, j);
       break;
-    case AT_INT:
+    case AT_int:
       arg = alloca(sizeof(int)); *((int*)arg) = (int)lua_tonumber(L, j);
       break;
-    case AT_USHORT:
+    case AT_ushort:
       arg = alloca(sizeof(unsigned short)); *((unsigned short*)arg) = (unsigned short)lua_tonumber(L, j);
       break;
-    case AT_ULONG:
+    case AT_ulong:
       arg = alloca(sizeof(unsigned long)); *((unsigned long*)arg) = (unsigned long)lua_tonumber(L, j);
       break;
-    case AT_UINT:
+    case AT_uint:
       arg = alloca(sizeof(unsigned int)); *((unsigned int*)arg) = (unsigned int)lua_tonumber(L, j);
       break;
-    case AT_CHAR:
+    case AT_char:
       arg = alloca(sizeof(unsigned char)); *((unsigned char*)arg) = (unsigned char)lua_tointeger(L, j);
       break;
-    case AT_BYTE:
+    case AT_byte:
       arg = alloca(sizeof(char)); *((char*)arg) = (signed char)lua_tointeger(L, j);
       break;
-    case AT_FLOAT:
+    case AT_float:
       arg = alloca(sizeof(float)); *((float*)arg) = (float)lua_tonumber(L, j);
       break;
-    case AT_DOUBLE:
+    case AT_double:
       arg = alloca(sizeof(double)); *((double*)arg) = (double)lua_tonumber(L, j);
       break;
-    case AT_STRING:
+    case AT_string:
       arg = alloca(sizeof(char*));
       if(lua_isuserdata(L, j))
         *((char**)arg) = alien_touserdata(L, j);
       else
         *((const char**)arg) = lua_isnil(L, j) ? NULL : lua_tostring(L, j);
       break;
-    case AT_CALLBACK:
+    case AT_callback:
       arg = alloca(sizeof(void*)); *((void**)arg) = (alien_Function *)alien_checkfunction(L, j)->fn;
       break;
-    case AT_PTR:
+    case AT_pointer:
       arg = alloca(sizeof(char*));
       *((void**)arg) = lua_isstring(L, j) ? (void*)lua_tostring(L, j) : alien_touserdata(L, j);
       break;
-    case AT_REFINT:
+    case AT_refint:
       arg = alloca(sizeof(int *));
       *((int **)arg) = alloca(sizeof(int));
       **((int **)arg) = (int)lua_tonumber(L, j);
       nrefi++;
       break;
-    case AT_REFUINT:
+    case AT_refuint:
       arg = alloca(sizeof(unsigned int *));
       *((unsigned int **)arg) = alloca(sizeof(unsigned int));
       **((unsigned int **)arg) = (unsigned int)lua_tonumber(L, j);
       nrefui++;
       break;
-    case AT_REFCHAR:
+    case AT_refchar:
       arg = alloca(sizeof(char *));
       *((char **)arg) = alloca(sizeof(char));
       **((char **)arg) = (char)lua_tonumber(L, j);
       nrefc++;
       break;
-    case AT_REFDOUBLE:
+    case AT_refdouble:
       arg = alloca(sizeof(double *));
       *((double **)arg) = alloca(sizeof(double));
       **((double **)arg) = (double)lua_tonumber(L, j);
@@ -627,20 +658,20 @@ static int alien_function_call(lua_State *L) {
   }
   pret = NULL;
   switch(af->ret_type) {
-  case AT_VOID: ffi_call(cif, af->fn, NULL, args); lua_pushnil(L); break;
-  case AT_SHORT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (short)iret); break;
-  case AT_LONG: ffi_call(cif, af->fn, &lret, args); lua_pushnumber(L, lret); break;
-  case AT_INT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
-  case AT_USHORT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (unsigned short)iret); break;
-  case AT_ULONG: ffi_call(cif, af->fn, &ulret, args); lua_pushnumber(L, (unsigned long)ulret); break;
-  case AT_UINT: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (unsigned int)iret); break;
-  case AT_CHAR: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (unsigned char)iret); break;
-  case AT_BYTE: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (signed char)iret); break;
-  case AT_FLOAT: ffi_call(cif, af->fn, &fret, args); lua_pushnumber(L, fret); break;
-  case AT_DOUBLE: ffi_call(cif, af->fn, &dret, args); lua_pushnumber(L, dret); break;
-  case AT_STRING: ffi_call(cif, af->fn, &pret, args);
+  case AT_void: ffi_call(cif, af->fn, NULL, args); lua_pushnil(L); break;
+  case AT_short: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (short)iret); break;
+  case AT_long: ffi_call(cif, af->fn, &lret, args); lua_pushnumber(L, lret); break;
+  case AT_int: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, iret); break;
+  case AT_ushort: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (unsigned short)iret); break;
+  case AT_ulong: ffi_call(cif, af->fn, &ulret, args); lua_pushnumber(L, (unsigned long)ulret); break;
+  case AT_uint: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (unsigned int)iret); break;
+  case AT_char: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (unsigned char)iret); break;
+  case AT_byte: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (signed char)iret); break;
+  case AT_float: ffi_call(cif, af->fn, &fret, args); lua_pushnumber(L, fret); break;
+  case AT_double: ffi_call(cif, af->fn, &dret, args); lua_pushnumber(L, dret); break;
+  case AT_string: ffi_call(cif, af->fn, &pret, args);
     (pret ? lua_pushstring(L, (const char *)pret) : lua_pushnil(L)); break;
-  case AT_PTR: ffi_call(cif, af->fn, &pret, args);
+  case AT_pointer: ffi_call(cif, af->fn, &pret, args);
     (pret ? lua_pushlightuserdata(L, pret) : lua_pushnil(L)); break;
   default:
     return luaL_error(L, "alien: unknown return type (function %s)", af->name ?
@@ -648,10 +679,10 @@ static int alien_function_call(lua_State *L) {
   }
   for(i = 0; i < nargs; i++) {
     switch(af->params[i]) {
-    case AT_REFINT: lua_pushnumber(L, **(int **)args[i]); break;
-    case AT_REFUINT: lua_pushnumber(L, **(unsigned int **)args[i]); break;
-    case AT_REFDOUBLE: lua_pushnumber(L, **(double **)args[i]); break;
-    case AT_REFCHAR: lua_pushnumber(L, **(char **)args[i]); break;
+    case AT_refint: lua_pushnumber(L, **(int **)args[i]); break;
+    case AT_refuint: lua_pushnumber(L, **(unsigned int **)args[i]); break;
+    case AT_refdouble: lua_pushnumber(L, **(double **)args[i]); break;
+    case AT_refchar: lua_pushnumber(L, **(char **)args[i]); break;
     default: break;
     }
   }
@@ -694,13 +725,13 @@ static int alien_register(lua_State *L) {
 
 static void alien_wrap_one(lua_State *L, int i, alien_Wrap *ud) {
   if(lua_isnoneornil(L, i)) {
-    ud->tag = AT_PTR;
+    ud->tag = AT_pointer;
     ud->val.p = NULL;
   } else if(lua_isuserdata(L, i)) {
-    ud->tag = AT_PTR;
+    ud->tag = AT_pointer;
     ud->val.p = alien_touserdata(L, i);
   } else {
-    ud->tag = AT_INT;
+    ud->tag = AT_int;
     ud->val.i = lua_tointeger(L, i);
   }
 }
@@ -712,7 +743,7 @@ static int alien_wrap(lua_State *L) {
   int i;
   for(i = 2; i < top; i++)
     alien_wrap_one(L, i, ud++);
-  ud->tag = AT_VOID;
+  ud->tag = AT_void;
   luaL_getmetatable(L, meta);
   lua_setmetatable(L, -2);
   return 1;
@@ -722,7 +753,7 @@ static int alien_rewrap(lua_State *L) {
   const char *meta = luaL_checkstring(L, 1);
   alien_Wrap *ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
   int i;
-  for (i = 3; ud->tag != AT_VOID; i++)
+  for (i = 3; ud->tag != AT_void; i++)
     alien_wrap_one(L, i, ud++);
   return 0;
 }
@@ -730,10 +761,10 @@ static int alien_rewrap(lua_State *L) {
 static int alien_unwrap(lua_State *L) {
   const char *meta = luaL_checkstring(L, 1);
   alien_Wrap *ud = (alien_Wrap *)luaL_checkudata(L, 2, meta);
-  while(ud->tag != AT_VOID) {
+  while(ud->tag != AT_void) {
     switch(ud->tag) {
-    case AT_INT: lua_pushnumber(L, ud->val.i); break;
-    case AT_PTR: ud->val.p ? lua_pushlightuserdata(L, ud->val.p) :
+    case AT_int: lua_pushnumber(L, ud->val.i); break;
+    case AT_pointer: ud->val.p ? lua_pushlightuserdata(L, ud->val.p) :
       lua_pushnil(L); break;
     default: return luaL_error(L, "alien: wrong type in wrapped value");
     }
@@ -826,29 +857,29 @@ static int alien_buffer_set(lua_State *L) {
   ptrdiff_t offset = luaL_checkinteger(L, 2) - 1;
   int type = luaL_checkoption(L, 4, "char", alien_typenames);
   switch(type) {
-  case AT_SHORT: *((short*)(&b[offset])) = (short)lua_tonumber(L, 3); break;
-  case AT_INT: *((int*)(&b[offset])) = (int)lua_tonumber(L, 3); break;
-  case AT_LONG: *((long*)(&b[offset])) = (long)lua_tonumber(L, 3); break;
-  case AT_USHORT: *((unsigned short*)(&b[offset])) = (unsigned short)lua_tonumber(L, 3); break;
-  case AT_UINT: *((unsigned int*)(&b[offset])) = (unsigned int)lua_tonumber(L, 3); break;
-  case AT_ULONG: *((unsigned long*)(&b[offset])) = (unsigned long)lua_tonumber(L, 3); break;
-  case AT_BYTE: b[offset] = (signed char)lua_tointeger(L, 3); break;
-  case AT_CHAR: b[offset] = (char)lua_tointeger(L, 3); break;
-  case AT_FLOAT: *((float*)(&b[offset])) = (float)lua_tonumber(L, 3); break;
-  case AT_DOUBLE: *((double*)(&b[offset])) = (double)lua_tonumber(L, 3); break;
-  case AT_PTR:
+  case AT_short: *((short*)(&b[offset])) = (short)lua_tonumber(L, 3); break;
+  case AT_int: *((int*)(&b[offset])) = (int)lua_tonumber(L, 3); break;
+  case AT_long: *((long*)(&b[offset])) = (long)lua_tonumber(L, 3); break;
+  case AT_ushort: *((unsigned short*)(&b[offset])) = (unsigned short)lua_tonumber(L, 3); break;
+  case AT_uint: *((unsigned int*)(&b[offset])) = (unsigned int)lua_tonumber(L, 3); break;
+  case AT_ulong: *((unsigned long*)(&b[offset])) = (unsigned long)lua_tonumber(L, 3); break;
+  case AT_byte: b[offset] = (signed char)lua_tointeger(L, 3); break;
+  case AT_char: b[offset] = (char)lua_tointeger(L, 3); break;
+  case AT_float: *((float*)(&b[offset])) = (float)lua_tonumber(L, 3); break;
+  case AT_double: *((double*)(&b[offset])) = (double)lua_tonumber(L, 3); break;
+  case AT_pointer:
         if(lua_isnil(L, 3) || lua_isuserdata(L, 3)) {
           *((void**)(&b[offset])) = alien_touserdata(L, 3);
           break;
         }
         /* FALLTHROUGH */
-  case AT_STRING: {
+  case AT_string: {
        size_t size;
        const char *s = lua_tolstring(L, 3, &size);
        memcpy(*((char**)(&b[offset])), s, size + 1);
        break;
       }
-  case AT_CALLBACK: *((void**)(&b[offset])) = (alien_Function *)alien_checkfunction(L, 3)->fn; break;
+  case AT_callback: *((void**)(&b[offset])) = (alien_Function *)alien_checkfunction(L, 3)->fn; break;
   default: return luaL_error(L, "alien: unknown type in buffer:put");
   }
   return 0;
@@ -894,25 +925,25 @@ static int alien_buffer_get(lua_State *L) {
     ptrdiff_t offset = luaL_checkinteger(L, 2) - 1;
     int type = luaL_checkoption(L, 3, "char", alien_typenames);
     switch(type) {
-    case AT_SHORT: lua_pushnumber(L, *((short*)(&b[offset]))); break;
-    case AT_INT: lua_pushnumber(L, *((int*)(&b[offset]))); break;
-    case AT_LONG: lua_pushnumber(L, *((long*)(&b[offset]))); break;
-    case AT_USHORT: lua_pushnumber(L, *((unsigned short*)(&b[offset]))); break;
-    case AT_UINT: lua_pushnumber(L, *((unsigned int*)(&b[offset]))); break;
-    case AT_ULONG: lua_pushnumber(L, *((unsigned long*)(&b[offset]))); break;
-    case AT_BYTE: lua_pushnumber(L, (signed char)b[offset]); break;
-    case AT_CHAR: lua_pushnumber(L, b[offset]); break;
-    case AT_FLOAT: lua_pushnumber(L, *((float*)(&b[offset]))); break;
-    case AT_DOUBLE: lua_pushnumber(L, *((double*)(&b[offset]))); break;
-    case AT_STRING:
+    case AT_short: lua_pushnumber(L, *((short*)(&b[offset]))); break;
+    case AT_int: lua_pushnumber(L, *((int*)(&b[offset]))); break;
+    case AT_long: lua_pushnumber(L, *((long*)(&b[offset]))); break;
+    case AT_ushort: lua_pushnumber(L, *((unsigned short*)(&b[offset]))); break;
+    case AT_uint: lua_pushnumber(L, *((unsigned int*)(&b[offset]))); break;
+    case AT_ulong: lua_pushnumber(L, *((unsigned long*)(&b[offset]))); break;
+    case AT_byte: lua_pushnumber(L, (signed char)b[offset]); break;
+    case AT_char: lua_pushnumber(L, b[offset]); break;
+    case AT_float: lua_pushnumber(L, *((float*)(&b[offset]))); break;
+    case AT_double: lua_pushnumber(L, *((double*)(&b[offset]))); break;
+    case AT_string:
       p = *((void**)&b[offset]);
       if(p) lua_pushstring(L, (const char *)p); else lua_pushnil(L);
       break;
-    case AT_CALLBACK:
+    case AT_callback:
       p = *((void**)&b[offset]);
       p ? alien_makefunction(L, NULL, p, NULL) : lua_pushnil(L);
       break;
-    case AT_PTR:
+    case AT_pointer:
       p = *((void**)&b[offset]);
       p ? lua_pushlightuserdata(L, p) : lua_pushnil(L);
       break;
