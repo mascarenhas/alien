@@ -31,7 +31,11 @@ dnl Check for functions
 AC_FUNC_ALLOCA
 
 dnl libffi
-AC_CHECK_HEADER([ffi.h], , AC_MSG_FAILURE([cannot find ffi.h]))
+AC_CHECK_HEADERS([ffi.h ffi/ffi.h], [break])
+case $ac_cv_header_ffi_h$ac_cv_header_ffi_ffi_h in
+  *yes*) ;;
+  *)     AC_MSG_FAILURE([cannot find ffi.h]) ;;
+esac
 AC_CHECK_LIB([ffi], [ffi_call], , AC_MSG_FAILURE([cannot find libffi]))
 
 dnl Lua 5.1
