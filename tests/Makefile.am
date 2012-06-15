@@ -8,6 +8,6 @@ tests_libalientest_la_SOURCES = tests/alientest.c
 tests_libalientest_la_LDFLAGS = -module -avoid-version
 
 check-local:
-	cp "$(abs_top_builddir)/src/alien/$(objdir)/"core$(shrext) "$(abs_top_builddir)/src/alien/"
-	$(LUA_ENV) $(LUA) test_alien.lua
-	rm -f "$(abs_top_builddir)/src/alien/core$(shrext)"
+	cp src/alien/$(objdir)/core$(shrext) src/alien/
+	cd tests && $(LUA_ENV) $(LUA) test_alien.lua
+	rm -f src/alien/core$(shrext)
