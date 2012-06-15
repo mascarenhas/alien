@@ -149,7 +149,7 @@ typedef struct { char c; void *x; } s_void_p;
 #elif defined(BSD)
 #define PLATFORM "bsd"
 #define USE_DLOPEN
-#elif defined(DARWIN)
+#elif defined(__APPLE__)
 #define PLATFORM "darwin"
 #define USE_DLOPEN
 #endif
@@ -243,7 +243,7 @@ static void *alien_loadfunc (lua_State *L, void *lib, const char *sym) {
 #define FFI_STDCALL FFI_DEFAULT_ABI
 #endif
 
-#ifdef DARWIN
+#ifdef __APPLE__
 #define FFI_SYSV FFI_DEFAULT_ABI
 #endif
 
