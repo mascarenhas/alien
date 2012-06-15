@@ -1,3 +1,1 @@
-## Process this file with automake to produce Makefile.in
-
-dist_doc_DATA = alien.md index.html
+dist_doc_DATA += doc/alien.md doc/index.html

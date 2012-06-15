@@ -14,12 +14,19 @@
 #include <string.h>
 #include <errno.h>
 
+#if HAVE_FFI_H
+#  include <ffi.h>
+#elif HAVE_FFI_FFI_H
+#  include <ffi/ffi.h>
+#else
+#  error "cannot find ffi.h"
+#endif
+
 #define LUA_COMPAT_ALL
 
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
-#include "ffi.h"
 
 #if LUA_VERSION_NUM == 502
 #define lua_setfenv lua_setuservalue

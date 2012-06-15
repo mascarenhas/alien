@@ -1,12 +1,9 @@
-## Process this file with automake to produce Makefile.in
+pkglib_LTLIBRARIES += 		\
+	src/alien/core.la	\
+	src/alien/struct.la
 
-AM_CPPFLAGS = $(LUA_INCLUDE)
-AM_CFLAGS = $(CFLAGS_STACK)
+src_alien_core_la_SOURCES = src/alien/core.c
+src_alien_core_la_LDFLAGS = -module -avoid-version -lffi
 
-pkglib_LTLIBRARIES = core.la struct.la
-
-core_la_SOURCES = core.c
-core_la_LDFLAGS = -module -avoid-version -lffi
-
-struct_la_SOURCES = struct.c
-struct_la_LDFLAGS = -module -avoid-version
+src_alien_struct_la_SOURCES = src/alien/struct.c
+src_alien_struct_la_LDFLAGS = -module -avoid-version
