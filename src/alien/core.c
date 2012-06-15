@@ -33,10 +33,6 @@
 #define ALIEN__SPLICE(_s, _t)	_s##_t
 #define ALIEN_SPLICE(_s, _t)	ALIEN__SPLICE(_s, _t)
 
-#define ALIEN__STR(_s)		#_s
-#define ALIEN_STR(_s)		ALIEN__STR(_s)
-
-
 #if LUA_VERSION_NUM == 502
 #define lua_setfenv lua_setuservalue
 #define lua_getfenv lua_getuservalue
@@ -97,37 +93,37 @@ typedef struct { char c; void *x; } s_void_p;
 #define AT_CHAR_P_ALIGN (offsetof(s_char_p, x))
 #define AT_VOID_P_ALIGN (offsetof(s_void_p, x))
 
-/*              NAME        SIZE		ALIGNMENT
-                ====        ====		=========	*/
+/*              NAME          BASE	SIZEOF		ALIGNMENT
+                ====          ====	======		=========	*/
 #define type_map \
-	MENTRY( void,	    void,		AT_NONE		) \
-	MENTRY( byte,	    unsigned char,	AT_CHAR		) \
-	MENTRY( char,	    char,		AT_CHAR		) \
-	MENTRY( short,	    short,		AT_SHORT	) \
-	MENTRY(	ushort,     unsigned short,	AT_SHORT	) \
-	MENTRY(	int,	    int,		AT_INT		) \
-	MENTRY(	uint,	    unsigned int,	AT_INT		) \
-	MENTRY(	long,	    long,		AT_LONG		) \
-	MENTRY(	ulong,	    unsigned long,	AT_LONG		) \
-	MENTRY(	float,	    float,		AT_FLOAT	) \
-	MENTRY(	double,     double,		AT_DOUBLE	) \
-	MENTRY(	string,     char *,		AT_CHAR_P	) \
-	MENTRY(	pointer,    void *,		AT_VOID_P	) \
-	MENTRY(	refchar,    char *,		AT_CHAR_P	) \
-	MENTRY(	refint,     int *,		AT_VOID_P	) \
-	MENTRY(	refuint,    unsigned int *,	AT_VOID_P	) \
-	MENTRY(	refdouble,  double *,		AT_VOID_P	) \
-	MENTRY(	callback,   void *,		AT_VOID_P	)
+	MENTRY( "void",	      void,	void,		AT_NONE		) \
+	MENTRY( "byte",	      byte,	unsigned char,	AT_CHAR		) \
+	MENTRY( "char",	      char,	char,		AT_CHAR		) \
+	MENTRY( "short",      short,	short,		AT_SHORT	) \
+	MENTRY(	"ushort",     ushort,	unsigned short,	AT_SHORT	) \
+	MENTRY(	"int",	      int,	int,		AT_INT		) \
+	MENTRY(	"uint",	      uint,	unsigned int,	AT_INT		) \
+	MENTRY(	"long",	      long,	long,		AT_LONG		) \
+	MENTRY(	"ulong",      ulong,	unsigned long,	AT_LONG		) \
+	MENTRY(	"float",      float,	float,		AT_FLOAT	) \
+	MENTRY(	"double",     double,	double,		AT_DOUBLE	) \
+	MENTRY(	"string",     string,	char *,		AT_CHAR_P	) \
+	MENTRY(	"pointer",    pointer,	void *,		AT_VOID_P	) \
+	MENTRY(	"ref char",   refchar,	char *,		AT_CHAR_P	) \
+	MENTRY(	"ref int",    refint,	int *,		AT_VOID_P	) \
+	MENTRY(	"ref uint",   refuint,	unsigned int *,	AT_VOID_P	) \
+	MENTRY(	"ref double", refdouble,double *,	AT_VOID_P	) \
+	MENTRY(	"callback",   callback, void *,		AT_VOID_P	)
 
 typedef enum {
-#define MENTRY(_n, _s, _a) ALIEN_SPLICE(AT_, _n),
+#define MENTRY(_n, _b, _s, _a) ALIEN_SPLICE(AT_, _b),
   type_map
 #undef MENTRY
   AT_ENTRY_COUNT
 } alien_Type;
 
 static const char *const alien_typenames[] =  {
-#define MENTRY(_n, _s, _a) ALIEN_STR(_n),
+#define MENTRY(_n, _b, _s, _a) (_n),
   type_map
 #undef MENTRY
   NULL
@@ -146,7 +142,7 @@ static const char *const alien_typenames[] =  {
 #define ffi_type_callback  ffi_type_pointer
 
 static ffi_type* ffitypes[] = {
-#define MENTRY(_n, _s, _a) &ALIEN_SPLICE(ffi_type_, _n),
+#define MENTRY(_n, _b, _s, _a) &ALIEN_SPLICE(ffi_type_, _b),
   type_map
 #undef MENTRY
   NULL
@@ -476,7 +472,7 @@ static int alien_callback_new(lua_State *L) {
 
 static int alien_sizeof(lua_State *L) {
   static const size_t sizes[] = {
-#define MENTRY(_n, _s, _a)  sizeof(_s),
+#define MENTRY(_n, _b, _s, _a)  sizeof(_s),
     type_map
 #undef MENTRY
     0
@@ -488,7 +484,7 @@ static int alien_sizeof(lua_State *L) {
 static int alien_align(lua_State *L) {
   static const size_t aligns[] = {
     0
-#define MENTRY(_n, _s, _a) ALIEN_SPLICE(_a, _ALIGN),
+#define MENTRY(_n, _b, _s, _a) ALIEN_SPLICE(_a, _ALIGN),
     type_map
 #undef MENTRY
     0
