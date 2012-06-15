@@ -129,6 +129,11 @@ function array_methods:ipairs()
   return array_next, self, 0
 end
 
+function array_methods:realloc(newlen)
+  self.buffer:realloc(newlen * self.size)
+  self.length = newlen
+end
+
 local function array_get(arr, key)
   if type(key) == "number" then
     if key < 1 or key > arr.length then

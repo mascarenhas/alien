@@ -9,13 +9,13 @@ description = {
     in a portable way, using libffi.
   ]],
   license = "MIT/X11",
-  homepage = "http://alien.luaforge.net"
+  homepage = "http://mascarenhas.github.com/alien"
 }
 
 dependencies = { }
 
 source = {
-   url = "http://cloud.github.com/downloads/alien/alien-0.5.1.tar.gz"
+   url = "http://cloud.github.com/downloads/mascarenhas/alien/alien-0.5.1.zip"
 }
 
 build = {
