@@ -60,7 +60,7 @@ local function load_library_helper(libname, libext)
         if name then
           lib = core.load(name)
         else
-          error("library " .. libname .. " not found")
+          return nil, "library " .. libname .. " not found"
         end
       end
     end
@@ -69,13 +69,20 @@ local function load_library_helper(libname, libext)
 end
 
 function load_library.linux(libname)
-  return load_library_helper(libname, ".so")
+  local lib, errmsg = load_library_helper(libname, ".so")
+  if not lib then error (errmsg) end
+  return lib
 end
 
 load_library.bsd = load_library.linux
 
 function load_library.darwin(libname)
-  return load_library_helper(libname, ".dylib")
+  local lib, errmsg = load_library_helper(libname, ".dylib")
+  if not lib then
+    lib, errmsg = load_library_helper(libname, ".so")
+  end
+  if not lib then error (errmsg) end
+  return lib
 end
 
 setmetatable(load_library, { __index = function (t, plat)
