@@ -16,7 +16,6 @@ include build-aux/Makefile.am
 include doc/Makefile.am
 include samples/Makefile.am
 include src/Makefile.am
-include src/alien/Makefile.am
 include tests/Makefile.am
 
 ROCKSPEC = $(PACKAGE)-$(VERSION)-1.rockspec

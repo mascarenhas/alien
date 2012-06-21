@@ -1,6 +1,7 @@
 
 
-local core = require "alien.core"
+local _M = require "alien_c"
+local alien = _M
 local io = require "io"
 
 local pairs, ipairs = pairs, ipairs
@@ -11,9 +12,8 @@ local type = type
 local rawset = rawset
 local unpack = unpack
 local math = math
-local print = print
 
-local _M = alien
+local load, callback = alien.load, alien.callback
 
 _M.loaded = {}
 
@@ -41,24 +41,24 @@ function find_library.bsd(libname)
 end
 
 function find_library.darwin(libname)
-  local ok, lib = pcall(core.load, libname .. ".dylib")
+  local ok, lib = pcall(load, libname .. ".dylib")
   if ok then return lib end
-  ok, lib = pcall(core.load, libname .. ".framework/" .. libname)
+  ok, lib = pcall(load, libname .. ".framework/" .. libname)
   if ok then return lib end
   return nil
 end
 
 local function load_library_helper(libname, libext)
   if libname:match("/") or libname:match("%" .. libext) then
-    return core.load(libname)
+    return load(libname)
   else
-    local ok, lib = pcall(core.load, "lib" .. libname .. libext)
+    local ok, lib = pcall(load, "lib" .. libname .. libext)
     if not ok then
-      ok, lib = pcall(core.load, "./lib" .. libname .. libext)
+      ok, lib = pcall(load, "./lib" .. libname .. libext)
       if not ok then
-        local name = find_library[core.platform](libname)
+        local name = find_library[alien.platform](libname)
         if name then
-          lib = core.load(name)
+          lib = load(name)
         else
           return nil, "library " .. libname .. " not found"
         end
@@ -85,32 +85,22 @@ function load_library.darwin(libname)
   return lib
 end
 
-setmetatable(load_library, { __index = function (t, plat)
-                                         return core.load
-                                       end } )
-
 function load_library.windows(libname)
-  return core.load(libname)
+  return load(libname)
 end
 
 setmetatable(_M.loaded, { __index = function (t, libname)
-                                      local lib = load_library[core.platform](libname)
+                                      local lib = load_library[alien.platform](libname)
                                       t[libname] = lib
                                       return lib
                                     end, __mode = "kv" })
-
-setmetatable(_M, { __index = _M.loaded })
-
-for name, f in pairs(core) do
-  _M[name] = f
-end
 
 function _M.load(libname)
   return _M.loaded[libname]
 end
 
 function _M.callback(f, ...)
-  local cb = core.callback(f)
+  local cb = callback(f)
   cb.types(cb, ...)
   return cb
 end
@@ -162,7 +152,7 @@ local function array_set(arr, key, val)
 end
 
 function _M.array(t, length, init)
-  local ok, size = pcall(core.sizeof, t)
+  local ok, size = pcall(alien.sizeof, t)
   if not ok then
     error("type " .. t .. " does not exist")
   end
@@ -175,7 +165,7 @@ function _M.array(t, length, init)
   if type(init) == "userdata" then
     arr.buffer = init
   else
-    arr.buffer = core.buffer(size * length)
+    arr.buffer = alien.buffer(size * length)
     if type(init) == "table" then
       for i = 1, length do
         if type(init[i]) == "string" then
@@ -191,7 +181,7 @@ function _M.array(t, length, init)
 end
 
 local function struct_new(s_proto, ptr)
-  local buf = core.buffer(ptr or s_proto.size)
+  local buf = alien.buffer(ptr or s_proto.size)
   local function struct_get(_, key)
     if s_proto.offsets[key] then
       return buf:get(s_proto.offsets[key] + 1, s_proto.types[key])
@@ -231,10 +221,10 @@ function _M.defstruct(t)
   for _, field in ipairs(t) do
     local name, type = field[1], field[2]
     names[#names + 1] = name
-    off = math.ceil(off / core.align(type)) * core.align(type)
+    off = math.ceil(off / alien.align(type)) * alien.align(type)
     offsets[name] = off
     types[name] = type
-    off = off + core.sizeof(type)
+    off = off + alien.sizeof(type)
   end
   return { names = names, offsets = offsets, types = types, size = off, new = struct_new,
            byval = struct_byval }

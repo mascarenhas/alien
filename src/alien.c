@@ -24,6 +24,9 @@
 
 #define LUA_COMPAT_ALL
 
+#define MYNAME		"alien"
+#define MYVERSION	MYNAME " library for " LUA_VERSION " / " VERSION
+
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
@@ -385,7 +388,7 @@ static int alien_function_new(lua_State *L) {
 
 static int alien_library_tostring(lua_State *L) {
   alien_Library *al = alien_checklibrary(L, 1);
-  lua_pushfstring(L, "alien library %s", (al->name ? al->name : "default"));
+  lua_pushfstring(L, "alien library %s", al->name);
   return 1;
 }
 
@@ -1074,7 +1077,6 @@ static const luaL_Reg alienlib[] = {
   {"table", alien_table_new},
   {"errno", alien_errno},
   {"memmove", alien_memmove },
-  {"memcpy", alien_memmove }, /* For backwards compatibility only; deprecated */
   {"memset", alien_memset },
 
   /* Struct functions */
@@ -1086,7 +1088,7 @@ static const luaL_Reg alienlib[] = {
   {NULL, NULL},
 };
 
-int luaopen_alien_core(lua_State *L) {
+int luaopen_alien_c(lua_State *L) {
   alien_Library *al;
 
   /* Library metatable */
@@ -1137,26 +1139,21 @@ int luaopen_alien_core(lua_State *L) {
   lua_settable(L, -3);
   lua_pop(L, 1);
 
-  /* Register top-level table */
-  lua_getglobal(L, "alien");
-  if(lua_isnil(L, -1)) {
-    lua_newtable(L);
-    lua_pushvalue(L, -1);
-    lua_setglobal(L, "alien");
-  }
-  lua_newtable(L);
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -3, "core");
-
   /* Register main library */
-  luaL_register (L, NULL, alienlib);
+  luaL_register(L, "alien", alienlib);
+  /* Version */
+  lua_pushliteral(L, MYVERSION);
+  lua_setfield(L, -2, "version");
+  /* Set platform */
   lua_pushliteral(L, PLATFORM);
   lua_setfield(L, -2, "platform");
+  /* Initialize libraries table */
   al = (alien_Library *)lua_newuserdata(L, sizeof(alien_Library));
   al->lib = NULL;
   al->name = "default";
   luaL_getmetatable(L, ALIEN_LIBRARY_META);
   lua_setmetatable(L, -2);
   lua_setfield(L, -2, "default");
+
   return 1;
 }
