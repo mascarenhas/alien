@@ -24,6 +24,9 @@
 
 #define LUA_COMPAT_ALL
 
+#define MYNAME		"alien"
+#define MYVERSION	MYNAME " library for " LUA_VERSION " / " VERSION
+
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
@@ -1074,7 +1077,6 @@ static const luaL_Reg alienlib[] = {
   {"table", alien_table_new},
   {"errno", alien_errno},
   {"memmove", alien_memmove },
-  {"memcpy", alien_memmove }, /* For backwards compatibility only; deprecated */
   {"memset", alien_memset },
 
   /* Struct functions */
@@ -1139,6 +1141,9 @@ int luaopen_alien_c(lua_State *L) {
 
   /* Register main library */
   luaL_register(L, "alien", alienlib);
+  /* Version */
+  lua_pushliteral(L, MYVERSION);
+  lua_setfield(L, -2, "version");
   /* Set platform */
   lua_pushliteral(L, PLATFORM);
   lua_setfield(L, -2, "platform");

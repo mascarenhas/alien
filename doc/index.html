@@ -1,9 +1,5 @@
 <h1>Alien - Pure Lua extensions</h1>
 
-<h2>Status</h2>
-
-<p>This is Alien version 0.5.2.</p>
-
 <h2>What is Alien</h2>
 
 <p><em>Alien</em> is a Foreign Function Interface (FFI) for Lua. An FFI lets you
@@ -36,6 +32,8 @@ the test suite (<code>tests</code>) you can run the suite with:</p>
 <p>Alien installs one module, <code>alien</code>.
 
 <h2>Basic Usage</h2>
+
+<p>The version of the alien library is available in <code>alien.version</code>.</p>
 
 <p>Load load a library with <code>alien.load("foo")</code>.By default, Alien assumes a
 naming scheme of lib<em>name</em>.dylib for OSX and lib<em>name</em>.so for other
@@ -463,7 +461,7 @@ name is stolen from Common Lisp FFIs.</p>
 <h2>Changelog</h2>
 
 <ul>
-  <li><p>0.5.2</p>
+  <li><p>0.6.0</p>
     <ul>
       <li>feature release</li>
       <li>replace alien.memcpy with alien.memmove; make alien.memset work (previously it called memcpy by mistake)</li>
@@ -471,6 +469,7 @@ name is stolen from Common Lisp FFIs.</p>
       <li>use Lua state&rsquo;s output instead of malloc, and use libffi for closure allocation instead of custom code</li>
       <li>replace the Unix Makefile with an autotools build system</li>
       <li>no longer ship libffi sources</li>
+      <li>add alien.version</li>
       <li>minor updates to documentation</li>
     </ul>
   </li>
