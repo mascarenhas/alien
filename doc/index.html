@@ -37,14 +37,9 @@ the test suite (<code>tests</code>) you can run the suite with:</p>
 
 <h2>Basic Usage</h2>
 
-<p>By default, Alien assumes a
+<p>Load load a library with <code>alien.load("foo")</code>.By default, Alien assumes a
 naming scheme of lib<em>name</em>.dylib for OSX and lib<em>name</em>.so for other
-Unix systems. If <em>name</em> is not one of the
-functions the <code>alien</code> module exports then you can get a reference to
-the library with <code>alien.</code><em><code>name</code></em>. Otherwise (for example, to load a
-library called <em>libwrap.so</em>) you have to use <code>alien.load("wrap")</code>.</p>
-
-<p>You can also specify the full name of the library by calling
+Unix systems. You can also specify the full name of the library by calling
 <code>alien.load</code> with a path or with the appropriate extension, such as
 <code>alien.load("mylibs/libfoo.so")</code> or <code>alien.load("libfoo.so")</code>.
 Either way you get back a reference

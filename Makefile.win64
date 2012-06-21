@@ -13,8 +13,8 @@ LIBFFI_OBJS=libffi\win32\ffi.obj libffi\win32\prep_cif.obj libffi\win32\types.ob
 {libffi\win32}.c{libffi\win32}.obj:
 	cl /c /MD /Fo$@ $(CFLAGS) /D_MSC_VER /DX86_64 $<
 
-all: src\alien\core.dll tests\alientest.dll
-	IF EXIST src\alien\core.dll.manifest del src\alien\core.dll.manifest
+all: src\alien_c.dll tests\alientest.dll
+	IF EXIST src\alien_c.dll.manifest del src\alien_c.dll.manifest
 	IF EXIST tests\alientest.dll.manifest del tests\alientest.dll.manifest
 
 libffi\win32\ffi.lib: $(LIBFFI_OBJS)
@@ -23,9 +23,9 @@ libffi\win32\ffi.lib: $(LIBFFI_OBJS)
 libffi\win32\win64.obj: libffi\win32\win64.asm
         ml64.exe /nologo /c /Zi /Folibffi\win32\win64.obj libffi\win32\win64.asm
 
-src\alien\core.dll: src\alien\core.obj libffi\win32\ffi.lib
-	link /dll /out:src\alien\core.dll /def:src\alien\core.def src\alien\core.obj $(LIB_OPTION) libffi\win32\ffi.lib
-	IF EXIST src\alien\core.dll.manifest mt -manifest src\alien\core.dll.manifest -outputresource:src\alien\core.dll;2
+src\alien_c.dll: src\alien.obj libffi\win32\ffi.lib
+	link /dll /out:src\alien_c.dll /def:src\alien.def src\alien.obj $(LIB_OPTION) libffi\win32\ffi.lib
+	IF EXIST src\alien_c.dll.manifest mt -manifest src\alien_c.dll.manifest -outputresource:src\alien_c.dll;2
 
 tests\alientest.dll:
 	cl /c /MD $(CFLAGS) /Fotests\alientest.obj tests\alientest.c
@@ -34,7 +34,7 @@ tests\alientest.dll:
 
 install:
 	IF NOT EXIST "$(LUA_LIBDIR)\alien" mkdir "$(LUA_LIBDIR)\alien"
-	copy src\alien\core.dll "$(LUA_LIBDIR)\alien"
+	copy src\alien_c.dll "$(LUA_LIBDIR)\alien"
 	IF NOT EXIST "$(LUA_LIBDIR)\alien" mkdir "$(LUA_LIBDIR)\alien"
 	copy src\alien.lua "$(LUA_DIR)\"
 	copy src\constants "$(BIN_DIR)\"
