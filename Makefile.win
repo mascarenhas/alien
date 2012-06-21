@@ -2,26 +2,19 @@
 LUA_LIBDIR=c:\usr\local\lib\lua
 LUA_DIR=c:\usr\local\share\lua\5.1
 BIN_DIR=c:\usr\local\bin
-CFLAGS=/O2 /DWINDOWS /Ic:\usr\local\include /Ilibffi\win32
+CFLAGS=/O2 /DWINDOWS /Ic:\usr\local\include
 LIB_OPTION="c:\usr\local\bin\lua5.1.lib"
 PREFIX=c:\usr\local
-LIBFFI_OBJS=libffi\win32\ffi.obj libffi\win32\prep_cif.obj libffi\win32\types.obj libffi\win32\win32.obj
 
 {src\alien}.c{src\alien}.obj:
 	cl /c /MD /Fo$@ $(CFLAGS) $<
-
-{libffi\win32}.c{libffi\win32}.obj:
-	cl /c /MD /Fo$@ $(CFLAGS) /D_MSC_VER /DX86_WIN32 $<
 
 all: src\alien_c.dll tests\alientest.dll
 	IF EXIST src\alien_c.dll.manifest del src\alien_c.dll.manifest
 	IF EXIST tests\alientest.dll.manifest del tests\alientest.dll.manifest
 
-libffi\win32\ffi.lib: $(LIBFFI_OBJS)
-	lib /out:libffi\win32\ffi.lib $(LIBFFI_OBJS)
-
-src\alien_c.dll: src\alien.obj libffi\win32\ffi.lib
-	link /dll /out:src\alien_c.dll /def:src\alien.def src\alien.obj $(LIB_OPTION) libffi\win32\ffi.lib
+src\alien_c.dll: src\alien.obj
+	link /dll /out:src\alien_c.dll /def:src\alien.def src\alien.obj $(LIB_OPTION) /defaultlib:ffi
 	IF EXIST src\alien_c.dll.manifest mt -manifest src\alien_c.dll.manifest -outputresource:src\alien_c.dll;2
 
 tests\alientest.dll:
@@ -42,7 +35,6 @@ install:
 clean:
 	del src\alien\*.dll src\alien\*.obj src\alien\*.exp src\alien\*.lib src\alien\*.dll.manifest
 	del tests\alientest.dll tests\alientest.obj tests\alientest.exp tests\alientest.lib tests\alientest.dll.manifest
-	del libffi\win32\ffi.lib libffi\win32\*.obj
 
 test:
 	cd tests && lua5.1 test_alien.lua
