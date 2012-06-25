@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script
 
-AC_INIT(alien, 0.5.2, http://mascarenhas.github.com/alien)
+AC_INIT(alien, 0.6.0, http://mascarenhas.github.com/alien)
 AC_CONFIG_AUX_DIR([build-aux])
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects dist-zip no-dist-gzip])

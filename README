@@ -1,11 +1,8 @@
 Alien - Pure Lua extensions
 ===========================
+
+For more information, see http://mascarenhas.github.com/alien.
   
-Status
------- 
-  
-This is Alien version 0.5.2. For more information check
-http://mascarenhas.github.com/alien.
 
 What is Alien?
 --------------
@@ -39,4 +36,4 @@ to and from C. The name was stolen from Common Lisp FFIs.
 License
 -------
 
-Alien uses the MIT license.
+Alien uses the MIT license (the same as Lua).

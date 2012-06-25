@@ -1,6 +1,6 @@
 require "alien"
 
-local dll = alien.alientest
+local dll = alien.load "alientest"
 
 do
   io.write(".")
