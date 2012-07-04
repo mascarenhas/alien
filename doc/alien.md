@@ -81,7 +81,7 @@ the test suite (`tests`) you can run the suite with:
 
 If everything is ok you should see no output.
 
-Alien installs to modules, `alien` and `alien.struct`. The latter is a
+Alien installs two modules, `alien` and `alien.struct`. The latter is a
 slightly modified version of Roberto Ierusalimschy's [struct
 library](http://www.inf.puc-rio.br/~roberto/struct) that can unpack
 binary blobs (userdata) instead of just strings.
@@ -358,7 +358,7 @@ implement:
 
     local tag_foo = alien.tag("libfoo_foo")
     alien.foo.create_foo:types("pointer")
-    alien.foo.destroy_foo_types("void", "pointer")    
+    alien.foo.destroy_foo_types("void", "pointer")
 
     function new_foo()
       local foo = alien.foo.create_foo()
