@@ -650,7 +650,7 @@ static int alien_function_call(lua_State *L) {
       nrefd++;
       break;
     default:
-      return luaL_error(L, "alien: parameter %i is of unknown type (function %s)", j,
+      return luaL_error(L, "alien: parameter %d is of unknown type (function %s)", j,
                         af->name ? af->name : "anonymous");
     }
     args[i] = arg;
