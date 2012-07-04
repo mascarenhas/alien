@@ -36,10 +36,7 @@ the test suite (`tests`) you can run the suite with:
 
     lua -l luarocks.require test_alien.lua
 
-Alien installs two modules, `alien` and `alien.struct`. The latter is a
-slightly modified version of Roberto Ierusalimschy's [struct
-library](http://www.inf.puc-rio.br/~roberto/struct) that can unpack
-binary blobs (userdata) instead of just strings.
+Alien installs one modules, `alien`.
 
 Basic Usage
 -----------
@@ -170,6 +167,9 @@ You can also call `buf:len`, which calls `strlen` on the buffer. Finally,
 
 To get a pointer to a buffer, use `buf:topointer(offset)`; the argument is optional, defaulting to 1.
 
+You can reallocate a buffer using `buf:realloc(newsize)`. This uses the current Lua state's allocation
+function.
+
 An example of how to use a buffer:
 
     > gets = alien.default.gets
@@ -188,14 +188,15 @@ Arrays
 ------
 
 Arrays are buffers with an extra layer of safety and sugar on top. You create an array
-with `alien.array(type, length)`, where *type* is the Alien type of the array's elements,
-and length is how many elements the array has. After creating an array *arr* you can get the
-type of its elements with *arr.type*, how many elements it has with *arr.length*, and the
-size (in bytes) of each element with *arr.size*. The underlying buffer is *arr.buffer*.
+with `alien.array(type, length)`, where `type` is the Alien type of the array's elements,
+and length is how many elements the array has. After creating an array `arr` you can get the
+type of its elements with `arr.type`, how many elements it has with `arr.length`, and the
+size (in bytes) of each element with `arr.size`. The underlying buffer is `arr.buffer`.
 
-You can access the i-th element with *arr[i]*, and set it with *arr[i] = val*. Type 
+You can access the i-th element with `arr[i]`, and set it with `arr[i] = val`. Type 
 conversions are the same as with buffers, or function calls. Storing a string or userdata
-in an array pins it so it won't be collected while it is in the array.
+in an array pins it so it won't be collected while it is in the array. You can resize an
+array too: `arr:realloc(newlen)` changes the length to `newlen`.
 
 For convenience `alien.array` also accepts two other forms: `alien.array(type, tab)` creates
 an array with the same length as *tab* and initializes it with its values; 
@@ -222,7 +223,10 @@ Structs
 -------
 
 Alien also has basic support for declarative structs that is also implemented as a layer of sugar
-on the basic buffers. The `alien.defstruct(description)` function creates a struct type with the
+on the basic buffers. It uses a slightly modified version of Roberto Ierusalimschy's
+[struct library](http://www.inf.puc-rio.br/~roberto/struct) that can unpack
+binary blobs (userdata) instead of just strings.
+The `alien.defstruct(description)` function creates a struct type with the
 given description, which is a list of pairs with the name and type of each field, where the type is any
 basic alien type (no structs inside structs yet). For example:
 
@@ -276,7 +280,7 @@ a pointer to an array of four floats, the following code unpacks this array:
     >
 
 Use these functions with extra care, as they don't make any safety
-checks. For more advanced unmarshaling use the `alien.struct.unpack`
+checks. For more advanced unmarshalling use the `alien.unpack`
 function.
 
 Tags
