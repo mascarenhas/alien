@@ -4,26 +4,26 @@ local dll = alien.load "alientest"
 
 do
   io.write(".")
-  local f = dll._testfunc_i_bhilfd
-  f:types("int", "byte", "short", "int", "long", "float", "double")
-  local result = f(string.byte("x"), 1, 3, 4, 5, 6)
-  assert(result == 139)
+  local f = dll._testfunc_i_bhilfdll
+  f:types("int", "byte", "short", "int", "long", "float", "double", "longlong")
+  local result = f(string.byte("x"), 1, 3, 4, 5, 6, 7)
+  assert(result == 146)
 end
 
 do
   io.write(".")
-  local f = dll._testfunc_i_bhilfd
-  f:types{ ret = "int", "byte", "short", "int", "long", "float", "double" }
-  local result = f(string.byte("x"), 1, 3, 4, 5, 6)
-  assert(result == 139)
+  local f = dll._testfunc_i_bhilfdll
+  f:types{ ret = "int", "byte", "short", "int", "long", "float", "double", "longlong" }
+  local result = f(string.byte("x"), 1, 3, 4, 5, 6, 7)
+  assert(result == 146)
 end
 
 do
   io.write(".")
-  local f = dll._testfunc_i_bhilfd
-  f:types{ "byte", "short", "int", "long", "float", "double" }
-  local result = f(string.byte("x"), 1, 3, 4, 5, 6)
-  assert(result == 139)
+  local f = dll._testfunc_i_bhilfdll
+  f:types{ "byte", "short", "int", "long", "float", "double", "longlong" }
+  local result = f(string.byte("x"), 1, 3, 4, 5, 6, 7)
+  assert(result == 146)
 end
 
 do
@@ -203,37 +203,37 @@ end
 
 do
   io.write(".")
-  local f = dll._testfunc_i_bhilfd
-  f:types("int", "byte", "short", "int", "long", "float", "double")
-  local result = f(1, 2, 3, 4, 5, 6)
-  assert(result == 21)
-  local result = f(-1, -2, -3, -4, -5, -6)
-  assert(result == -21)
-  f:types("short", "byte", "short", "int", "long", "float", "double")
-  local result = f(1, 2, 3, 4, 5, 6)
-  assert(result == 21)
-  local result = f(1, 2, 3, 0x10004, 5.0, 6.0)
-  assert(result == 21)
+  local f = dll._testfunc_i_bhilfdll
+  f:types("int", "byte", "short", "int", "long", "float", "double", "longlong")
+  local result = f(1, 2, 3, 4, 5, 6, 7)
+  assert(result == 28)
+  local result = f(-1, -2, -3, -4, -5, -6, -7)
+  assert(result == -28)
+  f:types("short", "byte", "short", "int", "long", "float", "double", "longlong")
+  local result = f(1, 2, 3, 4, 5, 6, 7)
+  assert(result == 28)
+  local result = f(1, 2, 3, 0x10004, 5.0, 6.0, 7)
+  assert(result == 28)
 end
 
 do
   io.write(".")
-  local f = dll._testfunc_f_bhilfd
-  f:types("float", "byte", "short", "int", "long", "float", "double")
-  local result = f(1, 2, 3, 4, 5.0, 6.0)
-  assert(result == 21)
-  local result = f(-1, -2, -3, -4, -5, -6)
-  assert(result == -21)
+  local f = dll._testfunc_f_bhilfdll
+  f:types("float", "byte", "short", "int", "long", "float", "double", "longlong")
+  local result = f(1, 2, 3, 4, 5.0, 6.0, 7)
+  assert(result == 28)
+  local result = f(-1, -2, -3, -4, -5, -6, -7)
+  assert(result == -28)
 end
 
 do
   io.write(".")
-  local f = dll._testfunc_d_bhilfd
-  f:types("double", "byte", "short", "int", "long", "float", "double")
-  local result = f(1, 2, 3, 4, 5.0, 6.0)
-  assert(result == 21)
-  local result = f(-1, -2, -3, -4, -5, -6)
-  assert(result == -21)
+  local f = dll._testfunc_d_bhilfdll
+  f:types("double", "byte", "short", "int", "long", "float", "double", "longlong")
+  local result = f(1, 2, 3, 4, 5.0, 6.0, 7)
+  assert(result == 28)
+  local result = f(-1, -2, -3, -4, -5, -6, -7)
+  assert(result == -28)
 end
 
 do
