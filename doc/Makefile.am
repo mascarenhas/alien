@@ -1,1 +1,4 @@
-dist_doc_DATA += doc/alien.md doc/index.html
+dist_doc_DATA += doc/alien.html
+
+doc/alien.html: doc/alien.md
+	markdown $< > $@
