@@ -79,8 +79,6 @@ the test suite (`tests`) you can run the suite with:
 
     lua -l luarocks.require test_alien.lua
 
-If everything is ok you should see no output.
-
 Alien installs two modules, `alien` and `alien.struct`. The latter is a
 slightly modified version of Roberto Ierusalimschy's [struct
 library](http://www.inf.puc-rio.br/~roberto/struct) that can unpack
