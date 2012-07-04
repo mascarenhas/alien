@@ -471,6 +471,7 @@ Changelog
   * improve test output
   * use Lua state's output instead of malloc, and use libffi for closure allocation instead of custom code
   * replace the Unix Makefile with an autotools build system
+  * no longer ship libffi sources
   * minor updates to documentation
 
 * 0.5.1
