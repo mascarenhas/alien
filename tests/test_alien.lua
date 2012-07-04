@@ -5,7 +5,7 @@ local dll = alien.load "alientest"
 do
   io.write(".")
   local f = dll._testfunc_i_bhilfd
-  f:types("int", "byte", "short", "int", "long",  "float", "double")
+  f:types("int", "byte", "short", "int", "long", "float", "double")
   local result = f(string.byte("x"), 1, 3, 4, 5, 6)
   assert(result == 139)
 end
@@ -13,7 +13,7 @@ end
 do
   io.write(".")
   local f = dll._testfunc_i_bhilfd
-  f:types{ ret = "int", "byte", "short", "int", "long",  "float", "double" }
+  f:types{ ret = "int", "byte", "short", "int", "long", "float", "double" }
   local result = f(string.byte("x"), 1, 3, 4, 5, 6)
   assert(result == 139)
 end
@@ -21,7 +21,7 @@ end
 do
   io.write(".")
   local f = dll._testfunc_i_bhilfd
-  f:types{ "byte", "short", "int", "long",  "float", "double" }
+  f:types{ "byte", "short", "int", "long", "float", "double" }
   local result = f(string.byte("x"), 1, 3, 4, 5, 6)
   assert(result == 139)
 end
