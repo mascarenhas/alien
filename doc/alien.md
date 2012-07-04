@@ -1,13 +1,8 @@
 Alien - Pure Lua extensions
 ===========================
 
-Status
-------
-
-This is Alien version 0.5.2.
-
-What is Alien
--------------
+What is Alien?
+--------------
 
 *Alien* is a Foreign Function Interface (FFI) for Lua. An FFI lets you
 call functions in dynamic libraries (.so, .dylib, .dll, etc.) from Lua
@@ -40,6 +35,8 @@ Alien installs one modules, `alien`.
 
 Basic Usage
 -----------
+
+The version of the alien library is available in `alien.version`.
 
 Load a library with `alien.load("foo")`. By default, Alien assumes a
 naming scheme of lib*name*.dylib for OSX and lib*name*.so for other
@@ -464,13 +461,14 @@ name is stolen from Common Lisp FFIs.
 Changelog
 ---------
 
-* 0.5.2
+* 0.6.0
   * feature release
   * add alien.memmove; make alien.memset work (previously it called memcpy by mistake)
   * improve test output
   * use Lua state's output instead of malloc, and use libffi for closure allocation instead of custom code
   * replace the Unix Makefile with an autotools build system
   * no longer ship libffi sources
+  * add alien.version
   * minor updates to documentation
 
 * 0.5.1
