@@ -41,14 +41,9 @@ Alien installs one modules, `alien`.
 Basic Usage
 -----------
 
-By default, Alien assumes a
+Load a library with `alien.load("foo")`. By default, Alien assumes a
 naming scheme of lib*name*.dylib for OSX and lib*name*.so for other
-Unix systems. If *name* is not one of the
-functions the `alien` module exports then you can get a reference to
-the library with `alien.`*`name`*. Otherwise (for example, to load a
-library called *libwrap.so*) you have to use `alien.load("wrap")`.
-
-You can also specify the full name of the library by calling
+Unix systems. You can also specify the full name of the library by calling
 `alien.load` with a path or with the appropriate extension, such as
 `alien.load("mylibs/libfoo.so")` or `alien.load("libfoo.so")`. 
 Either way you get back a reference
