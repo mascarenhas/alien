@@ -21,7 +21,7 @@ itself is not as robust as a standard Lua extension, but you can use
 it to write extensions that won't crash if you code them well.
 
 Alien works on Unix-based systems and Windows. It has been tested on Linux x86, 
-Linux x64, Linux ARM, FreeBSD x86, Windows x86, OSX x86, and OSX PPC. The Windows
+Linux x64, Linux ARM, FreeBSD x86, Windows x86, OS X x86, and OS X PPC. The Windows
 binary uses MSVCR80.DLL for compatibility with LuaBinaries.
 
 Installing Alien
@@ -110,7 +110,7 @@ You have to pass a value even if the function does not use it, as you
 can see above.
 
 Another way to specify types is by passing a table to *func:types*. The array
-part of this table shoudl have one item for each parameter, and you can also pass
+part of this table should have one item for each parameter, and you can also pass
 two hash keys, *ret*, the function's return type (defaults to `int` as usual), and
 *abi*, the function's calling convention (useful for Windows, where you can specify "stdcall" as the
 ABI for `__stdcall` functions. The default ABI is always "default", and all systems
@@ -305,7 +305,7 @@ extensions:
   previously stored in it.
 * `alien.rewrap("tag", obj, ...)` replaces the elements on *obj* with
   new values. If you pass more values than *obj* had previously the extra
-  values are silently ignored. If you pass less tehn *obj* is filled with
+  values are silently ignored. If you pass less then *obj* is filled with
   *nil*.
 
 For example, suppose *libfoo* has a `create_foo` function that returns
@@ -375,7 +375,7 @@ C libraries are full of symbolic constants that are in truth magic
 numbers, as they are replaced by the preprocessor before even the C
 compiler has a chance to see them. This means that all these constants
 are on header files. This also includes things such as the layout and
-size of strucutres the library depends on. All this information can
+size of structures the library depends on. All this information can
 change from version to version of the library, or from platform to
 platform.
 
