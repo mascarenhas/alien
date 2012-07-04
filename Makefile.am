@@ -25,5 +25,6 @@ rockspec/$(ROCKSPEC): rockspec/$(PACKAGE).rockspec dist
 
 DISTCLEANFILES = rockspec/$(PACKAGE).rockspec
 
+# Get githup-upload from: https://github.com/wereHamster/ghup
 upload-dist: dist
 	github-upload $(distdir).tar.gz
