@@ -62,7 +62,7 @@ To use a function you first have to tell Alien the function prototype,
 using *func:types(ret_type, arg_types...)*, where the types are one of
 the following strings: "void", "int", "uint", "double", "char", "string",
 "pointer", "ref int", "ref uint", "ref double", "ref char", "callback", "short", "ushort",
-"byte", "long", "ulong", and "float". Most correspond directly to C types;
+"byte", "long", "ulong", "longlong", "ulonglong" and "float". Most correspond directly to C types;
 *byte* is a signed char, *string* is *const char\**, *pointer* is *void\**,
 *callback* is a generic function pointer, and *ref char*, *ref int*
 and *ref double* are by reference versions of the C types. Continuing
@@ -97,6 +97,12 @@ after the function normal return value. An example, using *scanf*:
 
 You have to pass a value even if the function does not use it, as you
 can see above.
+
+In most Lua implementations, "longlong" and "ulonglong" won't fit in a
+Lua number, so automatic conversion will sometimes fail. However, as
+long as you perform no computation on a long long, its value will be
+preserved, so you can receive it from C and pass it back to C without
+worrying.
 
 Another way to specify types is by passing a table to *func:types*. The array
 part of this table should have one item for each parameter, and you can also pass
@@ -464,6 +470,8 @@ Changelog
 * 0.6.0
   * feature release
   * add alien.memmove; make alien.memset work (previously it called memcpy by mistake)
+  * make buffers resizable
+  * add long long support
   * improve test output
   * use Lua state's output instead of malloc, and use libffi for closure allocation instead of custom code
   * replace the Unix Makefile with an autotools build system
