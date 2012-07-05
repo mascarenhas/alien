@@ -1,7 +1,7 @@
 package="alien"
-version="0.5.2-1"
+version="0.6.0-1"
 source = {
-   url = "http://cloud.github.com/downloads/alien/alien-0.5.2.zip"
+   url = "http://cloud.github.com/downloads/alien/alien-0.6.0.zip"
 }
 description = {
   summary = "Lua->C FFI",
