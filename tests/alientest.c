@@ -56,12 +56,12 @@ EXPORT(void) _testfunc_v(int a, int b, int *presult)
 	*presult = a + b;
 }
 
-EXPORT(int) _testfunc_i_bhilfd(signed char b, short h, int i, long l, float f, double d)
+EXPORT(int) _testfunc_i_bhilfdll(signed char b, short h, int i, long l, float f, double d, long long ll)
 {
-  /*	printf("_testfunc_i_bhilfd got %d %d %d %ld %f %f\n",
-	b, h, i, l, f, d);*/
+  /*	printf("_testfunc_i_bhilfdll got %d %d %d %ld %f %f %lld\n",
+	b, h, i, l, f, d, ll);*/
 
-	return (int)(b + h + i + l + f + d);
+	return (int)(b + h + i + l + f + d + ll);
 }
 
 EXPORT(unsigned long) _testfunc_L_HIL(unsigned short h, unsigned int i, unsigned long l)
@@ -69,20 +69,20 @@ EXPORT(unsigned long) _testfunc_L_HIL(unsigned short h, unsigned int i, unsigned
   return (unsigned long)(h + i + l);
 }
 
-EXPORT(float) _testfunc_f_bhilfd(signed char b, short h, int i, long l, float f, double d)
+EXPORT(float) _testfunc_f_bhilfdll(signed char b, short h, int i, long l, float f, double d, long long ll)
 {
-  /*	printf("_testfunc_f_bhilfd got %d %d %d %ld %f %f\n",
-	b, h, i, l, f, d);*/
+  /*	printf("_testfunc_f_bhilfdll got %d %d %d %ld %f %f %lld\n",
+	b, h, i, l, f, d, ll);*/
 
-	return (float)(b + h + i + l + f + d);
+	return (float)(b + h + i + l + f + d + ll);
 }
 
-EXPORT(double) _testfunc_d_bhilfd(signed char b, short h, int i, long l, float f, double d)
+EXPORT(double) _testfunc_d_bhilfdll(signed char b, short h, int i, long l, float f, double d, long long ll)
 {
-  /*	printf("_testfunc_d_bhilfd got %d %d %d %ld %f %f\n",
-	b, h, i, l, f, d);*/
+  /*	printf("_testfunc_d_bhilfdll got %d %d %d %ld %f %f %lld\n",
+	b, h, i, l, f, d, ll);*/
 
-	return (double)(b + h + i + l + f + d);
+	return (double)(b + h + i + l + f + d + ll);
 }
 
 EXPORT(char *) _testfunc_p_p(void *s)
