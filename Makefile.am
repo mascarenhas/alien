@@ -25,11 +25,6 @@ rockspec/$(ROCKSPEC): rockspec/$(PACKAGE).rockspec dist
 
 DISTCLEANFILES = rockspec/$(PACKAGE).rockspec
 
-upload-cvs:
-	git archive --output alien-current.tar.gz master
-	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs alien-current.tar.gz
-
-upload-dist:
-	git archive --format=tar --prefix=alien-$(VERSION)/ $(VERSION) | gzip > alien-$(VERSION).tar.gz
-	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs alien-$(VERSION).tar.gz
-	ncftpput -u mascarenhas ftp.luaforge.net alien/htdocs doc/index.html
+# Get githup-upload from: https://github.com/wereHamster/ghup
+upload-dist: dist
+	github-upload $(distdir).tar.gz

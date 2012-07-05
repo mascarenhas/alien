@@ -1,7 +1,7 @@
 package="alien"
-version="0.5.2-1"
+version="0.6.0-1"
 source = {
-   url = "http://cloud.github.com/downloads/alien/alien-0.5.2.zip"
+   url = "http://cloud.github.com/downloads/alien/alien-0.6.0.zip"
 }
 description = {
   summary = "Lua->C FFI",
@@ -17,6 +17,6 @@ dependencies = {
 }
 build = {
   type = "command",
-  build_command = "./configure LUA=$(LUA) --prefix=$(PREFIX) --libdir=$(LIBDIR) --datadir=$(LUADIR)",
+  build_command = "LUA=$(LUA) CPPFLAGS=-I$(LUA_INCDIR) ./configure --prefix=$(PREFIX) --libdir=$(LIBDIR) --datadir=$(LUADIR)",
   install_command = "make install"
 }

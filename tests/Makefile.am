@@ -2,10 +2,10 @@ LUA_PATH ?= ;
 LUA_CPATH ?= ;
 LUA_ENV = LUA_INIT= LUA_PATH="$(abs_top_srcdir)/src/?.lua;$(LUA_PATH)" LUA_CPATH="$(abs_top_builddir)/src/?$(shrext);$(LUA_CPATH)" LD_LIBRARY_PATH="$(abs_top_builddir)/tests/$(objdir)"
 
-noinst_LTLIBRARIES = tests/libalientest.la
+check_LTLIBRARIES += tests/libalientest.la
 
 tests_libalientest_la_SOURCES = tests/alientest.c
-tests_libalientest_la_LDFLAGS = -module -avoid-version
+tests_libalientest_la_LDFLAGS = -module -avoid-version -rpath /dev/null
 
 check-local:
 	cp src/$(objdir)/alien_c$(shrext) src/
