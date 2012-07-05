@@ -17,6 +17,6 @@ dependencies = {
 }
 build = {
   type = "command",
-  build_command = "./configure LUA=$(LUA) --prefix=$(PREFIX) --libdir=$(LIBDIR) --datadir=$(LUADIR)",
+  build_command = "LUA=$(LUA) CPPFLAGS=-I$(LUA_INCDIR) ./configure --prefix=$(PREFIX) --libdir=$(LIBDIR) --datadir=$(LUADIR)",
   install_command = "make install"
 }
