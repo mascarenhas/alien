@@ -460,6 +460,7 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
   case AT_pointer: *((void**)resp) = lua_isstring(L, -1) ? (void*)lua_tostring(L, -1) : alien_touserdata(L, -1); break;
   default: luaL_error(L, "alien: unknown return type in callback");
   }
+  lua_pop(ac->L, 1);
 }
 
 static int alien_callback_new(lua_State *L) {
