@@ -9,7 +9,7 @@ bin_SCRIPTS =
 check_LTLIBRARIES =
 dist_data_DATA =
 dist_doc_DATA =
-pkglib_LTLIBRARIES =
+lib_LTLIBRARIES =
 EXTRA_DIST =
 
 include build-aux/Makefile.am
