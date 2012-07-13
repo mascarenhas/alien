@@ -20,10 +20,10 @@ include tests/Makefile.am
 
 ROCKSPEC = $(PACKAGE)-$(VERSION)-1.rockspec
 
-rockspec/$(ROCKSPEC): rockspec/$(PACKAGE).rockspec dist
-	sed -e 's/@MD5@/'`$(MD5SUM) $(distdir).tar.gz | cut -d " " -f 1`'/g' < rockspec/$(PACKAGE).rockspec > $@
+$(ROCKSPEC): $(PACKAGE).rockspec dist
+	sed -e 's/@MD5@/'`$(MD5SUM) $(distdir).tar.gz | cut -d " " -f 1`'/g' < $(PACKAGE).rockspec > $@
 
-DISTCLEANFILES = rockspec/$(PACKAGE).rockspec
+DISTCLEANFILES = $(PACKAGE).rockspec
 
 # Get githup-upload from: https://github.com/wereHamster/ghup
 upload-dist: dist
