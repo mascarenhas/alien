@@ -5,6 +5,7 @@ LUA_ENV = LUA_INIT= LUA_PATH="$(abs_top_srcdir)/src/?.lua;$(LUA_PATH)" LUA_CPATH
 check_LTLIBRARIES += tests/libalientest.la
 
 tests_libalientest_la_SOURCES = tests/alientest.c
+# -rpath ensures that the .so is built by "make check"
 tests_libalientest_la_LDFLAGS = -module -avoid-version -rpath /dev/null
 
 check-local:
