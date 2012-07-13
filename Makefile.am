@@ -9,7 +9,7 @@ bin_SCRIPTS =
 check_LTLIBRARIES =
 dist_data_DATA =
 dist_doc_DATA =
-pkglib_LTLIBRARIES =
+lib_LTLIBRARIES =
 EXTRA_DIST =
 
 include build-aux/Makefile.am
@@ -20,11 +20,11 @@ include tests/Makefile.am
 
 ROCKSPEC = $(PACKAGE)-$(VERSION)-1.rockspec
 
-rockspec/$(ROCKSPEC): rockspec/$(PACKAGE).rockspec dist
-	sed -e 's/@MD5@/'`$(MD5SUM) $(distdir).tar.gz | cut -d " " -f 1`'/g' < rockspec/$(PACKAGE).rockspec > $@
+$(ROCKSPEC): $(PACKAGE).rockspec dist
+	sed -e 's/@MD5@/'`$(MD5SUM) $(distdir).zip | cut -d " " -f 1`'/g' < $(PACKAGE).rockspec > $@
 
-DISTCLEANFILES = rockspec/$(PACKAGE).rockspec
+DISTCLEANFILES = $(PACKAGE).rockspec
 
 # Get githup-upload from: https://github.com/wereHamster/ghup
 upload-dist: dist
-	github-upload $(distdir).tar.gz
+	github-upload $(distdir).zip

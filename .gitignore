@@ -19,3 +19,4 @@ Makefile
 /configure
 /libtool
 /stamp-h1
+/alien*.rockspec
