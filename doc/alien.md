@@ -133,9 +133,9 @@ Buffers
 To work with C APIs that require you to allocate memory that is
 mutated by the library, Alien provides a `buffer` abstraction.
 The function `alien.buffer` allocates a new buffer. If you call it with no
-arguments it will allocate a buffer with the standard buffer size for
-your platform. If call it with a number it will allocate a buffer with
-this number of bytes. If you pass it a string it will allocate a
+arguments it will allocate a buffer of size `BUFSIZ` (the default C
+buffer size on your platform). If call it with a number it will allocate a
+buffer with this number of bytes. If you pass it a string it will allocate a
 buffer that is a copy of the string. If you pass a light userdata
 it will use this userdata as the buffer (be careful with that).
 
@@ -156,7 +156,7 @@ each `int` is four bytes long.
 All get and set operations do no bounds-checking, so be extra careful, or use the
 safer `alien.array` abstraction that is built on top of buffers.
 
-To get back the contents of the buffer you use `buf:tostring(len, offset)`.
+To retrieve the contents of the buffer, use `buf:tostring(len, offset)`.
 Both arguments are optional: the first gives the number of characters to return;
 if omitted, the buffer is treated as a C string, and the contents up to the first NUL is returned.
 The second argument gives the offset to start at within the buffer, and defaults to the start of the buffer (1).
