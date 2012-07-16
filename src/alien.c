@@ -801,11 +801,9 @@ static int alien_unwrap(lua_State *L) {
 
 static int alien_buffer_new(lua_State *L) {
   size_t size = 0;
-  void **ud = lua_newuserdata(L, sizeof(void*));
-  if (!ud)
-    return luaL_error(L, "alien: cannot allocate buffer");
+  void **ud, *p;
   if(lua_type(L, 1) == LUA_TLIGHTUSERDATA) {
-    *ud = lua_touserdata(L, 1);
+    p = lua_touserdata(L, 1);
   } else {
     const char *s; char *b;
     void *aud;
@@ -824,8 +822,12 @@ static int alien_buffer_new(lua_State *L) {
       memcpy(b, s, size - 1);
       b[size - 1] = '\0';
     }
-    *ud = b;
+    p = b;
   }
+  ud = lua_newuserdata(L, sizeof(void*));
+  if (!ud)
+    return luaL_error(L, "alien: cannot allocate buffer");
+  *ud = p;
   lua_newtable(L);
   lua_pushnumber(L, size);
   lua_setfield(L, -2, "size");
