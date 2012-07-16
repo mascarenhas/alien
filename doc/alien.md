@@ -142,6 +142,9 @@ it will use this userdata as the buffer (be careful with that).
 After making a buffer you can pass it in place of any argument of
 *string* or *pointer* type.
 
+`buf.size` gives its size in bytes, while `buf:len()` returns the
+result of calling `strlen` on the buffer.
+
 You can access the i-th character of a buffer with `buf[i]`, and you can
 set its value with `buf[i] = v`. Notice that these are C characters (bytes),
 not Lua 1-character strings, so you need to use `string.char` and `string.byte`
@@ -153,14 +156,13 @@ set it by `buf:set(offset, val, type)`. The offset is in bytes, *not* in element
 if *buf* has three `int` values: their offsets are 1, 5 and 9, respectively, assuming
 each `int` is four bytes long.
 
-All get and set operations do no bounds-checking, so be extra careful, or use the
-safer `alien.array` abstraction that is built on top of buffers.
+The get and set operations do no bounds-checking, so where possible use the
+safer `alien.array` abstraction that is built on top of buffers (see below).
 
-To retrieve the contents of the buffer, use `buf:tostring(len, offset)`.
+To retrieve part of the buffer as a string, use `buf:tostring(len, offset)`.
 Both arguments are optional: the first gives the number of characters to return;
 if omitted, the buffer is treated as a C string, and the contents up to the first NUL is returned.
 The second argument gives the offset to start at within the buffer, and defaults to the start of the buffer (1).
-You can also call `buf:len`, which calls `strlen` on the buffer. Finally,
 `tostring(buf)` is the same as `buf:tostring()`.
 
 To get a pointer to a buffer, use `buf:topointer(offset)`; the argument is optional, defaulting to 1.
