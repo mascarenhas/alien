@@ -332,6 +332,11 @@ end
 
 local types = { "char", "short", "int", "long" }
 
+do
+  io.write(".")
+  alien.buffer()
+end
+
 for _, t in ipairs(types) do
   local buf = alien.buffer(alien.sizeof(t))
   local ptr = buf:topointer()
