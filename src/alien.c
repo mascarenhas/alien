@@ -6,6 +6,7 @@
 
 #ifdef WINDOWS
 #define _CRT_SECURE_NO_DEPRECATE 1
+#include <windows.h>
 #endif
 
 #include <stdio.h>
@@ -24,8 +25,8 @@
 
 #define LUA_COMPAT_ALL
 
-#define MYNAME		"alien"
-#define MYVERSION	MYNAME " library for " LUA_VERSION " / " VERSION
+#define MYNAME          "alien"
+#define MYVERSION       MYNAME " library for " LUA_VERSION " / " VERSION
 
 #include "lua.h"
 #include "lualib.h"
@@ -33,8 +34,8 @@
 
 /* The extra indirection to these macros is required so that if the
    arguments are themselves macros, they will get expanded too.  */
-#define ALIEN__SPLICE(_s, _t)	_s##_t
-#define ALIEN_SPLICE(_s, _t)	ALIEN__SPLICE(_s, _t)
+#define ALIEN__SPLICE(_s, _t)   _s##_t
+#define ALIEN_SPLICE(_s, _t)    ALIEN__SPLICE(_s, _t)
 
 #if LUA_VERSION_NUM == 502
 #define lua_setfenv lua_setuservalue
@@ -98,29 +99,29 @@ typedef struct { char c; void *x; } s_void_p;
 #define AT_CHAR_P_ALIGN (offsetof(s_char_p, x))
 #define AT_VOID_P_ALIGN (offsetof(s_void_p, x))
 
-/*              NAME          BASE	 SIZEOF			ALIGNMENT
-                ====          ====	 ======			=========	*/
+/*              NAME          BASE       SIZEOF                 ALIGNMENT
+                ====          ====       ======                 =========       */
 #define type_map \
-	MENTRY( "void",	      void,	 void,			AT_NONE		) \
-	MENTRY( "byte",	      byte,	 unsigned char,		AT_CHAR		) \
-	MENTRY( "char",	      char,	 char,			AT_CHAR		) \
-	MENTRY( "short",      short,	 short,			AT_SHORT	) \
-	MENTRY(	"ushort",     ushort,	 unsigned short,	AT_SHORT	) \
-	MENTRY(	"int",	      int,	 int,			AT_INT		) \
-	MENTRY(	"uint",	      uint,	 unsigned int,		AT_INT		) \
-	MENTRY(	"long",	      long,	 long,			AT_LONG		) \
-	MENTRY(	"ulong",      ulong,	 unsigned long,		AT_LONG		) \
-	MENTRY(	"float",      float,	 float,			AT_FLOAT	) \
-	MENTRY(	"double",     double,	 double,		AT_DOUBLE	) \
-	MENTRY(	"string",     string,	 char *,		AT_CHAR_P	) \
-	MENTRY(	"pointer",    pointer,	 void *,		AT_VOID_P	) \
-	MENTRY(	"ref char",   refchar,	 char *,		AT_CHAR_P	) \
-	MENTRY(	"ref int",    refint,	 int *,			AT_VOID_P	) \
-	MENTRY(	"ref uint",   refuint,	 unsigned int *,	AT_VOID_P	) \
-	MENTRY(	"ref double", refdouble, double *,		AT_VOID_P	) \
-        MENTRY( "longlong",   longlong,  long long,      	AT_LONGLONG     ) \
-        MENTRY ("ulonglong",  ulonglong, unsigned long long,	AT_LONGLONG	) \
-	MENTRY(	"callback",   callback,  void *,		AT_VOID_P	)
+        MENTRY( "void",       void,      void,                  AT_NONE         ) \
+        MENTRY( "byte",       byte,      unsigned char,         AT_CHAR         ) \
+        MENTRY( "char",       char,      char,                  AT_CHAR         ) \
+        MENTRY( "short",      short,     short,                 AT_SHORT        ) \
+        MENTRY( "ushort",     ushort,    unsigned short,        AT_SHORT        ) \
+        MENTRY( "int",        int,       int,                   AT_INT          ) \
+        MENTRY( "uint",       uint,      unsigned int,          AT_INT          ) \
+        MENTRY( "long",       long,      long,                  AT_LONG         ) \
+        MENTRY( "ulong",      ulong,     unsigned long,         AT_LONG         ) \
+        MENTRY( "float",      float,     float,                 AT_FLOAT        ) \
+        MENTRY( "double",     double,    double,                AT_DOUBLE       ) \
+        MENTRY( "string",     string,    char *,                AT_CHAR_P       ) \
+        MENTRY( "pointer",    pointer,   void *,                AT_VOID_P       ) \
+        MENTRY( "ref char",   refchar,   char *,                AT_CHAR_P       ) \
+        MENTRY( "ref int",    refint,    int *,                 AT_VOID_P       ) \
+        MENTRY( "ref uint",   refuint,   unsigned int *,        AT_VOID_P       ) \
+        MENTRY( "ref double", refdouble, double *,              AT_VOID_P       ) \
+        MENTRY( "longlong",   longlong,  long long,             AT_LONGLONG     ) \
+        MENTRY ("ulonglong",  ulonglong, unsigned long long,    AT_LONGLONG     ) \
+        MENTRY( "callback",   callback,  void *,                AT_VOID_P       )
 
 typedef enum {
 #define MENTRY(_n, _b, _s, _a) ALIEN_SPLICE(AT_, _b),
@@ -141,7 +142,7 @@ static const char *const alien_typenames[] =  {
 #define ffi_type_short     ffi_type_sshort
 #define ffi_type_int       ffi_type_sint
 #define ffi_type_long      ffi_type_slong
-#define ffi_type_string	   ffi_type_pointer
+#define ffi_type_string    ffi_type_pointer
 #define ffi_type_refchar   ffi_type_pointer
 #define ffi_type_refint    ffi_type_pointer
 #define ffi_type_refuint   ffi_type_pointer
@@ -150,12 +151,21 @@ static const char *const alien_typenames[] =  {
 #define ffi_type_ulonglong ffi_type_uint64
 #define ffi_type_callback  ffi_type_pointer
 
+
+#ifdef WINDOWS
+
+static ffi_type* ffitypes[AT_ENTRY_COUNT];
+
+#else
+
 static ffi_type* ffitypes[] = {
 #define MENTRY(_n, _b, _s, _a) &ALIEN_SPLICE(ffi_type_, _b),
   type_map
 #undef MENTRY
   NULL
 };
+
+#endif
 
 typedef struct {
   void *lib;
@@ -1119,6 +1129,16 @@ static const luaL_Reg alienlib[] = {
 
 int luaopen_alien_c(lua_State *L) {
   alien_Library *al;
+
+  #ifdef WINDOWS
+
+  int i = 0;
+#define MENTRY(_n, _b, _s, _a) { ffitypes[i] = &ALIEN_SPLICE(ffi_type_, _b); i++; }
+  type_map
+#undef MENTRY
+
+  ffitypes[i] = NULL;
+  #endif
 
   /* Library metatable */
   luaL_newmetatable(L, ALIEN_LIBRARY_META);

@@ -6,15 +6,15 @@ CFLAGS=/O2 /DWINDOWS /Ic:\usr\local\include
 LIB_OPTION="c:\usr\local\bin\lua5.1.lib"
 PREFIX=c:\usr\local
 
-{src\alien}.c{src\alien}.obj:
-	cl /c /MD /Fo$@ $(CFLAGS) $<
+.c.obj:
+	cl /c /MD /Fo$@ /DFFI_BUILDING $(CFLAGS) $<
 
 all: src\alien_c.dll tests\alientest.dll
 	IF EXIST src\alien_c.dll.manifest del src\alien_c.dll.manifest
 	IF EXIST tests\alientest.dll.manifest del tests\alientest.dll.manifest
 
 src\alien_c.dll: src\alien.obj
-	link /dll /out:src\alien_c.dll /def:src\alien.def src\alien.obj $(LIB_OPTION) /defaultlib:ffi
+	link /dll /out:src\alien_c.dll /def:src\alien.def src\alien.obj $(LIB_OPTION)
 	IF EXIST src\alien_c.dll.manifest mt -manifest src\alien_c.dll.manifest -outputresource:src\alien_c.dll;2
 
 tests\alientest.dll:
@@ -23,9 +23,7 @@ tests\alientest.dll:
 	IF EXIST tests\alientest.dll.manifest mt -manifest tests\alientest.dll.manifest -outputresource:tests\alientest.dll;2
 
 install:
-	IF NOT EXIST "$(LUA_LIBDIR)\alien" mkdir "$(LUA_LIBDIR)\alien"
-	copy src\alien_c.dll "$(LUA_LIBDIR)\alien"
-	IF NOT EXIST "$(LUA_LIBDIR)\alien" mkdir "$(LUA_LIBDIR)\alien"
+	copy src\alien_c.dll "$(LUA_LIBDIR)"
 	copy src\alien.lua "$(LUA_DIR)\"
 	copy src\constants "$(BIN_DIR)\"
 	xcopy /E /S tests "$(PREFIX)\tests\"

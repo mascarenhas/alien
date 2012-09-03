@@ -1,2 +1,2 @@
 EXPORTS
-	luaopen_alien_core
+	luaopen_alien_c
