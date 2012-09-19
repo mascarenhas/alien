@@ -120,7 +120,7 @@ typedef struct { char c; void *x; } s_void_p;
         MENTRY( "ref uint",   refuint,   unsigned int *,        AT_VOID_P       ) \
         MENTRY( "ref double", refdouble, double *,              AT_VOID_P       ) \
         MENTRY( "longlong",   longlong,  long long,             AT_LONGLONG     ) \
-        MENTRY ("ulonglong",  ulonglong, unsigned long long,    AT_LONGLONG     ) \
+        MENTRY( "ulonglong",  ulonglong, unsigned long long,    AT_LONGLONG     ) \
         MENTRY( "callback",   callback,  void *,                AT_VOID_P       )
 
 typedef enum {
