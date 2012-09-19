@@ -61,13 +61,14 @@ exported function with *libref.funcname*. For example:
 
 To use a function you first have to tell Alien the function prototype,
 using *func:types(ret_type, arg_types...)*, where the types are one of
-the following strings: "void", "int", "uint", "double", "char", "string",
-"pointer", "ref int", "ref uint", "ref double", "ref char", "callback", "short", "ushort",
-"byte", "long", "ulong", "longlong", "ulonglong" and "float". Most correspond directly to C types;
-*byte* is a signed char, *string* is *const char\**, *pointer* is *void\**,
-*callback* is a generic function pointer, and *ref char*, *ref int*
-and *ref double* are by reference versions of the C types. Continuing
-the previous example:
+the following strings: "void", "byte", "char", "short", "ushort",
+"int", "uint", "long", "ulong", "ptrdiff\_t", "size\_t", "float",
+"double", "string", "pointer", "ref char", "ref int", "ref uint", "ref
+double", "longlong", "ulonglong" and "callback". Most correspond
+directly to C types; *byte* is a signed char, *string* is *const
+char\**, *pointer* is *void\**, *callback* is a generic function
+pointer, and *ref char*, *ref int* and *ref double* are by reference
+versions of the C types. Continuing the previous example:
 
     > def.puts:types("int", "string")
     > def.puts("foo")
@@ -100,8 +101,9 @@ You have to pass a value even if the function does not use it, as you
 can see above.
 
 In most Lua implementations, "longlong" and "ulonglong" won't fit in a
-Lua number, so automatic conversion will sometimes fail. However, as
-long as you perform no computation on a long long, its value will be
+Lua number, so automatic conversion will sometimes fail; on 64-bit
+machines the same is true of "ptrdiff\_t" and "size\_t". However, as
+long as you perform no computation on such a value, its value will be
 preserved, so you can receive it from C and pass it back to C without
 worrying.
 
@@ -469,6 +471,9 @@ name is stolen from Common Lisp FFIs.
 
 Changelog
 ---------
+
+* 0.6.1: feature release
+  * add support for size\_t and ptrdiff\_t types.
 
 * 0.6.0
   * feature release

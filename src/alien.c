@@ -15,6 +15,10 @@
 #include <string.h>
 #include <errno.h>
 
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+
 #if HAVE_FFI_H
 #  include <ffi.h>
 #elif HAVE_FFI_FFI_H
@@ -22,6 +26,21 @@
 #else
 #  error "cannot find ffi.h"
 #endif
+
+/* libffi extension to support size_t and ptrdiff_t */
+#if PTRDIFF_MAX == 65535
+# define ffi_type_size_t         ffi_type_uint16
+# define ffi_type_ptrdiff_t      ffi_type_sint16
+#elif PTRDIFF_MAX == 2147483647
+# define ffi_type_size_t         ffi_type_uint32
+# define ffi_type_ptrdiff_t      ffi_type_sint32
+#elif PTRDIFF_MAX == 9223372036854775807
+# define ffi_type_size_t         ffi_type_uint64
+# define ffi_type_ptrdiff_t      ffi_type_sint64
+#else
+ #error "ptrdiff_t size not supported"
+#endif
+
 
 #define LUA_COMPAT_ALL
 
@@ -82,6 +101,7 @@ typedef struct { char c; char x; } s_char;
 typedef struct { char c; short x; } s_short;
 typedef struct { char c; int x; } s_int;
 typedef struct { char c; long x; } s_long;
+typedef struct { char c; ptrdiff_t x; } s_ptrdiff_t_p;
 typedef struct { char c; long long x; } s_longlong;
 typedef struct { char c; float x; } s_float;
 typedef struct { char c; double x; } s_double;
@@ -93,6 +113,7 @@ typedef struct { char c; void *x; } s_void_p;
 #define AT_SHORT_ALIGN (offsetof(s_short, x))
 #define AT_INT_ALIGN (offsetof(s_int, x))
 #define AT_LONG_ALIGN (offsetof(s_long, x))
+#define AT_PTRDIFF_T_P_ALIGN (offsetof(s_ptrdiff_t_p, x))
 #define AT_LONGLONG_ALIGN (offsetof(s_longlong, x))
 #define AT_FLOAT_ALIGN (offsetof(s_float, x))
 #define AT_DOUBLE_ALIGN (offsetof(s_double, x))
@@ -111,6 +132,8 @@ typedef struct { char c; void *x; } s_void_p;
         MENTRY( "uint",       uint,      unsigned int,          AT_INT          ) \
         MENTRY( "long",       long,      long,                  AT_LONG         ) \
         MENTRY( "ulong",      ulong,     unsigned long,         AT_LONG         ) \
+        MENTRY( "ptrdiff_t",  ptrdiff_t, ptrdiff_t,             AT_PTRDIFF_T_P  ) \
+        MENTRY( "size_t",     size_t,    size_t,                AT_PTRDIFF_T_P  ) \
         MENTRY( "float",      float,     float,                 AT_FLOAT        ) \
         MENTRY( "double",     double,    double,                AT_DOUBLE       ) \
         MENTRY( "string",     string,    char *,                AT_CHAR_P       ) \
@@ -423,6 +446,8 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
     case AT_uint: lua_pushnumber(L, *((unsigned int*)args[i])); break;
     case AT_long: lua_pushnumber(L, (long)*((long*)args[i])); break;
     case AT_ulong: lua_pushnumber(L, (unsigned long)*((unsigned long*)args[i])); break;
+    case AT_ptrdiff_t: lua_pushnumber(L, *((ptrdiff_t*)args[i])); break;
+    case AT_size_t: lua_pushnumber(L, *((size_t*)args[i])); break;
     case AT_float: lua_pushnumber(L, (float)*((float*)args[i])); break;
     case AT_double: lua_pushnumber(L, *((double*)args[i])); break;
     case AT_string: lua_pushstring(L, *((char**)args[i])); break;
@@ -452,6 +477,8 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
   case AT_uint: *((unsigned int*)resp) = (unsigned int)lua_tonumber(L, -1); break;
   case AT_long: *((long*)resp) = (long)lua_tonumber(L, -1); break;
   case AT_ulong: *((unsigned long*)resp) = (unsigned long)lua_tonumber(L, -1); break;
+  case AT_ptrdiff_t: *((ptrdiff_t*)resp) = (ptrdiff_t)lua_tonumber(L, -1); break;
+  case AT_size_t: *((size_t*)resp) = (size_t)lua_tonumber(L, -1); break;
   case AT_float: *((float*)resp) = (float)lua_tonumber(L, -1); break;
   case AT_double: *((double*)resp) = (double)lua_tonumber(L, -1); break;
   case AT_string: *((char**)resp) = lua_isuserdata(L, -1) ? alien_touserdata(L, -1) : (char *)lua_tostring(L, -1); break;
@@ -636,6 +663,12 @@ static int alien_function_call(lua_State *L) {
     case AT_ulong:
       arg = alloca(sizeof(unsigned long)); *((unsigned long*)arg) = (unsigned long)lua_tonumber(L, j);
       break;
+    case AT_ptrdiff_t:
+      arg = alloca(sizeof(ptrdiff_t)); *((ptrdiff_t*)arg) = (ptrdiff_t)lua_tonumber(L, j);
+      break;
+    case AT_size_t:
+      arg = alloca(sizeof(size_t)); *((size_t*)arg) = (size_t)lua_tonumber(L, j);
+      break;
     case AT_float:
       arg = alloca(sizeof(float)); *((float*)arg) = (float)lua_tonumber(L, j);
       break;
@@ -703,6 +736,8 @@ static int alien_function_call(lua_State *L) {
   case AT_uint: ffi_call(cif, af->fn, &iret, args); lua_pushnumber(L, (unsigned int)iret); break;
   case AT_long: ffi_call(cif, af->fn, &lret, args); lua_pushnumber(L, lret); break;
   case AT_ulong: ffi_call(cif, af->fn, &ulret, args); lua_pushnumber(L, (unsigned long)ulret); break;
+  case AT_ptrdiff_t: ffi_call(cif, af->fn, &lret, args); lua_pushnumber(L, lret); break;
+  case AT_size_t: ffi_call(cif, af->fn, &ulret, args); lua_pushnumber(L, (size_t)ulret); break;
   case AT_float: ffi_call(cif, af->fn, &fret, args); lua_pushnumber(L, fret); break;
   case AT_double: ffi_call(cif, af->fn, &dret, args); lua_pushnumber(L, dret); break;
   case AT_string: ffi_call(cif, af->fn, &pret, args);
@@ -903,6 +938,8 @@ static int alien_buffer_set(lua_State *L) {
   case AT_uint: *((unsigned int*)(&b[offset])) = (unsigned int)lua_tonumber(L, 3); break;
   case AT_long: *((long*)(&b[offset])) = (long)lua_tonumber(L, 3); break;
   case AT_ulong: *((unsigned long*)(&b[offset])) = (unsigned long)lua_tonumber(L, 3); break;
+  case AT_ptrdiff_t: *((ptrdiff_t*)(&b[offset])) = (ptrdiff_t)lua_tonumber(L, 3); break;
+  case AT_size_t: *((size_t*)(&b[offset])) = (size_t)lua_tonumber(L, 3); break;
   case AT_float: *((float*)(&b[offset])) = (float)lua_tonumber(L, 3); break;
   case AT_double: *((double*)(&b[offset])) = (double)lua_tonumber(L, 3); break;
   case AT_pointer:
@@ -971,6 +1008,8 @@ static int alien_buffer_get(lua_State *L) {
     case AT_uint: lua_pushnumber(L, *((unsigned int*)(&b[offset]))); break;
     case AT_long: lua_pushnumber(L, *((long*)(&b[offset]))); break;
     case AT_ulong: lua_pushnumber(L, *((unsigned long*)(&b[offset]))); break;
+    case AT_ptrdiff_t: lua_pushnumber(L, *((ptrdiff_t*)(&b[offset]))); break;
+    case AT_size_t: lua_pushnumber(L, *((size_t*)(&b[offset]))); break;
     case AT_float: lua_pushnumber(L, *((float*)(&b[offset]))); break;
     case AT_double: lua_pushnumber(L, *((double*)(&b[offset]))); break;
     case AT_string:
@@ -1031,6 +1070,8 @@ alien_udata2x(int, int)
 alien_udata2x(uint, unsigned int)
 alien_udata2x(long, long)
 alien_udata2x(ulong, unsigned long)
+alien_udata2x(ptrdiff_t, ptrdiff_t)
+alien_udata2x(size_t, size_t)
 alien_udata2x(float, float)
 alien_udata2x(double, double)
 
@@ -1108,6 +1149,8 @@ static const luaL_Reg alienlib[] = {
   {"touint", alien_udata2uint},
   {"tolong", alien_udata2long},
   {"toulong", alien_udata2ulong},
+  {"toptrdiff_t", alien_udata2ptrdiff_t},
+  {"tosize_t", alien_udata2size_t},
   {"tofloat", alien_udata2float},
   {"todouble", alien_udata2double},
   {"buffer", alien_buffer_new},
