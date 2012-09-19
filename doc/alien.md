@@ -475,8 +475,7 @@ Changelog
 * 0.6.1: feature release
   * add support for size\_t and ptrdiff\_t types.
 
-* 0.6.0
-  * feature release
+* 0.6.0: feature release
   * add alien.memmove; make alien.memset work (previously it called memcpy by mistake)
   * make buffers resizable
   * add long long support
@@ -487,8 +486,7 @@ Changelog
   * add alien.version
   * minor updates to documentation
 
-* 0.5.1
-  * bugfix release
+* 0.5.1: bugfix release
   * support for Lua 5.2
   * per-library function cache, instead of global (can load
     two functions with the same name from different libraries)
@@ -534,7 +532,7 @@ License
 
 Alien's uses the MIT license, reproduced below:
 
-Copyright (c) 2008-2009 Fabio Mascarenhas
+Copyright (c) 2008-2012 Fabio Mascarenhas
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
