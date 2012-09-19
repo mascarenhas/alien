@@ -10,14 +10,15 @@ code without having to write, compile and link a C binding from the
 library to Lua. In other words, it lets you write extensions that call
 out to native code using just Lua.
 
-Be careful when you use Alien: I tried to make it as safe as possible,
+Be careful when you use Alien: care has been taken to make it safe,
 but it is still very easy to crash Lua if you make a mistake. Alien
 itself is not as robust as a standard Lua extension, but you can use
 it to write extensions that won't crash if you code them well.
 
-Alien works on Unix-based systems and Windows. It has been tested on Linux x86, 
-Linux x64, Linux ARM, FreeBSD x86, Windows x86, OS X x86, and OS X PPC. The Windows
-binary uses MSVCR80.DLL for compatibility with LuaBinaries.
+Alien works on Unix-based systems and Windows. It has been tested on
+Linux x86, Linux x86_64, Linux ARM, FreeBSD x86, Windows x86, OS X
+x86, and OS X PPC. The Windows binary uses MSVCR80.DLL for
+compatibility with LuaBinaries.
 
 Installing Alien
 ----------------
