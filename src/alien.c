@@ -932,7 +932,7 @@ static int alien_buffer_tooffset(lua_State *L) {
   p = lua_touserdata(L, 2);
   /* It would be nice to do a bounds check, but comparing pointers
      that don't point to the same object has undefined behavior. */
-  lua_pushinteger(L, p - b);
+  lua_pushinteger(L, p - b + 1);
   return 1;
 }
 
