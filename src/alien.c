@@ -57,15 +57,15 @@
 #define ALIEN_SPLICE(_s, _t)    ALIEN__SPLICE(_s, _t)
 
 #if LUA_VERSION_NUM == 502
-#define lua_setfenv lua_setuservalue
-#define lua_getfenv lua_getuservalue
-
 static int luaL_typerror (lua_State *L, int narg, const char *tname) {
   const char *msg = lua_pushfstring(L, "%s expected, got %s",
                                     tname, luaL_typename(L, narg));
   return luaL_argerror(L, narg, msg);
 }
 #else
+#define lua_setuservalue lua_setfenv
+#define lua_getuservalue lua_getfenv
+
 static void *luaL_testudata(lua_State *L, int ud, const char *tname) {
   void *p = lua_touserdata(L, ud);
   if(p == NULL) return NULL;
@@ -362,7 +362,7 @@ static int alien_load(lua_State *L) {
   if(!lib)
     return lua_error(L);
   lua_newtable(L);
-  lua_setfenv(L, -2);
+  lua_setuservalue(L, -2);
   luaL_getmetatable(L, ALIEN_LIBRARY_META);
   lua_setmetatable(L, -2);
   al->lib = lib;
@@ -395,7 +395,7 @@ static int alien_library_get(lua_State *L) {
   alien_Library *al = alien_checklibrary(L, 1);
   size_t len;
   const char *funcname = luaL_checklstring(L, 2, &len);
-  lua_getfenv(L, 1);
+  lua_getuservalue(L, 1);
   cache = lua_gettop(L);
   lua_getfield(L, cache, funcname);
   if(!lua_isnil(L, -1)) return 1;
@@ -412,7 +412,7 @@ static int alien_library_get(lua_State *L) {
   lua_newtable(L);
   lua_pushvalue(L, 1);
   lua_rawseti(L, -2, 1);
-  lua_setfenv(L, -2);
+  lua_setuservalue(L, -2);
   lua_pushvalue(L, -1);
   lua_setfield(L, cache, funcname);
   return 1;
@@ -876,7 +876,7 @@ static int alien_buffer_new(lua_State *L) {
   lua_newtable(L);
   lua_pushnumber(L, size);
   lua_setfield(L, -2, "size");
-  lua_setfenv(L, -2);
+  lua_setuservalue(L, -2);
   luaL_getmetatable(L, ALIEN_BUFFER_META);
   lua_setmetatable(L, -2);
   return 1;
@@ -885,7 +885,7 @@ static int alien_buffer_new(lua_State *L) {
 static int alien_buffer_gc(lua_State *L) {
   size_t size;
   char *b = alien_checkbuffer(L, 1);
-  lua_getfenv(L, 1);
+  lua_getuservalue(L, 1);
   lua_getfield(L, -1, "size");
   size = lua_tointeger(L, -1);
   if (size > 0) {
@@ -976,7 +976,7 @@ static int alien_buffer_realloc(lua_State *L) {
   lua_Alloc lalloc = lua_getallocf(L, &aud);
   void **ud = (void **)luaL_checkudata(L, 1, ALIEN_BUFFER_META);
   size_t size = luaL_optinteger(L, 2, 1), oldsize;
-  lua_getfenv(L, 1);
+  lua_getuservalue(L, 1);
   lua_getfield(L, -1, "size");
   oldsize = lua_tointeger(L, -1);
   lua_pop(L, 1);
@@ -1001,7 +1001,7 @@ static int alien_buffer_get(lua_State *L) {
   static const char *const funcnames[] = { "tostring", "topointer", "tooffset", "len", "get", "set", "realloc", NULL };
   char *b = alien_checkbuffer(L, 1);
   if(lua_type(L, 2) == LUA_TSTRING) {
-    lua_getfenv(L, 1);
+    lua_getuservalue(L, 1);
     if(!lua_isnil(L, -1))
       lua_getfield(L, -1, lua_tostring(L, 2));
     if(lua_isnil(L, -1))
@@ -1255,6 +1255,8 @@ int luaopen_alien_c(lua_State *L) {
   al = (alien_Library *)lua_newuserdata(L, sizeof(alien_Library));
   al->lib = NULL;
   al->name = "default";
+  lua_newtable(L);
+  lua_setuservalue(L, -2);
   luaL_getmetatable(L, ALIEN_LIBRARY_META);
   lua_setmetatable(L, -2);
   lua_setfield(L, -2, "default");
