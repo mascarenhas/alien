@@ -925,6 +925,17 @@ static int alien_buffer_topointer(lua_State *L) {
   return 1;
 }
 
+static int alien_buffer_tooffset(lua_State *L) {
+  char *b = alien_checkbuffer(L, 1);
+  char *p;
+  luaL_checktype(L, 2, LUA_TLIGHTUSERDATA);
+  p = lua_touserdata(L, 2);
+  /* It would be nice to do a bounds check, but comparing pointers
+     that don't point to the same object has undefined behavior. */
+  lua_pushinteger(L, p - b);
+  return 1;
+}
+
 static int alien_buffer_set(lua_State *L) {
   char *b = alien_checkbuffer(L, 1);
   ptrdiff_t offset = luaL_checkinteger(L, 2) - 1;
@@ -982,11 +993,12 @@ static int alien_buffer_realloc(lua_State *L) {
 static int alien_buffer_get(lua_State *L) {
   static const void* funcs[] = {&alien_buffer_tostring,
                                 &alien_buffer_topointer,
+                                &alien_buffer_tooffset,
                                 &alien_buffer_len,
                                 &alien_buffer_get,
                                 &alien_buffer_set,
                                 &alien_buffer_realloc};
-  static const char *const funcnames[] = { "tostring", "topointer", "len", "get", "set", "realloc", NULL };
+  static const char *const funcnames[] = { "tostring", "topointer", "tooffset", "len", "get", "set", "realloc", NULL };
   char *b = alien_checkbuffer(L, 1);
   if(lua_type(L, 2) == LUA_TSTRING) {
     lua_getfenv(L, 1);

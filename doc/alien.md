@@ -170,6 +170,8 @@ The second argument gives the offset to start at within the buffer, and defaults
 
 To get a pointer to a buffer, use `buf:topointer(offset)`; the argument is optional, defaulting to 1.
 
+To turn a pointer into a buffer offset, use `buf:tooffset(pointer)`.
+
 You can reallocate a buffer using `buf:realloc(newsize)`. This uses the current Lua state's allocation
 function.
 
@@ -474,6 +476,7 @@ Changelog
 
 * 0.6.1: feature release
   * add support for size\_t and ptrdiff\_t types.
+  * add buffer:tooffset method to turn pointers into buffer offsets
 
 * 0.6.0: feature release
   * add alien.memmove; make alien.memset work (previously it called memcpy by mistake)
