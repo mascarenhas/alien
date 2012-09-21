@@ -2,7 +2,7 @@ Alien - Pure Lua extensions
 ===========================
 
 For more information, see http://mascarenhas.github.com/alien.
-  
+
 
 What is Alien?
 --------------
@@ -24,6 +24,28 @@ Installing Alien
 
 The best way to install Alien is through
 [LuaRocks](http://luarocks.org): just do `luarocks install alien`.
+
+Alien uses the GNU build system. For detailed instructions, see
+INSTALL. For a quick start:
+
+[If using git sources:
+
+  ./bootstrap
+]
+
+  ./configure && make [&& make install]
+
+You may need to supply non-default paths (e.g. if you are using a
+system that supports more than one version of Lua):
+
+For example, on Debian or Ubuntu:
+
+  CPPFLAGS='-I/usr/include/lua5.1' ./configure --libdir=/usr/local/lib/lua/5.1 --datadir=/usr/local/share/lua/5.1 --with-lua-suffix=5.1
+
+To run some tests:
+
+  make check
+
 
 Credits
 -------
