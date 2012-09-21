@@ -1,69 +1,6 @@
 <h1>Alien - Pure Lua extensions</h1>
 
-<h2>Status</h2>
-
-<p>This is Alien version 0.5.1.</p>
-
-<h2>Changelog</h2>
-
-<ul>
-<li><p>0.5.1</p>
-
-<ul>
-<li>bugfix release</li>
-<li>support for Lua 5.2</li>
-<li>per-library function cache, instead of global (can load
-two functions with the same name from different libraries)</li>
-<li>unloading of libraries if they are not being used</li>
-<li>updated alien.struct to current struct.c from Roberto</li>
-<li>updated libffi version to 3.0.9</li>
-<li>updated Windows libffi to reflect ctypes 1.0.2, add Win64 support</li>
-</ul>
-</li>
-<li><p>0.5.0</p>
-
-<ul>
-<li>new functions alien.memcpy and alien.memset</li>
-<li>new type &ldquo;p&rdquo; for alien.struct.pack and unpack, to pack pointers</li>
-<li>new alien.struct.offset function to get the offset of a given record</li>
-<li>buf:tostring now has optional &ldquo;offset&rdquo; argument</li>
-<li>buf:topointer now has optional &ldquo;offset&rdquo; argument</li>
-<li>added unsigned numbers: uint, ulong, ushort, and &ldquo;ref uint&rdquo;</li>
-<li>basic support for declarative strucutures</li>
-<li>unified treatment of funcitons and callbacks in the source</li>
-<li>fixed segfault when collecting 0-arg functions</li>
-</ul>
-</li>
-<li>0.4.1
-
-<ul>
-<li>fixes bug where Alien was always using cdecl abi for Windows (except in callbacks)</li>
-<li>fixes build on PPC OSX.</li>
-</ul>
-</li>
-<li>0.4.0
-
-<ul>
-<li>Windows support - stdcall ABI, including stdcall callbacks</li>
-<li>alternative syntax for defining types</li>
-<li>mutable buffers, wrapping lightuserdata in a buffer</li>
-<li>alien.to<em>type</em> functions take optional length argument</li>
-<li>callbacks are callable from Lua</li>
-<li>alien.funcptr turns a function pointer into an alien function</li>
-<li>improved library finding on Linux/FreeBSD, using ldconfig</li>
-<li>alien.table utility function (wrapper for lua_createtable, useful for extensions)</li>
-<li>alien.align utility function to get data structure alignment</li>
-<li>arrays built on mutable buffers, with bounds checking</li>
-<li>fixed a build bug on Linux ARM</li>
-</ul>
-</li>
-<li>0.3.2 - fixes callback bug on NX-bit platforms</li>
-<li>0.3.1 - initial release with libffi</li>
-<li>0.3 - retracted due to license conflict</li>
-</ul>
-
-
-<h2>What is Alien</h2>
+<h2>What is Alien?</h2>
 
 <p><em>Alien</em> is a Foreign Function Interface (FFI) for Lua. An FFI lets you
 call functions in dynamic libraries (.so, .dylib, .dll, etc.) from Lua
@@ -71,20 +8,19 @@ code without having to write, compile and link a C binding from the
 library to Lua. In other words, it lets you write extensions that call
 out to native code using just Lua.</p>
 
-<p>Be careful when you use Alien, I tried to make it as safe as possible,
+<p>Be careful when you use Alien: I tried to make it as safe as possible,
 but it is still very easy to crash Lua if you make a mistake. Alien
 itself is not as robust as a standard Lua extension, but you can use
 it to write extensions that won&rsquo;t crash if you code them well.</p>
 
 <p>Alien works on Unix-based systems and Windows. It has been tested on Linux x86,
-Linux x64, Linux ARM, FreeBSD x86, Windows x86, OSX x86, and OSX PPC. The Windows
+Linux x64, Linux ARM, FreeBSD x86, Windows x86, OS X x86, and OS X PPC. The Windows
 binary uses MSVCR80.DLL for compatibility with LuaBinaries.</p>
 
 <h2>Installing Alien</h2>
 
-<p>The best way to install Alien is through
-<a href="http://luarocks.org">LuaRocks</a>. Just do <code>luarocks install alien</code>. You may need
-root permissions to do this, depending on your LuaRocks configuration.</p>
+<p>The easiest way to install Alien is through
+<a href="http://luarocks.org">LuaRocks</a>. Just do <code>luarocks install alien</code>.</p>
 
 <p>Go to the Alien rock directory to see local copies of this
 documentation, as well as the test suite. If you are in the path of
@@ -93,23 +29,15 @@ the test suite (<code>tests</code>) you can run the suite with:</p>
 <pre><code>lua -l luarocks.require test_alien.lua
 </code></pre>
 
-<p>If everything is ok you should see no output.</p>
-
-<p>Alien installs to modules, <code>alien</code> and <code>alien.struct</code>. The latter is a
-slightly modified version of Roberto Ierusalimschy&rsquo;s <a href="http://www.inf.puc-rio.br/~roberto/struct">struct
-library</a> that can unpack
-binary blobs (userdata) instead of just strings.</p>
+<p>Alien installs one modules, <code>alien</code>.</p>
 
 <h2>Basic Usage</h2>
 
-<p>Loading a dynamic library is very simple; Alien by default assumes a
-naming scheme of lib<em>name</em>.dylib for OSX and lib<em>name</em>.so for other
-Unix systems. If <em>name</em> is not one of the
-functions the <code>alien</code> module exports then you can get a reference to
-the library with <code>alien.</code><em><code>name</code></em>. Otherwise (for example, to load a
-library called <em>libwrap.so</em>) you have to use <code>alien.load("wrap")</code>.</p>
+<p>The version of the alien library is available in <code>alien.version</code>.</p>
 
-<p>You can also specify the full name of the library by calling
+<p>Load a library with <code>alien.load("foo")</code>. By default, Alien assumes a
+naming scheme of lib<em>name</em>.dylib for OSX and lib<em>name</em>.so for other
+Unix systems. You can also specify the full name of the library by calling
 <code>alien.load</code> with a path or with the appropriate extension, such as
 <code>alien.load("mylibs/libfoo.so")</code> or <code>alien.load("libfoo.so")</code>.
 Either way you get back a reference
@@ -132,7 +60,7 @@ alien function puts, library defaults
 using <em>func:types(ret_type, arg_types&hellip;)</em>, where the types are one of
 the following strings: &ldquo;void&rdquo;, &ldquo;int&rdquo;, &ldquo;uint&rdquo;, &ldquo;double&rdquo;, &ldquo;char&rdquo;, &ldquo;string&rdquo;,
 &ldquo;pointer&rdquo;, &ldquo;ref int&rdquo;, &ldquo;ref uint&rdquo;, &ldquo;ref double&rdquo;, &ldquo;ref char&rdquo;, &ldquo;callback&rdquo;, &ldquo;short&rdquo;, &ldquo;ushort&rdquo;,
-&ldquo;byte&rdquo;, &ldquo;long&rdquo;, &ldquo;ulong&rdquo;, and &ldquo;float&rdquo;. Most correspond directly to C types;
+&ldquo;byte&rdquo;, &ldquo;long&rdquo;, &ldquo;ulong&rdquo;, &ldquo;longlong&rdquo;, &ldquo;ulonglong&rdquo; and &ldquo;float&rdquo;. Most correspond directly to C types;
 <em>byte</em> is a signed char, <em>string</em> is <em>const char*</em>, <em>pointer</em> is <em>void*</em>,
 <em>callback</em> is a generic function pointer, and <em>ref char</em>, <em>ref int</em>
 and <em>ref double</em> are by reference versions of the C types. Continuing
@@ -170,8 +98,14 @@ after the function normal return value. An example, using <em>scanf</em>:</p>
 <p>You have to pass a value even if the function does not use it, as you
 can see above.</p>
 
+<p>In most Lua implementations, &ldquo;longlong&rdquo; and &ldquo;ulonglong&rdquo; won&rsquo;t fit in a
+Lua number, so automatic conversion will sometimes fail. However, as
+long as you perform no computation on a long long, its value will be
+preserved, so you can receive it from C and pass it back to C without
+worrying.</p>
+
 <p>Another way to specify types is by passing a table to <em>func:types</em>. The array
-part of this table shoudl have one item for each parameter, and you can also pass
+part of this table should have one item for each parameter, and you can also pass
 two hash keys, <em>ret</em>, the function&rsquo;s return type (defaults to <code>int</code> as usual), and
 <em>abi</em>, the function&rsquo;s calling convention (useful for Windows, where you can specify &ldquo;stdcall&rdquo; as the
 ABI for <code>__stdcall</code> functions. The default ABI is always &ldquo;default&rdquo;, and all systems
@@ -196,27 +130,45 @@ This returns an Alien function object that you can type and call function normal
 
 <h2>Buffers</h2>
 
-<p>The basic usage is enough to do a lot of interfacing with C code,
-specially with well-behaved libraries that handle their own memory
-allocation (the Lua C API is a good example of such an API). But there
-are libraries that do not export such a well-behaved API, and require
-you to allocate memory that is mutated by the library. This prevents
-you from passing Lua strings to them, as Lua strings have to be
-immutable, so Alien provides a <em>buffer</em> abstraction. The function
-<code>alien.buffer</code> allocates a new buffer. If you call it with no
-arguments it will allocate a buffer with the standard buffer size for
-your platform. If call it with a number it will allocate a buffer with
-this number of bytes. If you pass it a string it will allocate a
+<p>To work with C APIs that require you to allocate memory that is
+mutated by the library, Alien provides a <code>buffer</code> abstraction.
+The function <code>alien.buffer</code> allocates a new buffer. If you call it with no
+arguments it will allocate a buffer of size <code>BUFSIZ</code> (the default C
+buffer size on your platform). If call it with a number it will allocate a
+buffer with this number of bytes. If you pass it a string it will allocate a
 buffer that is a copy of the string. If you pass a light userdata
 it will use this userdata as the buffer (be careful with that).</p>
 
 <p>After making a buffer you can pass it in place of any argument of
-<em>string</em> or <em>pointer</em> type. To get back the contents of the buffer you
-use <code>buf:tostring</code>, and again you can either pass the number of
-characters to read from the buffer or don&rsquo;t pass anything, which treat
-the buffer as a C string (read until finding a <em>\0</em>). You can also
-call <code>buf:len</code>, which calls <em>strlen</em> on the buffer. Finally,
+<em>string</em> or <em>pointer</em> type.</p>
+
+<p><code>buf.size</code> gives its size in bytes, while <code>buf:len()</code> returns the
+result of calling <code>strlen</code> on the buffer.</p>
+
+<p>You can access the i-th character of a buffer with <code>buf[i]</code>, and you can
+set its value with <code>buf[i] = v</code>. Notice that these are C characters (bytes),
+not Lua 1-character strings, so you need to use <code>string.char</code> and <code>string.byte</code>
+to convert between Lua characters and C characters. <strong>Access to Alien buffers
+from Lua is 1-based, not 0-based</strong>.</p>
+
+<p>You can also get and set other values by using <code>buf:get(offset, type)</code>, and
+set it by <code>buf:set(offset, val, type)</code>. The offset is in bytes, <em>not</em> in elements, so
+if <em>buf</em> has three <code>int</code> values: their offsets are 1, 5 and 9, respectively, assuming
+each <code>int</code> is four bytes long.</p>
+
+<p>The get and set operations do no bounds-checking, so where possible use the
+safer <code>alien.array</code> abstraction that is built on top of buffers (see below).</p>
+
+<p>To retrieve part of the buffer as a string, use <code>buf:tostring(len, offset)</code>.
+Both arguments are optional: the first gives the number of characters to return;
+if omitted, the buffer is treated as a C string, and the contents up to the first NUL is returned.
+The second argument gives the offset to start at within the buffer, and defaults to the start of the buffer (1).
 <code>tostring(buf)</code> is the same as <code>buf:tostring()</code>.</p>
+
+<p>To get a pointer to a buffer, use <code>buf:topointer(offset)</code>; the argument is optional, defaulting to 1.</p>
+
+<p>You can reallocate a buffer using <code>buf:realloc(newsize)</code>. This uses the current Lua state&rsquo;s allocation
+function.</p>
 
 <p>An example of how to use a buffer:</p>
 
@@ -230,31 +182,21 @@ Foo bar
 &gt;
 </code></pre>
 
-<p>You can access the i-th character of a buffer with <code>buf[i]</code>, and you can
-set its value with <code>buf[i] = v</code>. Notice that these are C characters (bytes),
-not Lua 1-character strings, so you need to use <code>string.char</code> and <code>string.byte</code>
-to convert between Lua characters and C characters. <strong>Access to Alien buffers
-from Lua is 1-based instead of 0-based</strong>.</p>
-
-<p>You can also get and set other values by using <em>buf:get(offset, type)</em>, and
-set it by <em>buf:set(offset, val, type)</em>. The offset is in bytes, <em>not</em> in elements, so
-if <em>buf</em> has three &ldquo;int&rdquo; values their offsets are 1, 5 and 9, respectively, assuming
-each &ldquo;int&rdquo; is four bytes long.</p>
-
-<p>All get and set operations do no bounds-checking, so be extra careful, or use the
-safer alien.array abstraction that is built on top of buffers.</p>
+<p>Alien also provides <code>alien.memmove</code> and <code>alien.memset</code>, which work exactly like the C functions
+of the same name, and can be used on buffers or other memory.</p>
 
 <h2>Arrays</h2>
 
 <p>Arrays are buffers with an extra layer of safety and sugar on top. You create an array
-with <code>alien.array(type, length)</code>, where <em>type</em> is the Alien type of the array&rsquo;s elements,
-and length is how many elements the array has. After creating an array <em>arr</em> you can get the
-type of its elements with <em>arr.type</em>, how many elements it has with <em>arr.length</em>, and the
-size (in bytes) of each element with <em>arr.size</em>. The underlying buffer is <em>arr.buffer</em>.</p>
+with <code>alien.array(type, length)</code>, where <code>type</code> is the Alien type of the array&rsquo;s elements,
+and length is how many elements the array has. After creating an array <code>arr</code> you can get the
+type of its elements with <code>arr.type</code>, how many elements it has with <code>arr.length</code>, and the
+size (in bytes) of each element with <code>arr.size</code>. The underlying buffer is <code>arr.buffer</code>.</p>
 
-<p>You can access the i-th element with <em>arr[i]</em>, and set it with <em>arr[i] = val</em>. Type
+<p>You can access the i-th element with <code>arr[i]</code>, and set it with <code>arr[i] = val</code>. Type
 conversions are the same as with buffers, or function calls. Storing a string or userdata
-in an array pins it so it won&rsquo;t be collected while it is in the array.</p>
+in an array pins it so it won&rsquo;t be collected while it is in the array. You can resize an
+array too: <code>arr:realloc(newlen)</code> changes the length to <code>newlen</code>.</p>
 
 <p>For convenience <code>alien.array</code> also accepts two other forms: <code>alien.array(type, tab)</code> creates
 an array with the same length as <em>tab</em> and initializes it with its values;
@@ -281,7 +223,10 @@ for i, v in nums:ipairs() do print(v) end
 <h2>Structs</h2>
 
 <p>Alien also has basic support for declarative structs that is also implemented as a layer of sugar
-on the basic buffers. The <code>alien.defstruct(description)</code> function creates a struct type with the
+on the basic buffers. It uses a slightly modified version of Roberto Ierusalimschy&rsquo;s
+<a href="http://www.inf.puc-rio.br/~roberto/struct">struct library</a> that can unpack
+binary blobs (userdata) instead of just strings.
+The <code>alien.defstruct(description)</code> function creates a struct type with the
 given description, which is a list of pairs with the name and type of each field, where the type is any
 basic alien type (no structs inside structs yet). For example:</p>
 
@@ -329,7 +274,7 @@ with the respective typecasts. Unsigned versions are also available.</li>
 </ul>
 
 
-<p>The numeric alien.to<em>type</em> functions take an optional second argument that
+<p>The numeric <code>alien.to*type*</code> functions take an optional second argument that
 tells how many items to unpack from the userdata. For example, if ptr is
 a pointer to an array of four floats, the following code unpacks this array:</p>
 
@@ -339,8 +284,8 @@ a pointer to an array of four floats, the following code unpacks this array:</p>
 &gt;
 </code></pre>
 
-<p>Use these functions with extra care, they don&rsquo;t make any safety
-checks. For more advanced unmarshaling use the <code>alien.struct.unpack</code>
+<p>Use these functions with extra care, as they don&rsquo;t make any safety
+checks. For more advanced unmarshalling use the <code>alien.unpack</code>
 function.</p>
 
 <h2>Tags</h2>
@@ -352,24 +297,24 @@ used to check if the userdata is a valid userdata in each function
 that uses it. As the userdata is a full userdata it also can have a
 <code>__gc</code> metamethod for resource reclamation.</p>
 
-<p>Alien has three functions that let you replicate this pattern on your
+<p>Alien has three functions that let you replicate this pattern in your
 extensions:</p>
 
 <ul>
-<li><code>alien.tag(*tagname*)</code> creates a new metatable with tag <em>tagname</em> if one
+<li><code>alien.tag("tag")</code> creates a new metatable with tag <em>tag</em> if one
 does not exist, or returns the metatable with this tag. The
 namespace for tags is global, so a good pattern is to prefix the tag
 name with the name of your module (such as <em>mymod_mytag</em>).</li>
-<li><code>alien.wrap(*tagname*, ...)</code> creates a full userdata, tags it with
-the metatable associated with <em>tagname</em>, stores the values
+<li><code>alien.wrap("tag", ...)</code> creates a full userdata, tags it with
+the metatable associated with <em>tag</em>, stores the values
 you passed, then returns the full userdata. Valid values are <em>nil</em>,
 integers and other userdata.</li>
-<li><code>alien.unwrap(*tagname*, obj)</code> tests if <em>obj</em> is tagged with
-<em>tagname</em>, throwing an error if it is not, then returns the values
+<li><code>alien.unwrap("tag", obj)</code> tests if <em>obj</em> is tagged with
+<em>tag</em>, throwing an error if it is not, then returns the values
 previously stored in it.</li>
-<li><code>alien.rewrap(*tagname*, obj, ...)</code> replaces the elements on <em>obj</em> with
+<li><code>alien.rewrap("tag", obj, ...)</code> replaces the elements on <em>obj</em> with
 new values. If you pass more values than <em>obj</em> had previously the extra
-values are silently ignored. If you pass less tehn <em>obj</em> is filled with
+values are silently ignored. If you pass less then <em>obj</em> is filled with
 <em>nil</em>.</li>
 </ul>
 
@@ -381,7 +326,7 @@ implement:</p>
 
 <pre><code>local tag_foo = alien.tag("libfoo_foo")
 alien.foo.create_foo:types("pointer")
-alien.foo.destroy_foo_types("void", "pointer")    
+alien.foo.destroy_foo_types("void", "pointer")
 
 function new_foo()
   local foo = alien.foo.create_foo()
@@ -440,7 +385,7 @@ change their types with their &ldquo;types&rdquo; method.</p>
 numbers, as they are replaced by the preprocessor before even the C
 compiler has a chance to see them. This means that all these constants
 are on header files. This also includes things such as the layout and
-size of strucutres the library depends on. All this information can
+size of structures the library depends on. All this information can
 change from version to version of the library, or from platform to
 platform.</p>
 
@@ -489,7 +434,7 @@ int main() {
 }
 </code></pre>
 
-<p>Which, when compile and run, generates this file on a Linux/Intel
+<p>When compiled and run, this generates this file on a Linux/Intel
 system:</p>
 
 <pre><code>-- Generated by Alien constants
@@ -508,14 +453,14 @@ file) are best done in the build step of your extension.</p>
 <h2>Miscellanea</h2>
 
 <p>You can query what platform your extension is running on with
-<code>alien.platform</code>. Right now this can be either &ldquo;unix&rdquo; or &ldquo;osx&rdquo;. Other
+<code>alien.platform</code>. Currently this can be one of &ldquo;linux&rdquo;, &ldquo;bsd&rdquo;, &ldquo;darwin&rdquo; or &ldquo;windows&rdquo;. Other
 platforms will be added as they are tested. You can use this
 information for conditional execution in your extensions.</p>
 
 <p>You can get the sizes of the types Alien supports using
-<code>alien.sizeof(*typename*)</code>, as the <em>qsort</em> example in the Callbacks
-section shows. You can also get strucutre aligment information
-with <code>alien.align(*typename*)</code>.</p>
+<code>alien.sizeof("type")</code>, as the <em>qsort</em> example in the Callbacks
+section shows. You can also get structure aligment information
+with <code>alien.align("type")</code>.</p>
 
 <p>Several extensions may need to create Lua tables with preallocated
 array and/or hash parts, for performance reasons (implementing a circular queue, for
@@ -527,6 +472,80 @@ example). Alien exposes the <code>lua_createtable</code> function as <code>alien
 great <a href="http://sources.redhat.com/libffi">libffi</a>
 library by Anthony Green (and others) to do the heavy lifting of calling to and from C. The
 name is stolen from Common Lisp FFIs.</p>
+
+<h2>Changelog</h2>
+
+<ul>
+<li><p>0.6.0</p>
+
+<ul>
+<li>feature release</li>
+<li>add alien.memmove; make alien.memset work (previously it called memcpy by mistake)</li>
+<li>make buffers resizable</li>
+<li>add long long support</li>
+<li>improve test output</li>
+<li>use Lua state&rsquo;s output instead of malloc, and use libffi for closure allocation instead of custom code</li>
+<li>replace the Unix Makefile with an autotools build system</li>
+<li>no longer ship libffi sources</li>
+<li>add alien.version</li>
+<li>minor updates to documentation</li>
+</ul>
+</li>
+<li><p>0.5.1</p>
+
+<ul>
+<li>bugfix release</li>
+<li>support for Lua 5.2</li>
+<li>per-library function cache, instead of global (can load
+two functions with the same name from different libraries)</li>
+<li>unloading of libraries if they are not being used</li>
+<li>updated alien.struct to current struct.c from Roberto</li>
+<li>updated libffi version to 3.0.9</li>
+<li>updated Windows libffi to reflect ctypes 1.0.2, add Win64 support</li>
+</ul>
+</li>
+<li><p>0.5.0</p>
+
+<ul>
+<li>new functions alien.memcpy and alien.memset</li>
+<li>new type &ldquo;p&rdquo; for alien.struct.pack and unpack, to pack pointers</li>
+<li>new alien.struct.offset function to get the offset of a given record</li>
+<li>buf:tostring now has optional &ldquo;offset&rdquo; argument</li>
+<li>buf:topointer now has optional &ldquo;offset&rdquo; argument</li>
+<li>added unsigned numbers: uint, ulong, ushort, and &ldquo;ref uint&rdquo;</li>
+<li>basic support for declarative strucutures</li>
+<li>unified treatment of funcitons and callbacks in the source</li>
+<li>fixed segfault when collecting 0-arg functions</li>
+</ul>
+</li>
+<li><p>0.4.1</p>
+
+<ul>
+<li>fixes bug where Alien was always using cdecl abi for Windows (except in callbacks)</li>
+<li>fixes build on PPC OSX.</li>
+</ul>
+</li>
+<li><p>0.4.0</p>
+
+<ul>
+<li>Windows support - stdcall ABI, including stdcall callbacks</li>
+<li>alternative syntax for defining types</li>
+<li>mutable buffers, wrapping lightuserdata in a buffer</li>
+<li>alien.to<em>type</em> functions take optional length argument</li>
+<li>callbacks are callable from Lua</li>
+<li>alien.funcptr turns a function pointer into an alien function</li>
+<li>improved library finding on Linux/FreeBSD, using ldconfig</li>
+<li>alien.table utility function (wrapper for lua_createtable, useful for extensions)</li>
+<li>alien.align utility function to get data structure alignment</li>
+<li>arrays built on mutable buffers, with bounds checking</li>
+<li>fixed a build bug on Linux ARM</li>
+</ul>
+</li>
+<li><p>0.3.2 - fixes callback bug on NX-bit platforms</p></li>
+<li>0.3.1 - initial release with libffi</li>
+<li>0.3 - retracted due to license conflict</li>
+</ul>
+
 
 <h2>License</h2>
 
