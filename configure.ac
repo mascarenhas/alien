@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script
 
-AC_INIT(alien, 0.6.0, http://mascarenhas.github.com/alien)
+AC_INIT(alien, 0.6.1, http://mascarenhas.github.com/alien)
 AC_CONFIG_AUX_DIR([build-aux])
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects dist-zip no-dist-gzip])
@@ -34,6 +34,7 @@ case $ac_cv_header_ffi_h$ac_cv_header_ffi_ffi_h in
   *)     AC_MSG_FAILURE([cannot find ffi.h]) ;;
 esac
 AC_CHECK_LIB([ffi], [ffi_closure_alloc], , AC_MSG_FAILURE([cannot find new enough libffi]))
+AC_CHECK_HEADERS([stdint.h])
 
 dnl Lua 5.1
 AX_PROG_LUA(501, 503)

@@ -1,4 +1,4 @@
-
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,12 +56,12 @@ EXPORT(void) _testfunc_v(int a, int b, int *presult)
 	*presult = a + b;
 }
 
-EXPORT(int) _testfunc_i_bhilfdll(signed char b, short h, int i, long l, float f, double d, long long ll)
+EXPORT(int) _testfunc_i_bhilpfdll(signed char b, short h, int i, long l, ptrdiff_t p, float f, double d, long long ll)
 {
-  /*	printf("_testfunc_i_bhilfdll got %d %d %d %ld %f %f %lld\n",
-	b, h, i, l, f, d, ll);*/
+  /*	printf("_testfunc_i_bhilfdll got %d %d %d %ld %t %f %f %lld\n",
+	b, h, i, l, p, f, d, ll);*/
 
-	return (int)(b + h + i + l + f + d + ll);
+	return (int)(b + h + i + l + p + f + d + ll);
 }
 
 EXPORT(unsigned long) _testfunc_L_HIL(unsigned short h, unsigned int i, unsigned long l)
@@ -69,20 +69,20 @@ EXPORT(unsigned long) _testfunc_L_HIL(unsigned short h, unsigned int i, unsigned
   return (unsigned long)(h + i + l);
 }
 
-EXPORT(float) _testfunc_f_bhilfdll(signed char b, short h, int i, long l, float f, double d, long long ll)
+EXPORT(float) _testfunc_f_bhilpfdll(signed char b, short h, int i, long l, ptrdiff_t p, float f, double d, long long ll)
 {
-  /*	printf("_testfunc_f_bhilfdll got %d %d %d %ld %f %f %lld\n",
-	b, h, i, l, f, d, ll);*/
+  /*	printf("_testfunc_f_bhilfdll got %d %d %d %ld %t %f %f %lld\n",
+	b, h, i, l, p, f, d, ll);*/
 
-	return (float)(b + h + i + l + f + d + ll);
+	return (float)(b + h + i + l + p + f + d + ll);
 }
 
-EXPORT(double) _testfunc_d_bhilfdll(signed char b, short h, int i, long l, float f, double d, long long ll)
+EXPORT(double) _testfunc_d_bhilpfdll(signed char b, short h, int i, long l, ptrdiff_t p, float f, double d, long long ll)
 {
-  /*	printf("_testfunc_d_bhilfdll got %d %d %d %ld %f %f %lld\n",
-	b, h, i, l, f, d, ll);*/
+  /*	printf("_testfunc_d_bhilfdll got %d %d %d %ld %t %f %f %lld\n",
+	b, h, i, l, p, f, d, ll);*/
 
-	return (double)(b + h + i + l + f + d + ll);
+	return (double)(b + h + i + l + p + f + d + ll);
 }
 
 EXPORT(char *) _testfunc_p_p(void *s)
