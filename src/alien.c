@@ -37,6 +37,12 @@
 #elif PTRDIFF_MAX == 9223372036854775807
 # define ffi_type_size_t         ffi_type_uint64
 # define ffi_type_ptrdiff_t      ffi_type_sint64
+#elif defined(_WIN64)
+# define ffi_type_size_t         ffi_type_uint64
+# define ffi_type_ptrdiff_t      ffi_type_sint64
+#elif defined(WINDOWS)
+# define ffi_type_size_t         ffi_type_uint32
+# define ffi_type_ptrdiff_t      ffi_type_sint32
 #else
  #error "ptrdiff_t size not supported"
 #endif

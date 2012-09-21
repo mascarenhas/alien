@@ -31,7 +31,7 @@ install:
 	xcopy /E /S doc "$(PREFIX)\doc\"
 
 clean:
-	del src\alien\*.dll src\alien\*.obj src\alien\*.exp src\alien\*.lib src\alien\*.dll.manifest
+	del src\*.dll src\*.obj src\*.exp src\*.lib src\*.dll.manifest
 	del tests\alientest.dll tests\alientest.obj tests\alientest.exp tests\alientest.lib tests\alientest.dll.manifest
 
 test:
