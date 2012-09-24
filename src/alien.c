@@ -218,6 +218,11 @@ typedef struct {
 } alien_Function;
 
 typedef struct {
+  char *p;
+  size_t size;
+} alien_Buffer;
+
+typedef struct {
   alien_Type tag;
   union {
     void *p;
@@ -342,8 +347,8 @@ static alien_Function *alien_checkfunction(lua_State *L, int index) {
   return (alien_Function *)luaL_checkudata(L, index, ALIEN_FUNCTION_META);
 }
 
-static char *alien_checkbuffer(lua_State *L, int index) {
-  return (char *)*(void **)luaL_checkudata(L, index, ALIEN_BUFFER_META);
+static alien_Buffer *alien_checkbuffer(lua_State *L, int index) {
+  return (alien_Buffer *)luaL_checkudata(L, index, ALIEN_BUFFER_META);
 }
 
 static void *alien_touserdata(lua_State *L, int index) {
@@ -852,7 +857,8 @@ static int alien_unwrap(lua_State *L) {
 
 static int alien_buffer_new(lua_State *L) {
   size_t size = 0;
-  void **ud, *p;
+  void *p;
+  alien_Buffer *ud;
   if(lua_type(L, 1) == LUA_TLIGHTUSERDATA) {
     p = lua_touserdata(L, 1);
   } else {
@@ -875,64 +881,62 @@ static int alien_buffer_new(lua_State *L) {
     }
     p = b;
   }
-  ud = lua_newuserdata(L, sizeof(void*));
+  ud = lua_newuserdata(L, sizeof(alien_Buffer));
   if (!ud)
     return luaL_error(L, "alien: cannot allocate buffer");
-  *ud = p;
-  lua_newtable(L);
-  lua_pushnumber(L, size);
-  lua_setfield(L, -2, "length");
-  lua_setuservalue(L, -2);
+  ud->p = p;
+  ud->size = size;
   luaL_getmetatable(L, ALIEN_BUFFER_META);
   lua_setmetatable(L, -2);
   return 1;
 }
 
 static int alien_buffer_gc(lua_State *L) {
-  size_t size;
-  char *b = alien_checkbuffer(L, 1);
-  lua_getuservalue(L, 1);
-  lua_getfield(L, -1, "length");
-  size = lua_tointeger(L, -1);
-  if (size > 0) {
+  alien_Buffer *ab = alien_checkbuffer(L, 1);
+  if (ab->size > 0) {
     void *aud;
     lua_Alloc lalloc = lua_getallocf(L, &aud);
-    lalloc(aud, b, size, 0);
+    lalloc(aud, ab->p, ab->size, 0);
   }
   lua_pop(L, 2);
   return 0;
 }
 
+static int alien_buffer_length(lua_State *L) {
+  lua_pushinteger(L, alien_checkbuffer(L, 1)->size);
+  return 1;
+}
+
 static int alien_buffer_tostring(lua_State *L) {
   size_t size;
   ptrdiff_t offset;
-  char *b = alien_checkbuffer(L, 1);
+  alien_Buffer *ab = alien_checkbuffer(L, 1);
   if(lua_gettop(L) < 2 || lua_isnil(L, 2)) {
-    size = strlen(b);
+    size = strlen(ab->p);
     offset = 0;
   } else {
     size = luaL_checkinteger(L, 2);
     offset = luaL_optinteger(L, 3, 1) - 1;
   }
-  lua_pushlstring(L, b + offset, size);
+  lua_pushlstring(L, ab->p + offset, size);
   return 1;
 }
 
 static int alien_buffer_strlen(lua_State *L) {
-  char *b = alien_checkbuffer(L, 1);
+  char *b = alien_checkbuffer(L, 1)->p;
   lua_pushinteger(L, strlen(b));
   return 1;
 }
 
 static int alien_buffer_topointer(lua_State *L) {
-  char *b = alien_checkbuffer(L, 1);
+  char *b = alien_checkbuffer(L, 1)->p;
   ptrdiff_t offset = luaL_optinteger(L, 2, 1) - 1;
   lua_pushlightuserdata(L, b + offset);
   return 1;
 }
 
 static int alien_buffer_tooffset(lua_State *L) {
-  char *b = alien_checkbuffer(L, 1);
+  char *b = alien_checkbuffer(L, 1)->p;
   char *p;
   luaL_checktype(L, 2, LUA_TLIGHTUSERDATA);
   p = lua_touserdata(L, 2);
@@ -943,7 +947,7 @@ static int alien_buffer_tooffset(lua_State *L) {
 }
 
 static int alien_buffer_set(lua_State *L) {
-  char *b = alien_checkbuffer(L, 1);
+  char *b = alien_checkbuffer(L, 1)->p;
   ptrdiff_t offset = luaL_checkinteger(L, 2) - 1;
   int type = luaL_checkoption(L, 4, "char", alien_typenames);
   switch(type) {
@@ -980,19 +984,13 @@ static int alien_buffer_set(lua_State *L) {
 static int alien_buffer_realloc(lua_State *L) {
   void *aud;
   lua_Alloc lalloc = lua_getallocf(L, &aud);
-  void **ud = (void **)luaL_checkudata(L, 1, ALIEN_BUFFER_META);
-  size_t size = luaL_optinteger(L, 2, 1), oldsize;
-  lua_getuservalue(L, 1);
-  lua_getfield(L, -1, "length");
-  oldsize = lua_tointeger(L, -1);
-  lua_pop(L, 1);
+  alien_Buffer *ab = alien_checkbuffer(L, 1);
+  size_t size = luaL_optinteger(L, 2, 1), oldsize = ab->size;
   if (oldsize == 0)
     return luaL_error(L, "alien: buffer to realloc has no size, or non-numeric size");
-  *ud = (char*)lalloc(aud, *ud, oldsize, size);
-  if(!*ud) return luaL_error(L, "alien: out of memory");
-  lua_pushinteger(L, size);
-  lua_setfield(L, -2, "length");
-  lua_pushlightuserdata(L, *ud);
+  ab->p = (char*)lalloc(aud, ab->p, oldsize, size);
+  if(!ab->p) return luaL_error(L, "alien: out of memory");
+  ab->size = size;
   return 1;
 }
 
@@ -1005,7 +1003,7 @@ static int alien_buffer_get(lua_State *L) {
                                 &alien_buffer_set,
                                 &alien_buffer_realloc};
   static const char *const funcnames[] = { "tostring", "topointer", "tooffset", "strlen", "get", "set", "realloc", NULL };
-  char *b = alien_checkbuffer(L, 1);
+  char *b = alien_checkbuffer(L, 1)->p;
   if(lua_type(L, 2) == LUA_TSTRING) {
     lua_getuservalue(L, 1);
     if(!lua_isnil(L, -1))
@@ -1237,6 +1235,9 @@ int luaopen_alien_c(lua_State *L) {
   luaL_newmetatable(L, ALIEN_BUFFER_META);
   lua_pushliteral(L, "__gc");
   lua_pushcfunction(L, alien_buffer_gc);
+  lua_settable(L, -3);
+  lua_pushliteral(L, "__len");
+  lua_pushcfunction(L, alien_buffer_length);
   lua_settable(L, -3);
   lua_pushliteral(L, "__index");
   lua_pushcfunction(L, alien_buffer_get);

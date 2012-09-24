@@ -472,7 +472,7 @@ do
   io.write(".")
   local buf = alien.buffer(4)
   buf:realloc(8)
-  assert(buf.length == 8)
+  assert(#buf == 8)
 end
 
 io.write(".")
