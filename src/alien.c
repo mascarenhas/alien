@@ -881,7 +881,7 @@ static int alien_buffer_new(lua_State *L) {
   *ud = p;
   lua_newtable(L);
   lua_pushnumber(L, size);
-  lua_setfield(L, -2, "size");
+  lua_setfield(L, -2, "length");
   lua_setuservalue(L, -2);
   luaL_getmetatable(L, ALIEN_BUFFER_META);
   lua_setmetatable(L, -2);
@@ -892,7 +892,7 @@ static int alien_buffer_gc(lua_State *L) {
   size_t size;
   char *b = alien_checkbuffer(L, 1);
   lua_getuservalue(L, 1);
-  lua_getfield(L, -1, "size");
+  lua_getfield(L, -1, "length");
   size = lua_tointeger(L, -1);
   if (size > 0) {
     void *aud;
@@ -983,7 +983,7 @@ static int alien_buffer_realloc(lua_State *L) {
   void **ud = (void **)luaL_checkudata(L, 1, ALIEN_BUFFER_META);
   size_t size = luaL_optinteger(L, 2, 1), oldsize;
   lua_getuservalue(L, 1);
-  lua_getfield(L, -1, "size");
+  lua_getfield(L, -1, "length");
   oldsize = lua_tointeger(L, -1);
   lua_pop(L, 1);
   if (oldsize == 0)
@@ -991,7 +991,7 @@ static int alien_buffer_realloc(lua_State *L) {
   *ud = (char*)lalloc(aud, *ud, oldsize, size);
   if(!*ud) return luaL_error(L, "alien: out of memory");
   lua_pushinteger(L, size);
-  lua_setfield(L, -2, "size");
+  lua_setfield(L, -2, "length");
   lua_pushlightuserdata(L, *ud);
   return 1;
 }
