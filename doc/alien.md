@@ -474,6 +474,10 @@ name is stolen from Common Lisp FFIs.
 Changelog
 ---------
 
+* 0.7.0: feature release
+  * replace buffer's size field with a __len metamethod
+  * rename buffer:len to buffer:strlen to avoid confusion
+
 * 0.6.1: feature release
   * add support for size\_t and ptrdiff\_t types.
   * add buffer:tooffset method to turn pointers into buffer offsets
