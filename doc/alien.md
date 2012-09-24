@@ -145,7 +145,7 @@ it will use this userdata as the buffer (be careful with that).
 After making a buffer you can pass it in place of any argument of
 *string* or *pointer* type.
 
-`buf.length` gives its size in bytes, while `buf:strlen()` returns the
+`#buf` gives its size in bytes, while `buf:strlen()` returns the
 result of calling `strlen` on the buffer.
 
 You can access the i-th character of a buffer with `buf[i]`, and you can
