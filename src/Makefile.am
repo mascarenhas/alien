@@ -1,5 +1,5 @@
 dist_data_DATA += src/alien.lua
-bin_SCRIPTS += src/constants
+bin_SCRIPTS += $(top_srcdir)/src/constants
 
 lib_LTLIBRARIES += src/alien_c.la
 

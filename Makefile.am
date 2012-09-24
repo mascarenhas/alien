@@ -10,7 +10,7 @@ check_LTLIBRARIES =
 dist_data_DATA =
 dist_doc_DATA =
 lib_LTLIBRARIES =
-EXTRA_DIST =
+EXTRA_DIST = $(PACKAGE).rockspec.in
 
 include build-aux/Makefile.am
 include doc/Makefile.am
