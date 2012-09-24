@@ -161,6 +161,7 @@ function _M.array(t, length, init)
     length = #length
   end
   local arr = { type = t, length = length, size = size, pinned = {} }
+  -- FIXME: When Lua 5.1 support is dropped, add a __len metamethod
   setmetatable(arr, { __index = array_get, __newindex = array_set })
   if type(init) == "userdata" then
     arr.buffer = init
