@@ -145,7 +145,7 @@ it will use this userdata as the buffer (be careful with that).
 After making a buffer you can pass it in place of any argument of
 *string* or *pointer* type.
 
-`buf.size` gives its size in bytes, while `buf:len()` returns the
+`buf.size` gives its size in bytes, while `buf:strlen()` returns the
 result of calling `strlen` on the buffer.
 
 You can access the i-th character of a buffer with `buf[i]`, and you can
@@ -368,7 +368,7 @@ example, using *qsort*:
     qsort:types("void", "pointer", "int", "int", "callback")
     
     local chars = alien.buffer("spam, spam, and spam")
-    qsort(chars, chars:len(), alien.sizeof("char"), cmp_cb)
+    qsort(chars, chars:strlen(), alien.sizeof("char"), cmp_cb)
     assert(chars:tostring() == "   ,,aaaadmmmnpppsss")
 
 The *qsort* function sorts an array in-place, so we have to use a

@@ -918,7 +918,7 @@ static int alien_buffer_tostring(lua_State *L) {
   return 1;
 }
 
-static int alien_buffer_len(lua_State *L) {
+static int alien_buffer_strlen(lua_State *L) {
   char *b = alien_checkbuffer(L, 1);
   lua_pushinteger(L, strlen(b));
   return 1;
@@ -1000,11 +1000,11 @@ static int alien_buffer_get(lua_State *L) {
   static const void* funcs[] = {&alien_buffer_tostring,
                                 &alien_buffer_topointer,
                                 &alien_buffer_tooffset,
-                                &alien_buffer_len,
+                                &alien_buffer_strlen,
                                 &alien_buffer_get,
                                 &alien_buffer_set,
                                 &alien_buffer_realloc};
-  static const char *const funcnames[] = { "tostring", "topointer", "tooffset", "len", "get", "set", "realloc", NULL };
+  static const char *const funcnames[] = { "tostring", "topointer", "tooffset", "strlen", "get", "set", "realloc", NULL };
   char *b = alien_checkbuffer(L, 1);
   if(lua_type(L, 2) == LUA_TSTRING) {
     lua_getuservalue(L, 1);
