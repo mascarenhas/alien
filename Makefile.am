@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CPPFLAGS = $(LUA_INCLUDE)
 AM_CFLAGS = $(CFLAGS_STACK)
 
-bin_SCRIPTS =
+dist_bin_SCRIPTS =
 check_LTLIBRARIES =
 dist_data_DATA =
 dist_doc_DATA =
