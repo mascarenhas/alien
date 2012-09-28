@@ -357,6 +357,18 @@ static void *alien_touserdata(lua_State *L, int index) {
   return luaL_testudata(L, index, ALIEN_BUFFER_META) ? *(void **)ud : ud;
 }
 
+static void *alien_checknonnull(lua_State *L, int index) {
+  void *p = alien_touserdata(L, index);
+  if(!p) {
+    /* Calls to luaL_typerror cannot be preceded by "return" as it's
+       the wrong type here. */
+    if (lua_isuserdata(L, index))
+      luaL_typerror(L, index, "non-NULL argument");
+    luaL_typerror(L, 1, "userdata");
+  }
+  return p;
+}
+
 static int alien_load(lua_State *L) {
   size_t len;
   void *aud, *lib;
@@ -855,6 +867,8 @@ static int alien_unwrap(lua_State *L) {
   return lua_gettop(L) - 2;
 }
 
+static char alien_buffer_empty; /* Zero-length buffer */
+
 static int alien_buffer_new(lua_State *L) {
   size_t size = 0;
   void *p;
@@ -872,8 +886,8 @@ static int alien_buffer_new(lua_State *L) {
       s = NULL;
       size = luaL_optinteger(L, 1, BUFSIZ);
     }
-    b = (char *)lalloc(aud, NULL, 0, size);
-    if(!b)
+    b = size == 0 ? &alien_buffer_empty : (char *)lalloc(aud, NULL, 0, size);
+    if(b == NULL)
       return luaL_error(L, "alien: cannot allocate buffer");
     if(s) {
       memcpy(b, s, size - 1);
@@ -964,17 +978,17 @@ static int alien_buffer_set(lua_State *L) {
   case AT_float: *((float*)(&b[offset])) = (float)lua_tonumber(L, 3); break;
   case AT_double: *((double*)(&b[offset])) = (double)lua_tonumber(L, 3); break;
   case AT_pointer:
-        if(lua_isnil(L, 3) || lua_isuserdata(L, 3)) {
-          *((void**)(&b[offset])) = alien_touserdata(L, 3);
-          break;
-        }
-        /* FALLTHROUGH, hence pointer before string */
+    if(lua_isnil(L, 3) || lua_isuserdata(L, 3)) {
+      *((void**)(&b[offset])) = alien_touserdata(L, 3);
+      break;
+    }
+    /* FALLTHROUGH, hence pointer before string */
   case AT_string: {
-       size_t size;
-       const char *s = lua_tolstring(L, 3, &size);
-       memcpy(*((char**)(&b[offset])), s, size + 1);
-       break;
-      }
+    size_t size;
+    const char *s = lua_tolstring(L, 3, &size);
+    memcpy(*((char**)(&b[offset])), s, size + 1);
+    break;
+  }
   case AT_callback: *((void**)(&b[offset])) = (alien_Function *)alien_checkfunction(L, 3)->fn; break;
   default: return luaL_error(L, "alien: unknown type in buffer:put");
   }
@@ -989,7 +1003,8 @@ static int alien_buffer_realloc(lua_State *L) {
   if (oldsize == 0)
     return luaL_error(L, "alien: buffer to realloc has no size, or non-numeric size");
   ab->p = (char*)lalloc(aud, ab->p, oldsize, size);
-  if(!ab->p) return luaL_error(L, "alien: out of memory");
+  if (size == 0) ab->p = &alien_buffer_empty;
+  if (ab->p == NULL) return luaL_error(L, "alien: foo out of memory");
   ab->size = size;
   return 1;
 }
@@ -1115,13 +1130,11 @@ static int alien_errno(lua_State *L) {
 static int alien_memmove(lua_State *L) {
   void* src;
   size_t size;
-  void *dst = alien_touserdata(L, 1);
-  if(!dst)
-    return luaL_typerror(L, 1, "userdata");
+  void *dst = alien_checknonnull(L, 1);
   if (!(lua_isuserdata(L, 2) || lua_isstring(L, 2)))
     return luaL_typerror(L, 2, "string or userdata");
   if (lua_isuserdata(L, 2)) {
-    src = alien_touserdata(L, 2);
+    src = alien_checknonnull(L, 2);
     size = luaL_checkinteger(L, 3);
   } else {
     src = (void*)lua_tolstring(L, 2, &size);

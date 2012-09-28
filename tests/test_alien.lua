@@ -337,6 +337,15 @@ do
   alien.buffer()
 end
 
+do
+  io.write(".")
+  local buf = alien.buffer()
+  buf:realloc (0)
+  buf = alien.buffer(0)
+  assert(buf:tostring() == "")
+  assert(buf:strlen() == 0)
+end
+
 for _, t in ipairs(types) do
   local buf = alien.buffer(alien.sizeof(t))
   local ptr = buf:topointer()
