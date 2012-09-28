@@ -354,7 +354,7 @@ static alien_Buffer *alien_checkbuffer(lua_State *L, int index) {
 static void *alien_touserdata(lua_State *L, int index) {
   void *ud = lua_touserdata(L, index);
   if(!ud) return NULL;
-  return luaL_testudata(L, index, ALIEN_BUFFER_META) ? *(void **)ud : ud;
+  return luaL_testudata(L, index, ALIEN_BUFFER_META) ? ((alien_Buffer *)ud)->p : ud;
 }
 
 static void *alien_checknonnull(lua_State *L, int index) {
