@@ -187,7 +187,8 @@ An example of how to use a buffer:
     >
 
 Alien also provides `alien.memmove` and `alien.memset`, which work exactly like the C functions
-of the same name, and can be used on buffers or other memory.
+of the same name, and can be used on buffers or other memory. `alien.memmove` can take a string as
+its second (source) argument.
 
 Arrays
 ------
