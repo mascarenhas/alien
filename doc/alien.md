@@ -145,7 +145,7 @@ it will use this userdata as the buffer (be careful with that).
 After making a buffer you can pass it in place of any argument of
 *string* or *pointer* type.
 
-`buf.size` gives its size in bytes, while `buf:len()` returns the
+`#buf` gives its size in bytes, while `buf:strlen()` returns the
 result of calling `strlen` on the buffer.
 
 You can access the i-th character of a buffer with `buf[i]`, and you can
@@ -187,7 +187,8 @@ An example of how to use a buffer:
     >
 
 Alien also provides `alien.memmove` and `alien.memset`, which work exactly like the C functions
-of the same name, and can be used on buffers or other memory.
+of the same name, and can be used on buffers or other memory. `alien.memmove` can take a string as
+its second (source) argument.
 
 Arrays
 ------
@@ -368,7 +369,7 @@ example, using *qsort*:
     qsort:types("void", "pointer", "int", "int", "callback")
     
     local chars = alien.buffer("spam, spam, and spam")
-    qsort(chars, chars:len(), alien.sizeof("char"), cmp_cb)
+    qsort(chars, chars:strlen(), alien.sizeof("char"), cmp_cb)
     assert(chars:tostring() == "   ,,aaaadmmmnpppsss")
 
 The *qsort* function sorts an array in-place, so we have to use a
@@ -473,6 +474,10 @@ name is stolen from Common Lisp FFIs.
 
 Changelog
 ---------
+
+* 0.7.0: feature release
+  * replace buffer's size field with a __len metamethod
+  * rename buffer:len to buffer:strlen to avoid confusion
 
 * 0.6.1: feature release
   * add support for size\_t and ptrdiff\_t types.

@@ -20,6 +20,7 @@ external_dependencies = {
 }
 build = {
   type = "command",
-  build_command = "./configure LUA=$(LUA) CPPFLAGS='-I$(LUA_INCDIR) -I$(FFI_INCDIR)' LDFLAGS=-L$(FFI_LIBDIR) --prefix=$(PREFIX) --libdir=$(LIBDIR) --datadir=$(LUADIR)",
-  install_command = "make install"
+  build_command = "./configure LUA=$(LUA) CPPFLAGS='-I$(LUA_INCDIR) -I$(FFI_INCDIR)' LDFLAGS=-L$(FFI_LIBDIR) --prefix=$(PREFIX) --libdir=$(LIBDIR) --datadir=$(LUADIR) && make clean && make",
+  install_command = "make install",
+  copy_directories = {}
 }

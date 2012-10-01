@@ -263,7 +263,7 @@ do
   local qsort = dll.my_qsort
   qsort:types("void", "pointer", "int", "int", "callback")
   local chars = alien.buffer("spam, spam, and spam")
-  qsort(chars, chars:len(), alien.sizeof("char"), compare)
+  qsort(chars, chars:strlen(), alien.sizeof("char"), compare)
   assert(chars:tostring() == "   ,,aaaadmmmnpppsss")
 end
 
@@ -274,7 +274,7 @@ do
   local qsort = dll.my_qsort
   qsort:types("void", "pointer", "int", "int", "callback")
   local chars = alien.buffer("spam, spam, and spam")
-  qsort(chars, chars:len(), alien.sizeof("char"), compare)
+  qsort(chars, chars:strlen(), alien.sizeof("char"), compare)
   assert(chars:tostring() == "   ,,aaaadmmmnpppsss")
 end
 
@@ -335,6 +335,15 @@ local types = { "char", "short", "int", "long" }
 do
   io.write(".")
   alien.buffer()
+end
+
+do
+  io.write(".")
+  local buf = alien.buffer()
+  buf:realloc (0)
+  buf = alien.buffer(0)
+  assert(buf:tostring() == "")
+  assert(buf:strlen() == 0)
 end
 
 for _, t in ipairs(types) do
@@ -472,7 +481,7 @@ do
   io.write(".")
   local buf = alien.buffer(4)
   buf:realloc(8)
-  assert(buf.size == 8)
+  assert(#buf == 8)
 end
 
 io.write(".")
