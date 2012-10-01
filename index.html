@@ -8,14 +8,15 @@ code without having to write, compile and link a C binding from the
 library to Lua. In other words, it lets you write extensions that call
 out to native code using just Lua.</p>
 
-<p>Be careful when you use Alien: I tried to make it as safe as possible,
+<p>Be careful when you use Alien: care has been taken to make it safe,
 but it is still very easy to crash Lua if you make a mistake. Alien
 itself is not as robust as a standard Lua extension, but you can use
 it to write extensions that won&rsquo;t crash if you code them well.</p>
 
-<p>Alien works on Unix-based systems and Windows. It has been tested on Linux x86,
-Linux x64, Linux ARM, FreeBSD x86, Windows x86, OS X x86, and OS X PPC. The Windows
-binary uses MSVCR80.DLL for compatibility with LuaBinaries.</p>
+<p>Alien works on Unix-based systems and Windows. It has been tested on
+Linux x86, Linux x86_64, Linux ARM, FreeBSD x86, Windows x86, OS X
+x86, and OS X PPC. The Windows binary uses MSVCR80.DLL for
+compatibility with LuaBinaries.</p>
 
 <h2>Installing Alien</h2>
 
@@ -58,13 +59,14 @@ alien function puts, library defaults
 
 <p>To use a function you first have to tell Alien the function prototype,
 using <em>func:types(ret_type, arg_types&hellip;)</em>, where the types are one of
-the following strings: &ldquo;void&rdquo;, &ldquo;int&rdquo;, &ldquo;uint&rdquo;, &ldquo;double&rdquo;, &ldquo;char&rdquo;, &ldquo;string&rdquo;,
-&ldquo;pointer&rdquo;, &ldquo;ref int&rdquo;, &ldquo;ref uint&rdquo;, &ldquo;ref double&rdquo;, &ldquo;ref char&rdquo;, &ldquo;callback&rdquo;, &ldquo;short&rdquo;, &ldquo;ushort&rdquo;,
-&ldquo;byte&rdquo;, &ldquo;long&rdquo;, &ldquo;ulong&rdquo;, &ldquo;longlong&rdquo;, &ldquo;ulonglong&rdquo; and &ldquo;float&rdquo;. Most correspond directly to C types;
-<em>byte</em> is a signed char, <em>string</em> is <em>const char*</em>, <em>pointer</em> is <em>void*</em>,
-<em>callback</em> is a generic function pointer, and <em>ref char</em>, <em>ref int</em>
-and <em>ref double</em> are by reference versions of the C types. Continuing
-the previous example:</p>
+the following strings: &ldquo;void&rdquo;, &ldquo;byte&rdquo;, &ldquo;char&rdquo;, &ldquo;short&rdquo;, &ldquo;ushort&rdquo;,
+&ldquo;int&rdquo;, &ldquo;uint&rdquo;, &ldquo;long&rdquo;, &ldquo;ulong&rdquo;, &ldquo;ptrdiff_t&rdquo;, &ldquo;size_t&rdquo;, &ldquo;float&rdquo;,
+&ldquo;double&rdquo;, &ldquo;string&rdquo;, &ldquo;pointer&rdquo;, &ldquo;ref char&rdquo;, &ldquo;ref int&rdquo;, &ldquo;ref uint&rdquo;, &ldquo;ref
+double&rdquo;, &ldquo;longlong&rdquo;, &ldquo;ulonglong&rdquo; and &ldquo;callback&rdquo;. Most correspond
+directly to C types; <em>byte</em> is a signed char, <em>string</em> is <em>const
+char*</em>, <em>pointer</em> is <em>void*</em>, <em>callback</em> is a generic function
+pointer, and <em>ref char</em>, <em>ref int</em> and <em>ref double</em> are by reference
+versions of the C types. Continuing the previous example:</p>
 
 <pre><code>&gt; def.puts:types("int", "string")
 &gt; def.puts("foo")
@@ -99,8 +101,9 @@ after the function normal return value. An example, using <em>scanf</em>:</p>
 can see above.</p>
 
 <p>In most Lua implementations, &ldquo;longlong&rdquo; and &ldquo;ulonglong&rdquo; won&rsquo;t fit in a
-Lua number, so automatic conversion will sometimes fail. However, as
-long as you perform no computation on a long long, its value will be
+Lua number, so automatic conversion will sometimes fail; on 64-bit
+machines the same is true of &ldquo;ptrdiff_t&rdquo; and &ldquo;size_t&rdquo;. However, as
+long as you perform no computation on such a value, its value will be
 preserved, so you can receive it from C and pass it back to C without
 worrying.</p>
 
@@ -166,6 +169,8 @@ The second argument gives the offset to start at within the buffer, and defaults
 <code>tostring(buf)</code> is the same as <code>buf:tostring()</code>.</p>
 
 <p>To get a pointer to a buffer, use <code>buf:topointer(offset)</code>; the argument is optional, defaulting to 1.</p>
+
+<p>To turn a pointer into a buffer offset, use <code>buf:tooffset(pointer)</code>.</p>
 
 <p>You can reallocate a buffer using <code>buf:realloc(newsize)</code>. This uses the current Lua state&rsquo;s allocation
 function.</p>
@@ -476,10 +481,16 @@ name is stolen from Common Lisp FFIs.</p>
 <h2>Changelog</h2>
 
 <ul>
-<li><p>0.6.0</p>
+<li><p>0.6.1: feature release</p>
 
 <ul>
-<li>feature release</li>
+<li>add support for size_t and ptrdiff_t types.</li>
+<li>add buffer:tooffset method to turn pointers into buffer offsets</li>
+</ul>
+</li>
+<li><p>0.6.0: feature release</p>
+
+<ul>
 <li>add alien.memmove; make alien.memset work (previously it called memcpy by mistake)</li>
 <li>make buffers resizable</li>
 <li>add long long support</li>
@@ -491,10 +502,9 @@ name is stolen from Common Lisp FFIs.</p>
 <li>minor updates to documentation</li>
 </ul>
 </li>
-<li><p>0.5.1</p>
+<li><p>0.5.1: bugfix release</p>
 
 <ul>
-<li>bugfix release</li>
 <li>support for Lua 5.2</li>
 <li>per-library function cache, instead of global (can load
 two functions with the same name from different libraries)</li>
@@ -551,7 +561,7 @@ two functions with the same name from different libraries)</li>
 
 <p>Alien&rsquo;s uses the MIT license, reproduced below:</p>
 
-<p>Copyright &copy; 2008-2009 Fabio Mascarenhas</p>
+<p>Copyright &copy; 2008-2012 Fabio Mascarenhas</p>
 
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the &ldquo;Software&rdquo;), to deal
