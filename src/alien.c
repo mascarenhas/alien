@@ -966,7 +966,7 @@ static int alien_buffer_set(lua_State *L) {
   int type = luaL_checkoption(L, 4, "char", alien_typenames);
   switch(type) {
   case AT_byte: b[offset] = (signed char)lua_tointeger(L, 3); break;
-  case AT_char: b[offset] = (char)lua_tointeger(L, 3); break;
+  case AT_char: b[offset] = (unsigned char)lua_tointeger(L, 3); break;
   case AT_short: *((short*)(&b[offset])) = (short)lua_tonumber(L, 3); break;
   case AT_ushort: *((unsigned short*)(&b[offset])) = (unsigned short)lua_tonumber(L, 3); break;
   case AT_int: *((int*)(&b[offset])) = (int)lua_tonumber(L, 3); break;
@@ -1032,7 +1032,7 @@ static int alien_buffer_get(lua_State *L) {
     int type = luaL_checkoption(L, 3, "char", alien_typenames);
     switch(type) {
     case AT_byte: lua_pushnumber(L, (signed char)b[offset]); break;
-    case AT_char: lua_pushnumber(L, b[offset]); break;
+    case AT_char: lua_pushnumber(L, (unsigned char)b[offset]); break;
     case AT_short: lua_pushnumber(L, *((short*)(&b[offset]))); break;
     case AT_ushort: lua_pushnumber(L, *((unsigned short*)(&b[offset]))); break;
     case AT_int: lua_pushnumber(L, *((int*)(&b[offset]))); break;
