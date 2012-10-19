@@ -145,7 +145,7 @@ it will use this userdata as the buffer (be careful with that).</p>
 <p>After making a buffer you can pass it in place of any argument of
 <em>string</em> or <em>pointer</em> type.</p>
 
-<p><code>buf.size</code> gives its size in bytes, while <code>buf:len()</code> returns the
+<p><code>#buf</code> gives its size in bytes, while <code>buf:strlen()</code> returns the
 result of calling <code>strlen</code> on the buffer.</p>
 
 <p>You can access the i-th character of a buffer with <code>buf[i]</code>, and you can
@@ -188,7 +188,8 @@ Foo bar
 </code></pre>
 
 <p>Alien also provides <code>alien.memmove</code> and <code>alien.memset</code>, which work exactly like the C functions
-of the same name, and can be used on buffers or other memory.</p>
+of the same name, and can be used on buffers or other memory. <code>alien.memmove</code> can take a string as
+its second (source) argument.</p>
 
 <h2>Arrays</h2>
 
@@ -374,7 +375,7 @@ local qsort = alien.default.qsort
 qsort:types("void", "pointer", "int", "int", "callback")
 
 local chars = alien.buffer("spam, spam, and spam")
-qsort(chars, chars:len(), alien.sizeof("char"), cmp_cb)
+qsort(chars, chars:strlen(), alien.sizeof("char"), cmp_cb)
 assert(chars:tostring() == "   ,,aaaadmmmnpppsss")
 </code></pre>
 
@@ -481,6 +482,13 @@ name is stolen from Common Lisp FFIs.</p>
 <h2>Changelog</h2>
 
 <ul>
+<li><p>0.7.0: feature release</p>
+
+<ul>
+<li>replace buffer&rsquo;s size field with a __len metamethod</li>
+<li>rename buffer:len to buffer:strlen to avoid confusion</li>
+</ul>
+</li>
 <li><p>0.6.1: feature release</p>
 
 <ul>
