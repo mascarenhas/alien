@@ -30,7 +30,29 @@ the test suite (<code>tests</code>) you can run the suite with:</p>
 <pre><code>lua -l luarocks.require test_alien.lua
 </code></pre>
 
-<p>Alien installs one modules, <code>alien</code>.</p>
+<p>Alien uses the GNU build system. For detailed instructions on
+installations that do not use LuaRocks, see INSTALL in the
+distribution.</p>
+
+<p>For a quick start, if you checked out sources from <a href="http://github.com/mascarenhas/alien">Github</a> (skip this
+step if you downloaded the .zip in the Downloads section):</p>
+
+<p>  ./bootstrap</p>
+
+<p>Then run:</p>
+
+<p>  ./configure &amp;&amp; make [&amp;&amp; make install]</p>
+
+<p>You may need to supply non-default paths (e.g. if you are using a
+system that supports more than one version of Lua). For example, on Debian or Ubuntu:</p>
+
+<p>  CPPFLAGS=&lsquo;-I/usr/include/lua5.1&rsquo; ./configure &ndash;libdir=/usr/local/lib/lua/5.1 &ndash;datadir=/usr/local/share/lua$</p>
+
+<p>To run some tests:</p>
+
+<p>  make check</p>
+
+<p>Alien installs one module, <code>alien</code>.</p>
 
 <h2>Basic Usage</h2>
 
