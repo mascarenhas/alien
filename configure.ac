@@ -36,12 +36,9 @@ esac
 AC_CHECK_LIB([ffi], [ffi_closure_alloc], , AC_MSG_FAILURE([cannot find new enough libffi]))
 AC_CHECK_HEADERS([stdint.h])
 
-dnl Lua 5.1
-AX_PROG_LUA(501, 503)
+dnl Lua >= 5.1
+AX_PROG_LUA(5.1, 5.4)
 AX_LUA_HEADERS
-AX_LUA_HEADERS_VERSION(501, 503)
-AC_SUBST(LUA)
-AC_SUBST(LUA_INCLUDE)
 
 dnl md5sum
 AX_WITH_PROG([MD5SUM], [md5sum], [false])

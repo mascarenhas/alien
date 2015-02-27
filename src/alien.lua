@@ -1,5 +1,3 @@
-
-
 local _M = require "alien_c"
 local alien = _M
 local io = require "io"
@@ -250,3 +248,5 @@ function _M.byval(buf)
     error("this type of buffer can't be passed by value")
   end
 end
+
+return alien
