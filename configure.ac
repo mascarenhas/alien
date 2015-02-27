@@ -43,5 +43,5 @@ AX_LUA_HEADERS
 dnl Generate output files
 AC_CONFIG_MACRO_DIR(m4)
 AC_CONFIG_HEADER(config.h)
-AC_CONFIG_FILES(Makefile $PACKAGE.rockspec)
+AC_CONFIG_FILES(Makefile $PACKAGE-$VERSION-1.rockspec:$PACKAGE.rockspec.in)
 AC_OUTPUT

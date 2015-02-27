@@ -10,21 +10,13 @@ check_LTLIBRARIES =
 dist_data_DATA =
 dist_doc_DATA =
 lib_LTLIBRARIES =
-EXTRA_DIST = $(PACKAGE).rockspec.in
+EXTRA_DIST = $(PACKAGE).rockspec.in $(PACKAGE)-$(VERSION)-1.rockspec
 
 include build-aux/Makefile.am
 include doc/Makefile.am
 include samples/Makefile.am
 include src/Makefile.am
 include tests/Makefile.am
-
-ROCKSPEC = $(PACKAGE)-$(VERSION)-1.rockspec
-
-$(ROCKSPEC): $(PACKAGE).rockspec.in
-	./config.status --recheck
-	cp $(PACKAGE).rockspec $@
-
-DISTCLEANFILES = $(PACKAGE).rockspec
 
 release: all
 	git diff --exit-code && \
