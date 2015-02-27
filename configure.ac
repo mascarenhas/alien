@@ -3,9 +3,9 @@ dnl Process this file with autoconf to produce a configure script
 AC_INIT(alien, 0.7.1, http://mascarenhas.github.com/alien)
 AC_CONFIG_AUX_DIR([build-aux])
 
-AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects dist-zip no-dist-gzip])
+AM_INIT_AUTOMAKE([1.11.1 -Wall -Werror foreign subdir-objects])
 
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+AM_SILENT_RULES([yes])
 
 dnl Check for programs
 ifdef([AM_PROG_AR], [AM_PROG_AR])
