@@ -40,9 +40,6 @@ dnl Lua >= 5.1
 AX_PROG_LUA(5.1, 5.4)
 AX_LUA_HEADERS
 
-dnl md5sum
-AX_WITH_PROG([MD5SUM], [md5sum], [false])
-
 dnl Generate output files
 AC_CONFIG_MACRO_DIR(m4)
 AC_CONFIG_HEADER(config.h)
