@@ -1,11 +1,11 @@
 dnl Process this file with autoconf to produce a configure script
 
-AC_INIT(alien, 0.7.0, http://mascarenhas.github.com/alien)
+AC_INIT(alien, 0.7.1, http://mascarenhas.github.com/alien)
 AC_CONFIG_AUX_DIR([build-aux])
 
-AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects dist-zip no-dist-gzip])
+AM_INIT_AUTOMAKE([1.11.1 -Wall -Werror foreign subdir-objects])
 
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+AM_SILENT_RULES([yes])
 
 dnl Check for programs
 ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -36,18 +36,12 @@ esac
 AC_CHECK_LIB([ffi], [ffi_closure_alloc], , AC_MSG_FAILURE([cannot find new enough libffi]))
 AC_CHECK_HEADERS([stdint.h])
 
-dnl Lua 5.1
-AX_PROG_LUA(501, 503)
+dnl Lua >= 5.1
+AX_PROG_LUA(5.1, 5.4)
 AX_LUA_HEADERS
-AX_LUA_HEADERS_VERSION(501, 503)
-AC_SUBST(LUA)
-AC_SUBST(LUA_INCLUDE)
-
-dnl md5sum
-AX_WITH_PROG([MD5SUM], [md5sum], [false])
 
 dnl Generate output files
 AC_CONFIG_MACRO_DIR(m4)
 AC_CONFIG_HEADER(config.h)
-AC_CONFIG_FILES(Makefile $PACKAGE.rockspec)
+AC_CONFIG_FILES(Makefile $PACKAGE-$VERSION-1.rockspec:$PACKAGE.rockspec.in)
 AC_OUTPUT

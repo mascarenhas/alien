@@ -1,4 +1,4 @@
-require "alien"
+alien = require "alien"
 
 local dll = alien.load "alientest"
 

@@ -40,7 +40,7 @@ system that supports more than one version of Lua):
 
 For example, on Debian or Ubuntu:
 
-  CPPFLAGS='-I/usr/include/lua5.1' ./configure --libdir=/usr/local/lib/lua/5.1 --datadir=/usr/local/share/lua/5.1 --with-lua-suffix=5.1
+  LUA=lua5.1 CPPFLAGS='-I/usr/include/lua5.1' ./configure --libdir=/usr/local/lib/lua/5.1 --datadir=/usr/local/share/lua/5.1
 
 To run some tests:
 

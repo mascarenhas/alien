@@ -1,7 +1,8 @@
 package="@PACKAGE@"
 version="@VERSION@-1"
 source = {
-   url = "http://cloud.github.com/downloads/@PACKAGE@/@PACKAGE@-@VERSION@.zip"
+  url = "git://github.com/mascarenhas/@PACKAGE@.git",
+  branch = "v@VERSION@"
 }
 description = {
   summary = "Lua->C FFI",

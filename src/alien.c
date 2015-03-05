@@ -48,7 +48,10 @@
 #endif
 
 
+/* Lua 5.1 compatibility for Lua 5.2 */
 #define LUA_COMPAT_ALL
+/* Lua 5.2 compatibility for Lua 5.3 */
+#define LUA_COMPAT_5_2
 
 #define MYNAME          "alien"
 #define MYVERSION       MYNAME " library for " LUA_VERSION " / " VERSION
@@ -56,6 +59,12 @@
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
+
+/* Lua 5.1 compatibility for Lua 5.3 */
+#if LUA_VERSION_NUM == 503
+#define lua_objlen(L,i)		(lua_rawlen(L, (i)))
+#define luaL_register(L,n,l)	(luaL_newlib(L,l))
+#endif
 
 /* The extra indirection to these macros is required so that if the
    arguments are themselves macros, they will get expanded too.  */
@@ -65,7 +74,7 @@
 #define LALLOC_FREE_STRING(lalloc, aud, s)              \
   (lalloc)((aud), (s), sizeof(char) * (strlen(s) + 1), 0)
 
-#if LUA_VERSION_NUM == 502
+#if LUA_VERSION_NUM >= 502
 static int luaL_typerror (lua_State *L, int narg, const char *tname) {
   const char *msg = lua_pushfstring(L, "%s expected, got %s",
                                     tname, luaL_typename(L, narg));
