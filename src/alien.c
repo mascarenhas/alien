@@ -4,6 +4,12 @@
 
 #include "config.h"
 
+#ifdef WIN32  
+# ifndef WINDOWS
+#  define WINDOWS
+# endif
+#endif
+
 #ifdef WINDOWS
 #define _CRT_SECURE_NO_DEPRECATE 1
 #include <windows.h>
