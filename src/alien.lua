@@ -183,20 +183,40 @@ local function struct_new(s_proto, ptr)
   local buf = alien.buffer(ptr or s_proto.size)
   local function struct_get(_, key)
     if s_proto.offsets[key] then
-      return buf:get(s_proto.offsets[key] + 1, s_proto.types[key])
+      if s_proto.types[key]=="char" and s_proto.elements[key] then
+        local s=""
+        for n=1,s_proto.elements[key] do
+          local c=buf:get(s_proto.offsets[key] + n, s_proto.types[key])
+          if c==0 then break end
+          s=s..string.char(c)
+        end        
+        return s
+      else
+        return buf:get(s_proto.offsets[key] + 1, s_proto.types[key])
+      end
+      
     else
       error("field " .. key .. " does not exist")
     end
   end
   local function struct_set(_, key, val)
     if s_proto.offsets[key] then
-      buf:set(s_proto.offsets[key] + 1, val, s_proto.types[key])
+      if s_proto.types[key]=="char" and s_proto.elements[key] and type(val)=="string" then
+        for n=1,s_proto.elements[key] do
+          local c=string.byte(val:sub(n,n)) or 0          
+          buf:set(s_proto.offsets[key] + n, c, s_proto.types[key])
+        end        
+      else
+        buf:set(s_proto.offsets[key] + 1, val, s_proto.types[key])
+      end      
     else
       error("field " .. key .. " does not exist")
     end
   end
   return setmetatable({}, { __index = struct_get, __newindex = struct_set,
-                            __call = function () return buf end })
+                            __call = function () 
+                              return buf 
+                              end })
 end
 
 local function struct_byval(s_proto)
@@ -216,16 +236,19 @@ end
 
 function _M.defstruct(t)
   local off = 0
-  local names, offsets, types = {}, {}, {}
+  local names, offsets, types, elements = {}, {}, {}, {}
   for _, field in ipairs(t) do
-    local name, type = field[1], field[2]
+    local name, type, elems = field[1], field[2], field[3]
+    local sizeof=alien.sizeof(type)
+    if sizeof<1 then sizeof=1 end
     names[#names + 1] = name
     off = math.ceil(off / alien.align(type)) * alien.align(type)
     offsets[name] = off
     types[name] = type
-    off = off + alien.sizeof(type)
+    elements[name]=elems
+    off = off + sizeof * (elems or 1)
   end
-  return { names = names, offsets = offsets, types = types, size = off, new = struct_new,
+  return { names = names, offsets = offsets, types = types, elements = elements, size = off, new = struct_new,
            byval = struct_byval }
 end
 
