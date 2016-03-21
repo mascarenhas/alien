@@ -26,6 +26,13 @@ Installing Alien
 The easiest way to install Alien is through
 [LuaRocks](http://luarocks.org). Just do `luarocks install alien`.
 
+Alien is based on libffi. On a GNU/Linux system you should be able
+to install it with your package manager; it is probably called
+something like `libffi-dev` (Debian, Ubuntu etc.) or `libffi-devel`
+(Fedora, CentOS etc.). If your system's package manager does not
+have libffi, or you don't have a package manager, you can get the
+source code from [the libffi project](http://sources.redhat.com/libffi/).
+
 Go to the Alien rock directory to see local copies of this
 documentation, as well as the test suite. If you are in the path of
 the test suite (`tests`) you can run the suite with:
