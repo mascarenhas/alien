@@ -201,7 +201,7 @@ static const char *const alien_typenames[] =  {
 
 #ifdef WINDOWS
 
-static ffi_type* ffitypes[AT_ENTRY_COUNT];
+static ffi_type* ffitypes[AT_ENTRY_COUNT + 1];
 
 #else
 
