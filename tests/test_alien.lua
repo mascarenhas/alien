@@ -573,6 +573,7 @@ end
 do
   io.write(".")
    local buf = alien.buffer('123456')
+   assert(buf.tostring ~= _G.tostring)
    assert(alien.buffer(buf:topointer(3)):tostring(3,2)=='456')
 
    --buf:set(1,'123abc')
