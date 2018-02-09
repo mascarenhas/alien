@@ -572,6 +572,12 @@ static int alien_callback_new(lua_State *L) {
   return 1;
 }
 
+#ifdef _MSC_VER
+#pragma warning( push )
+/* Disable warning about sizeof(void) */
+#pragma warning( disable:4034 )
+#endif
+
 static int alien_sizeof(lua_State *L) {
   static const size_t sizes[] = {
 #define MENTRY(_n, _b, _s, _a)  sizeof(_s),
@@ -582,6 +588,10 @@ static int alien_sizeof(lua_State *L) {
   lua_pushinteger(L, sizes[luaL_checkoption(L, 1, "int", alien_typenames)]);
   return 1;
 }
+
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
 static int alien_align(lua_State *L) {
   static const size_t aligns[] = {
