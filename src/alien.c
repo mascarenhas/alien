@@ -917,6 +917,8 @@ static int alien_buffer_new(lua_State *L) {
   ud = lua_newuserdata(L, sizeof(alien_Buffer));
   if (!ud)
     return luaL_error(L, "alien: cannot allocate buffer");
+  lua_newtable(L);
+  lua_setuservalue(L, -2);
   ud->p = p;
   ud->size = size;
   luaL_getmetatable(L, ALIEN_BUFFER_META);
