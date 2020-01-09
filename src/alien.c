@@ -542,34 +542,74 @@ static void alien_callback_call(ffi_cif *cif, void *resp, void **args, void *dat
 }
 
 static int alien_callback_new(lua_State *L) {
-  alien_Function *ac;
-  ffi_status status;
-  luaL_checktype(L, 1, LUA_TFUNCTION);
-  ac = (alien_Function *)lua_newuserdata(L, sizeof(alien_Function));
-  if(!ac) return luaL_error(L, "alien: out of memory");
-  ac->fn = ffi_closure_alloc(sizeof(ffi_closure), &ac->ffi_codeloc);
-  if(ac->fn == NULL) return luaL_error(L, "alien: cannot allocate callback");
-  ac->L = L;
-  ac->ret_type = AT_void;
-  ac->ffi_ret_type = &ffi_type_void;
-  ac->nparams = 0;
-  ac->params = NULL;
-  ac->ffi_params = NULL;
-  lua_pushvalue(L, 1);
-  ac->fn_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-  luaL_getmetatable(L, ALIEN_FUNCTION_META);
-  lua_setmetatable(L, -2);
-  status = ffi_prep_cif(&(ac->cif), FFI_DEFAULT_ABI, ac->nparams,
-                        ac->ffi_ret_type, ac->ffi_params);
-  if(status == FFI_OK)
-    status = ffi_prep_closure_loc(ac->fn, &(ac->cif), &alien_callback_call, ac, ac->ffi_codeloc);
-  if(status != FFI_OK) {
-    ffi_closure_free(ac->fn);
-    return luaL_error(L, "alien: cannot create callback");
-  }
-  ac->lib = NULL;
-  ac->name = NULL;
-  return 1;
+    luaL_checktype(L, 1, LUA_TFUNCTION);
+    alien_Function *ac = (alien_Function *)lua_newuserdata(L, sizeof(alien_Function));
+    if (!ac) return luaL_error(L, "alien: out of memory");
+    ac->fn = ffi_closure_alloc(sizeof(ffi_closure), &ac->ffi_codeloc);
+    if (ac->fn == NULL) return luaL_error(L, "alien: cannot allocate callback");
+    ac->L = L;
+
+    ffi_abi abi;
+    if (lua_istable(L, 2)) {
+        lua_getfield(L, 2, "ret");
+        ac->ret_type = luaL_checkoption(L, -1, "int", alien_typenames);
+        ac->ffi_ret_type = ffitypes[ac->ret_type];
+        lua_getfield(L, 2, "abi");
+        abi = ffi_abis[luaL_checkoption(L, -1, "default", ffi_abi_names)];
+        lua_pop(L, 2);
+    }
+    else {
+        ac->ret_type = luaL_checkoption(L, 2, "int", alien_typenames);
+        ac->ffi_ret_type = ffitypes[ac->ret_type];
+        abi = FFI_DEFAULT_ABI;
+    }
+
+    ac->nparams = lua_istable(L, 2) ? lua_objlen(L, 2) : lua_gettop(L) - 2;
+    if (ac->nparams > 0) {
+        void *aud;
+        lua_Alloc lalloc = lua_getallocf(L, &aud);
+        ac->ffi_params = (ffi_type **)lalloc(aud, NULL, 0, sizeof(ffi_type *) * ac->nparams);
+        if (!ac->ffi_params) return luaL_error(L, "alien: out of memory");
+        ac->params = (alien_Type *)lalloc(aud, NULL, 0, ac->nparams * sizeof(alien_Type));
+        if (!ac->params) return luaL_error(L, "alien: out of memory");
+    }
+    else {
+        ac->ffi_params = NULL;
+        ac->params = NULL;
+    }
+    if (lua_istable(L, 2)) {
+        for (int i = 0; i < ac->nparams; i++) {
+            lua_rawgeti(L, 2, i + 1);
+            int type = luaL_checkoption(L, -1, "int", alien_typenames);
+            ac->params[i] = type;
+            ac->ffi_params[i] = ffitypes[type];
+            lua_pop(L, 1);
+        }
+    }
+    else {
+        for (int i = 0; i < ac->nparams; i++) {
+            int type = luaL_checkoption(L, i + 3, "int", alien_typenames);
+            ac->ffi_params[i] = ffitypes[type];
+            ac->params[i] = type;
+        }
+    }
+
+    lua_pushvalue(L, 1);
+    ac->fn_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    luaL_getmetatable(L, ALIEN_FUNCTION_META);
+    lua_setmetatable(L, -2);
+    ffi_status status = ffi_prep_cif(&(ac->cif), abi, ac->nparams,
+                                     ac->ffi_ret_type, ac->ffi_params);
+    if (status == FFI_OK)
+        status = ffi_prep_closure_loc(ac->fn, &(ac->cif), &alien_callback_call, ac, ac->ffi_codeloc);
+    if (status != FFI_OK) {
+        ffi_closure_free(ac->fn);
+        return luaL_error(L, "alien: cannot create callback");
+    }
+    ac->lib = NULL;
+    ac->name = NULL;
+
+    return 1;
 }
 
 static int alien_sizeof(lua_State *L) {
