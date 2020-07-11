@@ -54,10 +54,8 @@
 #endif
 
 
-/* Lua 5.1 compatibility for Lua 5.2 */
-#define LUA_COMPAT_ALL
-/* Lua 5.2 compatibility for Lua 5.3 */
-#define LUA_COMPAT_5_2
+/* Lua 5.3 compatibility for Lua 5.4 */
+#define LUA_COMPAT_5_3
 
 #define MYNAME          "alien"
 #define MYVERSION       MYNAME " library for " LUA_VERSION " / " VERSION
@@ -65,12 +63,6 @@
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
-
-/* Lua 5.1 compatibility for Lua 5.3 */
-#if LUA_VERSION_NUM == 503
-#define lua_objlen(L,i)		(lua_rawlen(L, (i)))
-#define luaL_register(L,n,l)	(luaL_newlib(L,l))
-#endif
 
 /* The extra indirection to these macros is required so that if the
    arguments are themselves macros, they will get expanded too.  */
@@ -621,7 +613,7 @@ static int alien_function_types(lua_State *L) {
     lalloc(aud, af->ffi_params, sizeof(ffi_type *) * af->nparams, 0);
     af->params = NULL; af->ffi_params = NULL;
   }
-  af->nparams = lua_istable(L, 2) ? lua_objlen(L, 2) : lua_gettop(L) - 2;
+  af->nparams = lua_istable(L, 2) ? lua_rawlen(L, 2) : lua_gettop(L) - 2;
   if(af->nparams > 0) {
     af->ffi_params = (ffi_type **)lalloc(aud, NULL, 0, sizeof(ffi_type *) * af->nparams);
     if(!af->ffi_params) return luaL_error(L, "alien: out of memory");
@@ -1283,7 +1275,7 @@ int luaopen_alien_c(lua_State *L) {
   lua_pop(L, 1);
 
   /* Register main library */
-  luaL_register(L, "alien", alienlib);
+  luaL_newlib(L, alienlib);
   /* Version */
   lua_pushliteral(L, MYVERSION);
   lua_setfield(L, -2, "version");

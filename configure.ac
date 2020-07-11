@@ -37,7 +37,7 @@ AC_CHECK_LIB([ffi], [ffi_closure_alloc], , AC_MSG_FAILURE([cannot find new enoug
 AC_CHECK_HEADERS([stdint.h])
 
 dnl Lua >= 5.1
-AX_PROG_LUA(5.1, 5.4)
+AX_PROG_LUA(5.1, 5.5)
 AX_LUA_HEADERS
 
 dnl Generate output files
