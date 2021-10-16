@@ -759,7 +759,7 @@ static int alien_function_call(lua_State *L) {
       arg = alloca(sizeof(unsigned long long)); *((unsigned long long*)arg) = (unsigned long long)lua_tonumber(L, j);
       break;
     case AT_callback:
-      arg = alloca(sizeof(void*)); *((void**)arg) = (alien_Function *)alien_checkfunction(L, j)->fn;
+      arg = alloca(sizeof(void*)); *((void**)arg) = alien_checkfunction(L, j)->ffi_codeloc;
       break;
     default:
       return luaL_error(L, "alien: parameter %d is of unknown type (function %s)", j,
