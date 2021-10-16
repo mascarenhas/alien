@@ -679,6 +679,7 @@ static int alien_function_call(lua_State *L) {
   if(nargs > 0) args = alloca(sizeof(void*) * nargs);
   for(i = 0; i < nargs; i++) {
     void *arg;
+    alien_Function *afc;
     int j = i + 2;
     switch(af->params[i]) {
     case AT_byte:
@@ -726,7 +727,12 @@ static int alien_function_call(lua_State *L) {
       break;
     case AT_pointer:
       arg = alloca(sizeof(char*));
-      *((void**)arg) = lua_isstring(L, j) ? (void*)lua_tostring(L, j) : alien_touserdata(L, j);
+      afc = luaL_testudata(L, j, ALIEN_FUNCTION_META);
+      if (afc) {
+        *((void**)arg) = afc->ffi_codeloc;
+      } else {
+        *((void**)arg) = lua_isstring(L, j) ? (void*)lua_tostring(L, j) : alien_touserdata(L, j);
+      }
       break;
     case AT_refchar:
       arg = alloca(sizeof(char *));
